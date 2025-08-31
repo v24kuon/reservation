@@ -1,0 +1,413 @@
+# ヨガ・ピラティス教室予約システム - プロジェクト概要
+
+## プロジェクト概要
+
+### アプリケーションの目的
+ヨガやピラティス等の教室の予約を自動化するシステムです。
+
+### 主要機能
+- **月謝制予約システム**: Stripeによるサブスクリプション決済
+- **複数店舗対応**: 店舗ごとのレッスン管理
+- **レッスン種類**: パーソナル・グループレッスン対応
+- **予約管理**: 月謝プランに応じた予約回数制限
+
+## 技術スタック
+
+### バックエンド
+- **PHP**: 8.4.11
+- **Laravel Framework**: 12.26.3
+- **データベース**:
+  - 開発環境: SQLite
+  - 本番環境: MySQL
+
+### フロントエンド
+- **基本**: Laravel Blade（サーバーサイドレンダリング）
+- **動的機能**: Livewire（必要な部分のみ）
+- **クライアントサイド**: Alpine.js（Livewireに含まれる）
+
+### 決済システム
+- **Stripe**: サブスクリプション決済
+- **Laravel Cashier**: Stripe統合ライブラリ
+- **Stripe Checkout**: 決済処理
+- **Webhook**: 自動同期
+
+### 開発ツール
+- **Laravel Head**: 開発環境
+- **Laravel Boost**: ^1.0
+- **Laravel Pint**: ^1.24
+- **Laravel Sail**: ^1.41
+- **Laravel Pail**: ^1.2.2
+- **PHPUnit**: ^11.5.3
+
+## システム設計
+
+### データベース設計（予定）
+
+#### 主要テーブル構成
+```
+users (ユーザー)
+├── id, name, email, password, role (user/instructor/admin), created_at, updated_at
+
+stores (店舗)
+├── id, name, address, phone, access_info, google_map_url, parking_info, notes, created_at, updated_at
+
+lesson_categories (レッスンカテゴリ)
+├── id, parent_id, name, description, is_active, sort_order, created_at, updated_at
+
+subscription_plans (月謝プラン)
+├── id, name, price, lesson_count, allowed_category_ids (JSON), description, is_active, created_at, updated_at
+
+user_subscriptions (ユーザーの月謝契約)
+├── id, user_id, plan_id, stripe_subscription_id, status, payment_status, failure_reason, current_period_start, current_period_end, current_month_used_count, created_at, updated_at
+
+lessons (レッスン)
+├── id, store_id, name, category_id, instructor_user_id, duration, capacity, booking_deadline_hours, cancel_deadline_hours, is_active, created_at, updated_at
+
+lesson_schedules (レッスンスケジュール)
+├── id, lesson_id, start_datetime, end_datetime, current_bookings, is_active, created_at, updated_at
+
+reservations (予約)
+├── id, user_id, lesson_schedule_id, user_subscription_id, status, reserved_at, created_at, updated_at
+
+user_favorites (ユーザーお気に入り)
+├── id, user_id, favoritable_type, favoritable_id, created_at, updated_at
+```
+
+### 機能設計
+
+#### ユーザー側機能
+- アカウント登録・ログイン
+- 月謝プラン選択・契約（Stripe決済）
+- レッスン予約・キャンセル
+- 予約履歴・利用状況確認
+- 店舗・レッスン検索・表示
+- お気に入り機能（店舗・インストラクター）
+
+#### インストラクター側機能
+- 自分のレッスン予約枠の作成・編集・削除
+- 自分のレッスンへの予約一覧確認
+
+#### 管理者側機能
+- 店舗管理（複数店舗対応）
+- レッスンカテゴリ管理（親カテゴリ・子カテゴリ階層）
+- レッスン管理（パーソナル・グループ）
+- 月謝プラン管理
+- 予約状況確認・管理
+- ユーザー・インストラクター管理
+
+## 詳細要件
+
+### 月謝プラン詳細
+
+#### グループレッスン（ピラティス・ヨガ）
+- **月1回券サブスク**: 3,300円（allowed_category_ids: [1, 2]）
+- **月2回券サブスク**: 6,000円（allowed_category_ids: [1, 2]）
+- **月4回券サブスク**: 11,000円（allowed_category_ids: [1, 2]）
+
+#### パーソナルレッスン（パーソナルレッスン）
+- **月1回券サブスク**: 4,000円（allowed_category_ids: [4]）
+- **月2回券サブスク**: 8,000円（allowed_category_ids: [4]）
+- **月4回券サブスク**: 12,000円（allowed_category_ids: [4]）
+
+#### プラン仕様
+- **支払い方法**: 毎月払い（契約日から1ヶ月ごと）
+- **未使用分**: 繰り越しなし（月次リセット）
+- **複数契約**: 1つのアカウントで複数プラン契約可能
+- **予約代理**: 家族・友人への代理予約不可
+- **レッスン制限**: サブスクリプションのカテゴリに応じたレッスンのみ予約可能
+
+### レッスン仕様
+
+#### 基本仕様
+- **基本時間**: 60分（設定可能）
+- **レッスンカテゴリ**: 階層構造で管理（親カテゴリ：パーソナルレッスン・グループレッスン、子カテゴリ：各レッスン種別）
+- **定員**: レッスンごとに個別設定
+- **インストラクター**: レッスン内容により変更
+
+#### 予約ルール
+- **予約可能期間**: 各レッスン毎に設定可能、デフォルト24時間前
+- **キャンセル期限**: 各レッスン毎に設定可能、デフォルト24時間前
+- **予約制限**: 同じ時間帯の重複予約防止
+
+#### インストラクター例
+- Aさんのパーソナル
+- グループヨガAさん担当
+- グループヨガBさん担当
+
+### 権限管理
+
+#### ユーザー権限
+- **一般ユーザー** (role: user): 予約・キャンセル・履歴確認
+- **インストラクター** (role: instructor): 自分のレッスン管理・予約一覧確認
+- **管理者** (role: admin): 全機能管理
+
+#### インストラクター機能
+- 自分のレッスン予約枠の作成・編集・削除
+- 自分のレッスンへの予約一覧確認
+
+#### セキュリティ対策
+- **ロール変更制限**: roleフィールドはfillableに含めず、専用メソッドでのみ変更可能
+- **認可制御**: Gates/Policiesによる多層防御
+- **ルート保護**: ミドルウェアによる権限チェック
+- **監査ログ**: ロール変更時の履歴記録
+- **CSRF保護**: セッション設定によるCSRF攻撃防止
+- **XSS防止**: Bladeテンプレートの自動エスケープ
+- **SQLインジェクション防止**: Eloquent ORMのパラメータバインディング
+- **セッションセキュリティ**: HTTPS専用・HTTPOnly・SameSite設定
+- **レート制限**: API・フォーム送信の頻度制限
+- **入力検証**: Form Requestによる厳密なバリデーション
+
+## ページ構成
+
+### メインページ
+1. **トップページ**: アプリケーションのメインページ
+   - パーソナルレッスンボタン → /reservations/personal
+   - グループレッスンボタン → /reservations/group
+2. **予約ページ**: レッスン予約・キャンセル機能
+   - 基本URL: /reservations/{category}（personal|group）
+   - 絞り込み: ?date=...&instructor=...&store=...（URLパラメータ）
+3. **店舗一覧**: 登録店舗の一覧・詳細表示・お気に入り登録/解除
+4. **インストラクター一覧**: インストラクターの一覧・詳細表示・お気に入り登録/解除
+5. **マイページ**: ユーザー情報・予約履歴・サブスクリプション管理・お気に入り管理
+
+### 認証・権限・UI要件
+- **認証状態**: 全ページログイン必須
+- **権限別表示**: ユーザー向けページは内容共通（ロールによる表示内容変更なし）
+- **レスポンシブ**: モバイルファーストデザイン
+
+*各ページの詳細仕様は後日記載予定*
+
+## 実装計画
+
+### Phase 1: 基盤構築
+- [ ] Livewireインストール・設定
+- [ ] ユーザー認証システム（Laravel Breeze/Fortify）
+- [ ] 認証ミドルウェア設定（全ページログイン必須）
+- [ ] 権限管理システム（Gates/Policies）
+- [ ] データベース設計・マイグレーション
+- [ ] 基本的なCRUD機能
+- [ ] モバイルファーストUI基盤構築
+- [ ] セキュリティ強化実装
+  - [ ] CSRF保護設定
+  - [ ] XSS防止設定
+  - [ ] セッションセキュリティ設定
+  - [ ] レート制限実装
+  - [ ] 入力検証（Form Request）実装
+
+### Phase 2: 月謝システム
+- [ ] Laravel Cashierインストール・設定
+- [ ] Stripe Products & Prices設定
+- [ ] Stripe Checkout統合
+- [ ] Webhook設定・自動同期
+- [ ] サブスクリプション管理
+- [ ] プラン管理機能
+- [ ] 決済失敗時のエラーハンドリング
+  - [ ] 段階的リトライ機能（最大3回、5秒→10秒→20秒）
+  - [ ] ユーザー通知機能（画面表示のみ）
+  - [ ] 手動再試行機能（ユーザー操作）
+
+### Phase 3: 予約システム
+- [ ] レッスン予約機能（Livewire）
+  - [ ] カテゴリー別予約ページ（/reservations/{category}）
+  - [ ] URLパラメータ絞り込み機能（日付・インストラクター・店舗）
+- [ ] 予約制限・重複チェック
+- [ ] 時間帯重複防止チェック
+- [ ] 定員制限チェック
+- [ ] 同一ユーザー重複防止
+- [ ] 月謝制限チェック
+- [ ] エラーハンドリング（ユーザーフレンドリーなメッセージ）
+- [ ] キャンセル機能
+- [ ] 通知機能（メール送信）
+- [ ] リマインダー機能（24時間前）
+- [ ] お気に入り機能（店舗・インストラクター）
+  - [ ] 店舗一覧でのお気に入り登録/解除
+  - [ ] インストラクター一覧でのお気に入り登録/解除
+  - [ ] マイページでのお気に入り管理
+
+### Phase 4: 管理機能
+- [ ] 管理者ダッシュボード
+- [ ] レッスンカテゴリ管理（階層構造）
+- [ ] 店舗・レッスン管理
+- [ ] 予約状況確認
+
+## 重要な考慮事項
+
+### ビジネスロジック
+- **月謝の回数制限**: 契約プランに応じた予約回数制限
+- **レッスン制限**: サブスクリプションのカテゴリに応じたレッスンのみ予約可能
+- **時間帯重複防止**: 同じ時間帯の異なるレッスン間での予約競合防止
+- **定員制限**: レッスン定員を超える予約の防止
+- **同一ユーザー重複防止**: 同じユーザーの同一レッスンへの重複予約防止
+- **キャンセルポリシー**: 各レッスン毎のキャンセル期限（デフォルト24時間前）
+- **予約期限**: 各レッスン毎の予約可能期間（デフォルト24時間前）
+- **店舗間の予約**: 複数店舗での予約管理
+- **月次リセット**: 契約日から1ヶ月ごとの請求サイクルで未使用回数をリセット
+
+### 技術的考慮事項
+- **Stripe Webhook**: 決済状況の自動同期
+- **Stripe Checkout**: セキュアな決済処理
+- **予約の同時性**: 同時予約時の競合処理（定員・重複・月謝制限チェック）
+- **エラーハンドリング**: ユーザーフレンドリーなエラーメッセージ
+- **決済失敗処理**: 段階的リトライ・手動再試行・画面通知
+- **通知機能**: 予約確認・リマインダー
+- **レポート機能**: 利用状況・売上レポート
+- **セキュリティ**: 多層防御による権限制御
+- **バージョン管理**: GitHubによるコード管理・共同開発
+
+## 技術選択の理由
+
+### Livewire選択の理由
+1. **PHPのみで開発**: JavaScriptの知識が最小限で済む
+2. **リアルタイム更新**: 予約状況の即座反映
+3. **シンプルな学習曲線**: Laravel開発者にとって親しみやすい
+4. **Alpine.js統合**: クライアントサイドの細かい制御も可能
+
+### Laravel Cashier + Stripe Checkout選択の理由
+1. **標準的なアプローチ**: Laravel Cashierの推奨方法
+2. **自動同期**: Webhookでデータベースが自動更新
+3. **セキュリティ**: 決済情報をアプリケーションで保持しない
+4. **開発効率**: 実装時間が大幅に短縮（4-6時間 vs 26-38時間）
+5. **保守性**: 長期的な運用が容易
+
+### 予約システムでの活用例
+- **カレンダー表示**: Alpine.jsで日付選択のインタラクション
+- **時間枠選択**: Livewireでサーバーサイドの空き状況確認
+- **リアルタイム更新**: 予約状況の即座反映
+- **フォーム検証**: クライアント・サーバー両方でのバリデーション
+- **決済処理**: Stripe Checkoutでセキュアな決済
+- **自動同期**: Webhookでサブスクリプション状態を自動更新
+
+## 通知・コミュニケーション（確定）
+
+### 通知の種類
+- **予約確認メール**: 予約完了時に送信
+- **予約リマインダー**: 24時間前に送信
+- **キャンセル通知**: キャンセル時に送信
+- **サブスク更新通知**: Stripeからの通知 + アプリからの通知
+
+### 送信設定
+- **送信先**: 登録時のメールアドレス（プロフィール更新時は更新後のアドレス）
+- **送信タイミング**: 各イベント発生時 + リマインダーは24時間前
+
+## セキュリティ設定
+
+### 環境変数設定
+```env
+# セキュリティ設定
+APP_DEBUG=false
+APP_ENV=production
+APP_KEY=base64:your-32-character-key
+
+# セッションセキュリティ
+SESSION_SECURE_COOKIE=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+
+# データベースセキュリティ
+DB_STRICT=true
+```
+
+### セキュリティ設定ファイル
+```php
+// config/session.php
+'secure' => env('SESSION_SECURE_COOKIE', true),
+'http_only' => env('SESSION_HTTP_ONLY', true),
+'same_site' => env('SESSION_SAME_SITE', 'lax'),
+
+// config/auth.php
+'password_timeout' => 10800, // 3時間
+'passwords' => [
+    'throttle' => 60, // 60秒間隔
+    'expire' => 60,   // 60分で期限切れ
+],
+```
+
+### セキュリティ実装例
+```php
+// レート制限ミドルウェア
+Route::middleware(['throttle:6,1'])->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+// Form Request バリデーション
+class ReservationRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'lesson_schedule_id' => 'required|exists:lesson_schedules,id',
+            'user_subscription_id' => 'required|exists:user_subscriptions,id',
+        ];
+    }
+}
+```
+
+## 開発環境
+
+### 開発環境
+- **Laravel Head**: 開発環境として使用
+- **GitHub**: バージョン管理・コード共有
+- **PHP**: 8.4.11
+- **Laravel**: 12.26.3
+- **データベース**: SQLite（開発）
+
+### 必要なパッケージ
+```bash
+# Livewire
+composer require livewire/livewire
+
+# Laravel Cashier (Stripe統合)
+composer require laravel/cashier
+
+# 認証（選択）
+composer require laravel/breeze --dev
+# または
+composer require laravel/fortify
+```
+
+### 開発コマンド
+```bash
+# 開発サーバー起動
+php artisan serve
+
+# フロントエンド開発サーバー
+npm run dev
+
+# データベース操作
+php artisan migrate
+php artisan migrate:fresh --seed
+php artisan db:seed
+
+# テスト実行
+php artisan test
+php artisan test --coverage
+
+# コードフォーマット
+vendor/bin/pint
+
+# セキュリティチェック
+composer audit
+
+# キャッシュクリア
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+
+# Git操作
+git add .
+git commit -m "feat: 機能追加"
+git push origin main
+
+# ブランチ操作
+git checkout -b feature/新機能名
+git checkout develop
+git merge feature/新機能名
+```
+
+---
+
+**作成日**: 2025年9月
+**バージョン**: 1.2
+**ステータス**: 技術構成確定
