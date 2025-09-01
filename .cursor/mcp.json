@@ -1,11 +1,20 @@
 {
     "mcpServers": {
         "laravel-boost": {
-            "command": "php",
+            "command": "/Users/gitag/Library/Application Support/Herd/bin/php",
             "args": [
-                "./artisan",
+                "/Users/gitag/Library/Application Support/Herd/config/valet/Sites/reservation/artisan",
                 "boost:mcp"
             ]
+        },
+        "herd": {
+            "command": "/Users/gitag/Library/Application Support/Herd/bin/php",
+            "args": [
+                "/Applications/Herd.app/Contents/Resources/herd-mcp.phar"
+            ],
+            "env": {
+                "SITE_PATH": "/Users/gitag/Library/Application Support/Herd/config/valet/Sites/reservation"
+            }
         }
     }
 }
