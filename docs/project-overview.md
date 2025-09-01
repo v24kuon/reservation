@@ -184,6 +184,11 @@ public function handleInvoicePaid(array $payload): void
 - **インストラクター** (role: instructor): 自分のレッスン管理・予約一覧確認
 - **管理者** (role: admin): 全機能管理
 
+#### ロール登録ポリシー
+- 初回管理者は Seeder により作成（1名。認証情報は環境設定/Seederで定義）
+- 以降の管理者・インストラクターは管理画面のみで登録（DB直編集は禁止）
+- `role` の変更は管理画面の専用機能のみ許可（直接更新禁止）
+
 #### インストラクター機能
 - 自分のレッスン予約枠の作成・編集・削除
 - 自分のレッスンへの予約一覧確認
@@ -216,6 +221,7 @@ public function handleInvoicePaid(array $payload): void
 ### 認証・権限・UI要件
 - **認証状態**: 全ページログイン必須
 - **権限別表示**: ユーザー向けページは内容共通（ロールによる表示内容変更なし）
+- **ログイン後の遷移**: 一般ユーザーは`/`、管理者・インストラクターは`/dashboard`
 - **レスポンシブ**: モバイルファーストデザイン
 
 *各ページの詳細仕様は後日記載予定*
@@ -225,7 +231,7 @@ public function handleInvoicePaid(array $payload): void
 ### Phase 1: 基盤構築
 - [ ] Livewireインストール・設定
 - [x] ユーザー認証システム（Laravel Breeze/Fortify）
-- [x] 認証ミドルウェア設定（全ページログイン必須）
+- [ ] 認証ミドルウェア設定（全ページログイン必須）
 - [ ] 権限管理システム（Gates/Policies）
 - [ ] データベース設計・マイグレーション
 - [ ] 基本的なCRUD機能
