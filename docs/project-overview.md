@@ -31,6 +31,15 @@
 - **Stripe Checkout**: 決済処理
 - **Webhook**: 自動同期
 
+#### Stripe連携とプラン紐付け（指針）
+- プラン定義はアプリ（`subscription_plans`）に保持し、請求は常に`stripe_price_id`を用いる（アプリ側の`price`は表示用）。
+- Stripeで作成したProduct/PriceのID（`stripe_product_id`/`stripe_price_id`）を管理画面からプランに登録し、一意制約を付与する。
+- 決済はStripe Checkoutを優先（保存済みPM向けの`->create()`ではなく`->checkout([...])`を使用）。
+- 契約作成後はWebhookで同期：`checkout.session.completed`/`customer.subscription.created`/`invoice.paid`/`invoice.payment_failed`などを処理。
+- 利用回数リセットは`invoice.paid`で当期開始時に`current_month_used_count=0`へ更新。
+- 監査性確保のため、`user_subscriptions`に当期の`stripe_price_id`（任意で`monthly_quota`）も保存。
+- 管理画面入力バリデーション：`stripe_product_id`は`/^prod_/`、`stripe_price_id`は`/^price_/`にマッチ必須。
+
 ### 開発ツール
 - **Laravel Head**: 開発環境
 - **Laravel Boost**: ^1.0
@@ -55,7 +64,7 @@ lesson_categories (レッスンカテゴリ)
 ├── id, parent_id, name, description, is_active, sort_order, created_at, updated_at
 
 subscription_plans (月謝プラン)
-├── id, name, price, lesson_count, allowed_category_ids (JSON), description, is_active, created_at, updated_at
+├── id, name, price, lesson_count, allowed_category_ids (JSON), stripe_product_id, stripe_price_id, description, is_active, created_at, updated_at
 
 user_subscriptions (ユーザーの月謝契約)
 ├── id, user_id, plan_id, stripe_subscription_id, status, payment_status, failure_reason, current_period_start, current_period_end, current_month_used_count, created_at, updated_at
@@ -116,6 +125,34 @@ user_favorites (ユーザーお気に入り)
 - **予約代理**: 家族・友人への代理予約不可
 - **レッスン制限**: サブスクリプションのカテゴリに応じたレッスンのみ予約可能
 
+#### Stripeとの紐付け例
+```php
+// 決済（Checkout）
+$user->newSubscription('default', $plan->stripe_price_id)
+    ->checkout([
+        'success_url' => route('billing.success'),
+        'cancel_url' => route('billing.cancel'),
+    ]);
+
+// Webhookでの同期（例）
+public function handleInvoicePaid(array $payload): void
+{
+    $sub = $payload['data']['object'];
+    $customer = $sub['customer'];
+    $priceId = $sub['lines']['data'][0]['price']['id'] ?? null;
+
+    $user = User::where('stripe_id', $customer)->first();
+    $plan = SubscriptionPlan::where('stripe_price_id', $priceId)->first();
+
+    if ($user && $plan) {
+        UserSubscription::query()
+            ->where('user_id', $user->id)
+            ->where('plan_id', $plan->id)
+            ->update(['current_month_used_count' => 0, 'payment_status' => 'paid']);
+    }
+}
+```
+
 ### レッスン仕様
 
 #### 基本仕様
@@ -126,8 +163,14 @@ user_favorites (ユーザーお気に入り)
 
 #### 予約ルール
 - **予約可能期間**: 各レッスン毎に設定可能、デフォルト24時間前
+  - 例：9月15日 10:00開始のレッスン → 9月14日 10:00まで予約可能
+  - 予約作成時点から予約可能、期限を過ぎると予約不可
 - **キャンセル期限**: 各レッスン毎に設定可能、デフォルト24時間前
+  - 期限を過ぎた場合：管理者・インストラクターのみキャンセル可能
+  - ユーザー側：キャンセルボタンを無効化（押せない状態）
 - **予約制限**: 同じ時間帯の重複予約防止
+- **複数プラン契約時**: プラン間で予約可能内容が重複しないよう設計
+  - 万が一重複した場合：ユーザーが選択（UIは実装時に決定）
 
 #### インストラクター例
 - Aさんのパーソナル
@@ -219,6 +262,8 @@ user_favorites (ユーザーお気に入り)
 - [ ] キャンセル機能
 - [ ] 通知機能（メール送信）
 - [ ] リマインダー機能（24時間前）
+  - [ ] レッスン開始時刻の24時間前にリマインダー送信
+  - [ ] 例：9月15日 10:00開始 → 9月14日 10:00にリマインダー
 - [ ] お気に入り機能（店舗・インストラクター）
   - [ ] 店舗一覧でのお気に入り登録/解除
   - [ ] インストラクター一覧でのお気に入り登録/解除
@@ -253,6 +298,7 @@ user_favorites (ユーザーお気に入り)
 - **レポート機能**: 利用状況・売上レポート
 - **セキュリティ**: 多層防御による権限制御
 - **バージョン管理**: GitHubによるコード管理・共同開発
+- **データ管理**: 削除されたレッスンは物理削除、キャンセルされた予約データは保持
 
 ## 技術選択の理由
 
@@ -395,7 +441,34 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Git操作
+## Git運用
+
+### ブランチ戦略
+- **main**: 本番環境用（安定版）
+- **develop**: 開発統合用
+- **feature/**: 新機能開発用
+- **hotfix/**: 緊急修正用
+
+### コミットメッセージ規約
+```
+feat: 新機能追加
+fix: バグ修正
+docs: ドキュメント更新
+style: コードフォーマット
+refactor: リファクタリング
+test: テスト追加・修正
+chore: その他の変更
+```
+
+### 開発フロー
+1. **feature/ブランチ作成** → 機能開発 → **developにマージ** → **mainにリリース**
+2. **各機能は独立したブランチ**で開発
+3. **PR（Pull Request）**でコードレビュー
+4. **コミットは小さく、意味のある単位**で分割
+
+### Git操作コマンド
+```bash
+# 基本操作
 git add .
 git commit -m "feat: 機能追加"
 git push origin main
@@ -404,6 +477,15 @@ git push origin main
 git checkout -b feature/新機能名
 git checkout develop
 git merge feature/新機能名
+
+# 開発フロー例
+git checkout -b feature/user-authentication
+# 実装作業...
+git add .
+git commit -m "feat: ユーザー認証システム実装"
+git push origin feature/user-authentication
+# PR作成 → developマージ
+```
 ```
 
 ---
