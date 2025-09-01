@@ -3,11 +3,11 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/dashboard');
+Route::get('/', function () {
+    return view('home');
+})->middleware(['auth', 'verified'])->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// 旧dashboardは将来の管理画面等に流用予定。現状はホームに統合。
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
