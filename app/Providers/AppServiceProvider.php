@@ -22,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('access-dashboard', fn (User $user): bool => $user->hasPrivilegedRole());
+        Gate::define('access-admin', fn (User $user): bool => $user->hasRole(User::ROLE_ADMIN));
+        Gate::define('access-instructor', fn (User $user): bool => $user->hasRole(User::ROLE_INSTRUCTOR) || $user->hasRole(User::ROLE_ADMIN));
+        Gate::define('manage-subscription-plans', fn (User $user): bool => $user->hasRole(User::ROLE_ADMIN));
     }
 }
