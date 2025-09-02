@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +45,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Determine if the user has one of the privileged roles.
+     */
+    public function hasPrivilegedRole(): bool
+    {
+        return in_array($this->role, ['admin', 'instructor'], true);
     }
 }
