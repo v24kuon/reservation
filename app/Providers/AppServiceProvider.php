@@ -21,8 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('access-dashboard', function (User $user): bool {
-            return method_exists($user, 'hasPrivilegedRole') && $user->hasPrivilegedRole();
-        });
+        Gate::define('access-dashboard', fn (User $user): bool => $user->hasPrivilegedRole());
     }
 }
