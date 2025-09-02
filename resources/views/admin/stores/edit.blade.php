@@ -27,7 +27,7 @@
 
                         <div>
                             <label for="phone" class="block text-sm font-medium">電話番号</label>
-                            <input id="phone" name="phone" type="text" class="mt-1 w-full border rounded p-2" value="{{ old('phone', $store->phone) }}" required inputmode="tel" autocomplete="tel">
+                            <input id="phone" name="phone" type="text" class="mt-1 w-full border rounded p-2" value="{{ old('phone', $store->phone) }}" required inputmode="tel" autocomplete="tel" pattern="^\+?[0-9()\-\s]{7,20}$" minlength="7" maxlength="20">
                             @error('phone')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
@@ -56,6 +56,7 @@
                         </div>
 
                         <div class="flex items-center space-x-2">
+                            <input type="hidden" name="is_active" value="0">
                             <input id="is_active" name="is_active" type="checkbox" value="1" class="rounded" @checked(old('is_active', $store->is_active))>
                             <label for="is_active">有効</label>
                         </div>

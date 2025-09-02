@@ -26,7 +26,7 @@
 
                         <div>
                             <label for="phone" class="block text-sm font-medium">電話番号</label>
-                            <input id="phone" name="phone" type="tel" inputmode="tel" pattern="^[0-9+()\- \s]{7,20}$" class="mt-1 w-full border rounded p-2" value="{{ old('phone') }}" required>
+                            <input id="phone" name="phone" type="tel" inputmode="tel" pattern="^\+?[0-9()\-\s]{7,20}$" minlength="7" maxlength="20" class="mt-1 w-full border rounded p-2" value="{{ old('phone') }}" required>
                             @error('phone')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 

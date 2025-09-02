@@ -24,7 +24,8 @@ class UpdateStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:2000'],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9\-\+\(\)\s]+$/'],
+            // 日本の電話番号: 先頭のみ+許容、7〜20文字
+            'phone' => ['required', 'string', 'min:7', 'max:20', 'regex:/^\+?[0-9\-\(\)\s]+$/'],
             'access_info' => ['nullable', 'string', 'max:2000'],
             'google_map_url' => ['nullable', 'url', 'max:255', 'starts_with:https://,http://'],
             'parking_info' => ['nullable', 'string', 'max:2000'],
@@ -35,10 +36,13 @@ class UpdateStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $payload = [
             'phone' => $this->phone ? mb_convert_kana($this->phone, 'as') : null,
-            'is_active' => $this->boolean('is_active'),
-        ]);
+        ];
+        if ($this->has('is_active')) {
+            $payload['is_active'] = $this->boolean('is_active');
+        }
+        $this->merge($payload);
     }
 
     public function attributes(): array
