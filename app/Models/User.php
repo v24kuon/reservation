@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -71,5 +73,61 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role, $roles, true);
+    }
+
+    /**
+     * Get the lessons taught by this instructor.
+     */
+    public function taughtLessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class, 'instructor_user_id');
+    }
+
+    /**
+     * Get the user subscriptions for this user.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+
+    /**
+     * Get the reservations for this user.
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Get the favorites for this user.
+     */
+    public function favorites(): MorphMany
+    {
+        return $this->morphMany(UserFavorite::class, 'user');
+    }
+
+    /**
+     * Check if the user is an instructor.
+     */
+    public function isInstructor(): bool
+    {
+        return $this->hasRole(self::ROLE_INSTRUCTOR);
+    }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(self::ROLE_ADMIN);
+    }
+
+    /**
+     * Get the active subscriptions for this user.
+     */
+    public function activeSubscriptions()
+    {
+        return $this->subscriptions()->active()->paid();
     }
 }
