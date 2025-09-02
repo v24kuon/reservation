@@ -221,7 +221,7 @@ public function handleInvoicePaid(array $payload): void
 *各ページの詳細仕様は後日記載予定*
 
 #### ログイン後の遷移ルール（実装）
-- 一般ユーザー（role: user）: `home` ルート（`/` トップページ）
+- 一般ユーザー（role: user）: `home` ルート（`/` トップページ）に固定遷移（`intended` は無視）
 - 管理者 / インストラクター（role: admin|instructor）: `dashboard`
 
 ## 実装計画

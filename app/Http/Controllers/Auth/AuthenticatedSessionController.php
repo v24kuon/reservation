@@ -30,11 +30,12 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        if (in_array($user->role, ['admin', 'instructor'], true)) {
+        if ($user->hasPrivilegedRole()) {
             return redirect()->intended(route('dashboard', absolute: false));
         }
 
-        return redirect()->intended(route('home', absolute: false));
+        // 一般ユーザーは常にトップへ（intendedは無視）
+        return redirect()->to(route('home', absolute: false));
     }
 
     /**

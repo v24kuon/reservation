@@ -12,6 +12,14 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_USER = 'user';
+
+    public const ROLE_INSTRUCTOR = 'instructor';
+
+    public const ROLE_ADMIN = 'admin';
+
+    public const PRIVILEGED = [self::ROLE_ADMIN, self::ROLE_INSTRUCTOR];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -51,6 +59,6 @@ class User extends Authenticatable
      */
     public function hasPrivilegedRole(): bool
     {
-        return in_array($this->role, ['admin', 'instructor'], true);
+        return in_array($this->role, self::PRIVILEGED, true);
     }
 }
