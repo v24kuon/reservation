@@ -261,7 +261,7 @@ public function handleInvoicePaid(array $payload): void
 - [x] ユーザー認証システム（Laravel Breeze/Fortify）
 - [x] 認証ミドルウェア設定（全ページログイン必須）
 - [x] 権限管理システム（Gates/Policies）
-- [ ] データベース設計・マイグレーション
+- [x] データベース設計・マイグレーション
 - [ ] 基本的なCRUD機能
 - [ ] モバイルファーストUI基盤構築
 - [ ] セキュリティ強化実装
