@@ -220,11 +220,15 @@ public function handleInvoicePaid(array $payload): void
 
 *各ページの詳細仕様は後日記載予定*
 
+#### ログイン後の遷移ルール（実装）
+- 一般ユーザー（role: user）: `home` ルート（`/` トップページ）
+- 管理者 / インストラクター（role: admin|instructor）: `dashboard`
+
 ## 実装計画
 
 ### Phase 1: 基盤構築
 - [ ] Livewireインストール・設定
-- [ ] ユーザー認証システム（Laravel Breeze/Fortify）
+- [x] ユーザー認証システム（Laravel Breeze/Fortify）
 - [ ] 認証ミドルウェア設定（全ページログイン必須）
 - [ ] 権限管理システム（Gates/Policies）
 - [ ] データベース設計・マイグレーション
