@@ -50,37 +50,57 @@
 
 ## システム設計
 
-### データベース設計（予定）
+### データベース設計（実装完了）
 
-#### 主要テーブル構成
+#### 実装済みテーブル構成
 ```
-users (ユーザー)
-├── id, name, email, password, role (user/instructor/admin), created_at, updated_at
+users (ユーザー) ✅
+├── id, name, email, password, role (user/instructor/admin), email_verified_at, created_at, updated_at
+├── リレーション: taughtLessons, subscriptions, reservations, favorites
 
-stores (店舗)
-├── id, name, address, phone, access_info, google_map_url, parking_info, notes, created_at, updated_at
+stores (店舗) ✅
+├── id, name, address, phone, access_info, google_map_url, parking_info, notes, is_active, created_at, updated_at
+├── リレーション: lessons
 
-lesson_categories (レッスンカテゴリ)
+lesson_categories (レッスンカテゴリ) ✅
 ├── id, parent_id, name, description, is_active, sort_order, created_at, updated_at
+├── リレーション: parent, children, lessons
+├── 階層構造: 親→子→孫（3階層対応）
 
-subscription_plans (月謝プラン)
+subscription_plans (月謝プラン) ✅
 ├── id, name, price, lesson_count, allowed_category_ids (JSON), stripe_product_id, stripe_price_id, description, is_active, created_at, updated_at
+├── リレーション: userSubscriptions
+├── 制約: stripe_product_id, stripe_price_id に一意制約
 
-user_subscriptions (ユーザーの月謝契約)
+user_subscriptions (ユーザーの月謝契約) ✅
 ├── id, user_id, plan_id, stripe_subscription_id, status, payment_status, failure_reason, current_period_start, current_period_end, current_month_used_count, created_at, updated_at
+├── リレーション: user, plan, reservations
 
-lessons (レッスン)
+lessons (レッスン) ✅
 ├── id, store_id, name, category_id, instructor_user_id, duration, capacity, booking_deadline_hours, cancel_deadline_hours, is_active, created_at, updated_at
+├── リレーション: store, category, instructor, schedules
 
-lesson_schedules (レッスンスケジュール)
+lesson_schedules (レッスンスケジュール) ✅
 ├── id, lesson_id, start_datetime, end_datetime, current_bookings, is_active, created_at, updated_at
+├── リレーション: lesson, reservations
 
-reservations (予約)
+reservations (予約) ✅
 ├── id, user_id, lesson_schedule_id, user_subscription_id, status, reserved_at, created_at, updated_at
+├── リレーション: user, lessonSchedule, userSubscription
 
-user_favorites (ユーザーお気に入り)
+user_favorites (ユーザーお気に入り) ✅
 ├── id, user_id, favoritable_type, favoritable_id, created_at, updated_at
+├── リレーション: user, favoritable (多態的関連)
+├── 制約: 同一ユーザーの重複お気に入り防止
 ```
+
+#### 実装済み機能
+- **階層構造**: レッスンカテゴリの親→子→孫対応
+- **多態的関連**: お気に入り機能（店舗・インストラクター対応）
+- **外部キー制約**: データ整合性の保証
+- **インデックス**: パフォーマンス最適化
+- **Eloquent モデル**: リレーションシップ・スコープ・アクセサ実装
+- **バリデーション**: 適切なデータ型・制約設定
 
 ### 機能設計
 
@@ -241,7 +261,7 @@ public function handleInvoicePaid(array $payload): void
 - [x] ユーザー認証システム（Laravel Breeze/Fortify）
 - [x] 認証ミドルウェア設定（全ページログイン必須）
 - [x] 権限管理システム（Gates/Policies）
-- [ ] データベース設計・マイグレーション
+- [x] データベース設計・マイグレーション
 - [ ] 基本的なCRUD機能
 - [ ] モバイルファーストUI基盤構築
 - [ ] セキュリティ強化実装

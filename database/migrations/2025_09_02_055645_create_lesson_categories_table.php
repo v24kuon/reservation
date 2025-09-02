@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscription_plans', function (Blueprint $table) {
+        Schema::create('lesson_categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('parent_id')->nullable()->constrained('lesson_categories')->onDelete('cascade');
             $table->string('name');
-            $table->integer('price'); // 価格（円）
-            $table->integer('lesson_count'); // 月間レッスン回数
-            $table->json('allowed_category_ids'); // 許可されるレッスンカテゴリIDの配列
-            $table->string('stripe_product_id')->unique(); // Stripe Product ID
-            $table->string('stripe_price_id')->unique(); // Stripe Price ID
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subscription_plans');
+        Schema::dropIfExists('lesson_categories');
     }
 };
