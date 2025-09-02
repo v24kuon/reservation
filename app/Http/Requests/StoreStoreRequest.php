@@ -26,10 +26,10 @@ class StoreStoreRequest extends FormRequest
             'address' => ['required', 'string', 'max:2000'],
             'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9\-\+\(\)\s]+$/'],
             'access_info' => ['nullable', 'string', 'max:2000'],
-            'google_map_url' => ['nullable', 'url', 'max:2000'],
+            'google_map_url' => ['nullable', 'url', 'max:255', 'starts_with:https://,http://'],
             'parking_info' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:5000'],
-            'is_active' => ['sometimes', 'boolean'],
+            'is_active' => ['required', 'boolean'],
         ];
     }
 

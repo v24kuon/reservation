@@ -55,7 +55,8 @@
                         </div>
 
                         <div class="flex items-center space-x-2">
-                            <input id="is_active" name="is_active" type="checkbox" value="1" class="rounded" checked>
+                            <input type="hidden" name="is_active" value="0">
+                            <input id="is_active" name="is_active" type="checkbox" value="1" class="rounded" {{ old('is_active', 1) ? 'checked' : '' }}>
                             <label for="is_active">有効</label>
                         </div>
 

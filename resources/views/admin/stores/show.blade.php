@@ -40,8 +40,12 @@
                         <div class="sm:col-span-2">
                             <dt class="text-sm text-gray-500">Googleマップ</dt>
                             <dd class="mt-1 text-gray-900">
-                                @if($store->google_map_url)
-                                    <a class="text-blue-600" target="_blank" rel="noopener" href="{{ $store->google_map_url }}">地図を開く</a>
+                                @php
+                                    $url = $store->google_map_url;
+                                    $scheme = $url ? parse_url($url, PHP_URL_SCHEME) : null;
+                                @endphp
+                                @if($url && in_array($scheme, ['http','https'], true))
+                                    <a class="text-blue-600" target="_blank" rel="noopener noreferrer" href="{{ $url }}">地図を開く</a>
                                 @endif
                             </dd>
                         </div>
