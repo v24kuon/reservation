@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin: stores CRUD
     Route::prefix('admin')->as('admin.')->middleware('can:access-admin')->group(function () {
+        Route::pattern('store', '[0-9]+');
         Route::resource('stores', StoreController::class);
     });
 });

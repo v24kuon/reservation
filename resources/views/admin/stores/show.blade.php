@@ -20,7 +20,14 @@
                         </div>
                         <div>
                             <dt class="text-sm text-gray-500">電話</dt>
-                            <dd class="mt-1 text-gray-900">{{ $store->formatted_phone ?? $store->phone }}</dd>
+                            @php $tel = preg_replace('/\D+/', '', $store->phone ?? ''); @endphp
+                            <dd class="mt-1 text-gray-900">
+                                @if($tel)
+                                    <a class="text-blue-600" href="tel:{{ $tel }}">{{ $store->formatted_phone ?? $store->phone }}</a>
+                                @else
+                                    {{ $store->formatted_phone ?? $store->phone }}
+                                @endif
+                            </dd>
                         </div>
                         <div class="sm:col-span-2">
                             <dt class="text-sm text-gray-500">住所</dt>

@@ -14,44 +14,44 @@
                         @method('PUT')
 
                         <div>
-                            <label class="block text-sm font-medium">名称</label>
-                            <input name="name" type="text" class="mt-1 w-full border rounded p-2" value="{{ old('name', $store->name) }}" required>
+                            <label for="name" class="block text-sm font-medium">名称</label>
+                            <input id="name" name="name" type="text" class="mt-1 w-full border rounded p-2" value="{{ old('name', $store->name) }}" required autocomplete="organization">
                             @error('name')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">住所</label>
-                            <textarea name="address" class="mt-1 w-full border rounded p-2" rows="2" required>{{ old('address', $store->address) }}</textarea>
+                            <label for="address" class="block text-sm font-medium">住所</label>
+                            <textarea id="address" name="address" class="mt-1 w-full border rounded p-2" rows="2" required autocomplete="street-address">{{ old('address', $store->address) }}</textarea>
                             @error('address')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">電話番号</label>
-                            <input name="phone" type="text" class="mt-1 w-full border rounded p-2" value="{{ old('phone', $store->phone) }}" required>
+                            <label for="phone" class="block text-sm font-medium">電話番号</label>
+                            <input id="phone" name="phone" type="text" class="mt-1 w-full border rounded p-2" value="{{ old('phone', $store->phone) }}" required inputmode="tel" autocomplete="tel">
                             @error('phone')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">アクセス情報</label>
-                            <textarea name="access_info" class="mt-1 w-full border rounded p-2" rows="2">{{ old('access_info', $store->access_info) }}</textarea>
+                            <label for="access_info" class="block text-sm font-medium">アクセス情報</label>
+                            <textarea id="access_info" name="access_info" class="mt-1 w-full border rounded p-2" rows="2">{{ old('access_info', $store->access_info) }}</textarea>
                             @error('access_info')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">GoogleマップURL</label>
-                            <input name="google_map_url" type="url" class="mt-1 w-full border rounded p-2" value="{{ old('google_map_url', $store->google_map_url) }}">
+                            <label for="google_map_url" class="block text-sm font-medium">GoogleマップURL</label>
+                            <input id="google_map_url" name="google_map_url" type="url" class="mt-1 w-full border rounded p-2" value="{{ old('google_map_url', $store->google_map_url) }}" autocomplete="url">
                             @error('google_map_url')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">駐車場情報</label>
-                            <textarea name="parking_info" class="mt-1 w-full border rounded p-2" rows="2">{{ old('parking_info', $store->parking_info) }}</textarea>
+                            <label for="parking_info" class="block text-sm font-medium">駐車場情報</label>
+                            <textarea id="parking_info" name="parking_info" class="mt-1 w-full border rounded p-2" rows="2">{{ old('parking_info', $store->parking_info) }}</textarea>
                             @error('parking_info')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">備考</label>
-                            <textarea name="notes" class="mt-1 w-full border rounded p-2" rows="3">{{ old('notes', $store->notes) }}</textarea>
+                            <label for="notes" class="block text-sm font-medium">備考</label>
+                            <textarea id="notes" name="notes" class="mt-1 w-full border rounded p-2" rows="3">{{ old('notes', $store->notes) }}</textarea>
                             @error('notes')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 

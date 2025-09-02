@@ -32,4 +32,33 @@ class StoreStoreRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'phone' => $this->phone ? mb_convert_kana($this->phone, 'as') : null,
+            'is_active' => $this->boolean('is_active'),
+        ]);
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => '名称',
+            'address' => '住所',
+            'phone' => '電話番号',
+            'access_info' => 'アクセス情報',
+            'google_map_url' => 'GoogleマップURL',
+            'parking_info' => '駐車場情報',
+            'notes' => '備考',
+            'is_active' => '有効フラグ',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone.regex' => '電話番号は数字・スペース・()+- のみ使用できます。',
+        ];
+    }
 }

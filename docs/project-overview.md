@@ -34,7 +34,7 @@
 #### Stripe連携とプラン紐付け（指針）
 - プラン定義はアプリ（`subscription_plans`）に保持し、請求は常に`stripe_price_id`を用いる（アプリ側の`price`は表示用）。
 - Stripeで作成したProduct/PriceのID（`stripe_product_id`/`stripe_price_id`）を管理画面からプランに登録し、一意制約を付与する。
-- **管理画面での自動入力機能**: `stripe_price_id`入力時にStripe APIから価格を自動取得し、`price`フィールドに自動入力する。
+- **管理画面での自動入力機能**: `stripe_price_id`入力時にStripe APIから価格を自動取得し、`price`フィールドに自動入力する（サーバーサイドAPI経由・認可必須・レート制限適用: Gate `manage-subscription-plans`、throttle設定）。
 - 決済はStripe Checkoutを優先（保存済みPM向けの`->create()`ではなく`->checkout([...])`を使用）。
 - 契約作成後はWebhookで同期：`checkout.session.completed`/`customer.subscription.created`/`invoice.paid`/`invoice.payment_failed`などを処理。
 - 利用回数リセットは`invoice.paid`で当期開始時に`current_month_used_count=0`へ更新。
@@ -314,7 +314,7 @@ public function handleInvoicePaid(array $payload): void
   - [ ] マイページでのお気に入り管理
 
 #### Phase 3: ユーザー向けページ実装計画
-**基本ページ構成**
+##### 基本ページ構成
 1. **トップページ** (`/`)
    - アプリケーションのメインページ
    - パーソナルレッスンボタン → `/reservations/personal`
@@ -409,7 +409,7 @@ public function handleInvoicePaid(array $payload): void
    - お気に入りインストラクター一覧
    - お気に入り解除
 
-**技術実装ポイント**
+##### 技術実装ポイント
 - **Livewire活用**: 予約状況のリアルタイム更新、絞り込み検索
 - **Alpine.js活用**: カレンダー操作、フォーム制御、UI状態管理
 - **レスポンシブデザイン**: モバイルファースト、タブレット・デスクトップ対応
@@ -417,7 +417,7 @@ public function handleInvoicePaid(array $payload): void
 - **UX向上**: ローディング状態、エラーハンドリング、成功メッセージ
 
 #### Phase 4: 管理者・インストラクター向けページ実装計画
-**管理者専用ページ**
+##### 管理者専用ページ
 1. **管理者ダッシュボード** (`/dashboard`)
    - システム全体の統計情報
    - 売上・予約状況のサマリー
@@ -478,7 +478,7 @@ public function handleInvoicePaid(array $payload): void
     - セキュリティ設定
     - バックアップ・メンテナンス
 
-**インストラクター専用ページ**
+##### インストラクター専用ページ
 1. **インストラクターダッシュボード** (`/instructor/dashboard`)
    - 自分のレッスン予約状況
    - 今週・来週のスケジュール
@@ -494,7 +494,7 @@ public function handleInvoicePaid(array $payload): void
    - 予約者情報の確認
    - キャンセル待ち状況
 
-**技術実装ポイント**
+##### 技術実装ポイント
 - **権限管理**: ロール別アクセス制御（Gates/Policies）
 - **データテーブル**: 大量データの効率的表示・検索
 - **リアルタイム更新**: Livewireによる予約状況の即座反映

@@ -34,7 +34,6 @@ class StoreController extends Controller
     public function store(StoreStoreRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_active'] = (bool) ($data['is_active'] ?? true);
         Store::query()->create($data);
 
         return redirect()->route('admin.stores.index')->with('status', '店舗を作成しました');
@@ -62,9 +61,6 @@ class StoreController extends Controller
     public function update(UpdateStoreRequest $request, Store $store): RedirectResponse
     {
         $data = $request->validated();
-        if (array_key_exists('is_active', $data)) {
-            $data['is_active'] = (bool) $data['is_active'];
-        }
         $store->update($data);
 
         return redirect()->route('admin.stores.index')->with('status', '店舗を更新しました');

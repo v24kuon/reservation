@@ -16,11 +16,11 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2 text-left">ID</th>
-                                <th class="px-4 py-2 text-left">名称</th>
-                                <th class="px-4 py-2 text-left">電話</th>
-                                <th class="px-4 py-2 text-left">状態</th>
-                                <th class="px-4 py-2 text-left">操作</th>
+                                <th scope="col" class="px-4 py-2 text-left">ID</th>
+                                <th scope="col" class="px-4 py-2 text-left">名称</th>
+                                <th scope="col" class="px-4 py-2 text-left">電話</th>
+                                <th scope="col" class="px-4 py-2 text-left">状態</th>
+                                <th scope="col" class="px-4 py-2 text-left">操作</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -33,12 +33,16 @@
                                     <td class="px-4 py-2">{{ $store->formatted_phone ?? $store->phone }}</td>
                                     <td class="px-4 py-2">{{ $store->is_active ? '有効' : '無効' }}</td>
                                     <td class="px-4 py-2 space-x-2">
+                                        @can('update', $store)
                                         <a href="{{ route('admin.stores.edit', $store) }}" class="text-blue-600">編集</a>
+                                        @endcan
+                                        @can('delete', $store)
                                         <form action="{{ route('admin.stores.destroy', $store) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600">削除</button>
                                         </form>
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforeach
