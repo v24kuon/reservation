@@ -191,6 +191,16 @@ public function handleInvoicePaid(array $payload): void
 #### セキュリティ対策
 - **ロール変更制限**: roleフィールドはfillableに含めず、専用メソッドでのみ変更可能
 - **認可制御**: Gates/Policiesによる多層防御
+  - Gate定義（`App\Providers\AppServiceProvider`）
+    - `access-dashboard`: 管理者/インストラクターのみ
+    - `access-admin`: 管理者のみ
+    - `access-instructor`: インストラクター/管理者
+    - `manage-subscription-plans`: 管理者のみ
+  - Policy実装（自動ディスカバリ）
+    - `App\Policies\SubscriptionPlanPolicy`
+      - `before`: 管理者は全許可
+      - `viewAny`/`view`: 全ユーザー許可
+      - `create`/`update`/`delete`/`restore`/`forceDelete`: 非管理者は不可
 - **ルート保護**: ミドルウェアによる権限チェック
 - **監査ログ**: ロール変更時の履歴記録
 - **CSRF保護**: セッション設定によるCSRF攻撃防止
@@ -230,7 +240,7 @@ public function handleInvoicePaid(array $payload): void
 - [x] Livewireインストール・設定
 - [x] ユーザー認証システム（Laravel Breeze/Fortify）
 - [x] 認証ミドルウェア設定（全ページログイン必須）
-- [ ] 権限管理システム（Gates/Policies）
+- [x] 権限管理システム（Gates/Policies）
 - [ ] データベース設計・マイグレーション
 - [ ] 基本的なCRUD機能
 - [ ] モバイルファーストUI基盤構築
