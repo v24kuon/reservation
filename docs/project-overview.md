@@ -227,7 +227,7 @@ public function handleInvoicePaid(array $payload): void
 ## 実装計画
 
 ### Phase 1: 基盤構築
-- [ ] Livewireインストール・設定
+- [x] Livewireインストール・設定
 - [x] ユーザー認証システム（Laravel Breeze/Fortify）
 - [ ] 認証ミドルウェア設定（全ページログイン必須）
 - [ ] 権限管理システム（Gates/Policies）
