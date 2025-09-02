@@ -28,7 +28,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+
+        if ($user->hasPrivilegedRole()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        // 一般ユーザーは常にトップへ（intendedは無視）
+        return redirect()->to(route('home', absolute: false));
     }
 
     /**

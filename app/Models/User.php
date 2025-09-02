@@ -12,6 +12,14 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_USER = 'user';
+
+    public const ROLE_INSTRUCTOR = 'instructor';
+
+    public const ROLE_ADMIN = 'admin';
+
+    public const PRIVILEGED = [self::ROLE_ADMIN, self::ROLE_INSTRUCTOR];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -44,5 +52,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Determine if the user has one of the privileged roles.
+     */
+    public function hasPrivilegedRole(): bool
+    {
+        return in_array($this->role, self::PRIVILEGED, true);
     }
 }
