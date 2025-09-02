@@ -17,3 +17,17 @@ test('new users can register', function () {
     $this->assertAuthenticated();
     $response->assertRedirect(route('home', absolute: false));
 });
+
+test('non-privileged users ignore intended and go to home after registration', function () {
+    $this->withSession(['url.intended' => '/reservations/group']);
+
+    $response = $this->post('/register', [
+        'name' => 'U',
+        'email' => 'u@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('home', absolute: false));
+});

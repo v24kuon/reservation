@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property string $role
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -59,6 +62,14 @@ class User extends Authenticatable
      */
     public function hasPrivilegedRole(): bool
     {
-        return in_array($this->role, self::PRIVILEGED, true);
+        return $this->hasRole(...self::PRIVILEGED);
+    }
+
+    /**
+     * Determine if the user has any of the provided roles.
+     */
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role, $roles, true);
     }
 }
