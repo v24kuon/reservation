@@ -33,7 +33,7 @@ it('validation fails without required fields for lesson categories and parent re
     $admin = adminUser();
     $this->actingAs($admin)
         ->post(route('admin.lesson-categories.store'), [])
-        ->assertSessionHasErrors(['name','is_active','sort_order','parent_id']);
+        ->assertSessionHasErrors(['name', 'is_active', 'sort_order', 'parent_id']);
 });
 
 it('admin can update a lesson category', function () {
@@ -53,11 +53,21 @@ it('admin can update a lesson category', function () {
 
 it('admin can delete a lesson category', function () {
     $admin = adminUser();
-    $category = LessonCategory::factory()->create();
+    $root = App\Models\LessonCategory::factory()->create(['parent_id' => null]);
+    $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
     $this->actingAs($admin)
         ->delete(route('admin.lesson-categories.destroy', $category))
         ->assertRedirect();
     $this->assertDatabaseMissing('lesson_categories', ['id' => $category->id]);
+});
+
+it('cannot delete root lesson category', function () {
+    $admin = adminUser();
+    $root = App\Models\LessonCategory::factory()->create(['parent_id' => null]);
+    $this->actingAs($admin)
+        ->delete(route('admin.lesson-categories.destroy', $root))
+        ->assertRedirect();
+    $this->assertDatabaseHas('lesson_categories', ['id' => $root->id]);
 });
 
 it('admin sees edit link on lesson categories index', function () {
@@ -69,5 +79,3 @@ it('admin sees edit link on lesson categories index', function () {
         ->assertOk()
         ->assertSee('編集');
 });
-
-

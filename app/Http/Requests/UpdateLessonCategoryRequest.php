@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateLessonCategoryRequest extends FormRequest
 {
@@ -16,8 +17,19 @@ class UpdateLessonCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
+        $category = $this->route('lesson_category');
+        $isRoot = $category && is_null($category->parent_id);
+
         return [
-            'parent_id' => ['required', 'integer', 'exists:lesson_categories,id'],
+            'parent_id' => $isRoot
+                ? ['prohibited']
+                : [
+                    'required',
+                    'integer',
+                    Rule::exists('lesson_categories', 'id')->where(function ($query) {
+                        $query->whereNull('parent_id'); // Only allow root categories as parents
+                    }),
+                ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['required', 'boolean'],

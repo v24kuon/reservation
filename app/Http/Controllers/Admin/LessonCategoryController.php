@@ -61,6 +61,8 @@ class LessonCategoryController extends Controller
      */
     public function edit(LessonCategory $lesson_category): View
     {
+        // ルートカテゴリの場合は、自分以外のルートカテゴリを親として提供
+        // 子カテゴリの場合は、全てのルートカテゴリを親として提供
         $parents = LessonCategory::query()
             ->whereNull('parent_id')
             ->where('id', '!=', $lesson_category->id)
@@ -89,6 +91,9 @@ class LessonCategoryController extends Controller
      */
     public function destroy(LessonCategory $lesson_category): RedirectResponse
     {
+        if (is_null($lesson_category->parent_id)) {
+            return redirect()->route('admin.lesson-categories.index')->with('status', 'ルートカテゴリは削除できません');
+        }
         $lesson_category->delete();
 
         return redirect()->route('admin.lesson-categories.index')->with('status', 'カテゴリを削除しました');

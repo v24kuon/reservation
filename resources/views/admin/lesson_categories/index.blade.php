@@ -36,11 +36,13 @@
                                     <td class="px-4 py-2">{{ $category->is_active ? '有効' : '無効' }}</td>
                                     <td class="px-4 py-2 space-x-2">
                                         <a href="{{ route('admin.lesson-categories.edit', $category) }}" class="text-blue-600">編集</a>
-                                        <form action="{{ route('admin.lesson-categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600">削除</button>
-                                        </form>
+                                        @if($category->parent_id)
+                                            <form action="{{ route('admin.lesson-categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600">削除</button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -55,5 +57,3 @@
         </div>
     </div>
 </x-app-layout>
-
-

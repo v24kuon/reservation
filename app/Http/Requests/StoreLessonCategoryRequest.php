@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreLessonCategoryRequest extends FormRequest
 {
@@ -17,7 +18,13 @@ class StoreLessonCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'parent_id' => ['required', 'integer', 'exists:lesson_categories,id'],
+            'parent_id' => [
+                'required',
+                'integer',
+                Rule::exists('lesson_categories', 'id')->where(function ($query) {
+                    $query->whereNull('parent_id'); // Only allow root categories as parents
+                }),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['required', 'boolean'],

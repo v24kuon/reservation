@@ -19,16 +19,22 @@
                             @error('name')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
-                        <div>
-                            <label for="parent_id" class="block text-sm font-medium">親カテゴリ</label>
-                            <select id="parent_id" name="parent_id" class="mt-1 w-full border rounded p-2">
-                                <option value="">なし</option>
-                                @foreach($parents as $parent)
-                                    <option value="{{ $parent->id }}" @selected(old('parent_id', $category->parent_id) == $parent->id)>{{ $parent->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('parent_id')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
+                        @if($category->parent_id)
+                            <div>
+                                <label for="parent_id" class="block text-sm font-medium">親カテゴリ</label>
+                                <select id="parent_id" name="parent_id" class="mt-1 w-full border rounded p-2" required>
+                                    @foreach($parents as $parent)
+                                        <option value="{{ $parent->id }}" @selected(old('parent_id', $category->parent_id) == $parent->id)>{{ $parent->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('parent_id')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        @else
+                            <div>
+                                <label class="block text-sm font-medium">親カテゴリ</label>
+                                <p class="mt-1 text-gray-700 dark:text-gray-200">ルートカテゴリ（変更不可）</p>
+                            </div>
+                        @endif
 
                         <div>
                             <label for="description" class="block text-sm font-medium">説明</label>
@@ -59,5 +65,3 @@
         </div>
     </div>
 </x-app-layout>
-
-
