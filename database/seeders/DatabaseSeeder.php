@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\LessonCategory;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,22 +20,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // 固定のルートカテゴリ: グループレッスン / パーソナルレッスン
-        if (! LessonCategory::query()->whereNull('parent_id')->exists()) {
-            LessonCategory::query()->create([
-                'name' => 'グループレッスン',
-                'description' => null,
-                'is_active' => true,
-                'sort_order' => 0,
-                'parent_id' => null,
-            ]);
-            LessonCategory::query()->create([
-                'name' => 'パーソナルレッスン',
-                'description' => null,
-                'is_active' => true,
-                'sort_order' => 1,
-                'parent_id' => null,
-            ]);
-        }
+        // 固定ルートカテゴリの投入
+        $this->call(LessonCategorySeeder::class);
     }
 }
