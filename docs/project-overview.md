@@ -227,7 +227,7 @@ notifications (通知履歴) ✅
 - [x] データベース設計・マイグレーション
 - [ ] 基本的なCRUD機能
   - [x] stores（店舗）CRUD
-  - [ ] lesson_categories（レッスンカテゴリ）CRUD
+  - [x] lesson_categories（レッスンカテゴリ）CRUD
   - [ ] lessons（レッスン）CRUD
   - [ ] lesson_schedules（レッスンスケジュール）CRUD
   - [ ] subscription_plans（月謝プラン）CRUD（Phase 2で実装）
