@@ -45,3 +45,8 @@ function something()
 {
     // ..
 }
+
+function adminUser(): App\Models\User
+{
+    return App\Models\User::factory()->create(['role' => 'admin']);
+}
