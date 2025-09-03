@@ -31,7 +31,8 @@ class AuthenticatedSessionController extends Controller
         $user = $request->user();
 
         if ($user->hasPrivilegedRole()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+            // 管理者/インストラクターは常にダッシュボードへ（intendedは無視）
+            return redirect()->to(route('dashboard', absolute: false));
         }
 
         // 一般ユーザーは常にトップへ（intendedは無視）
