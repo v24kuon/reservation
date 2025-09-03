@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\LessonCategoryController;
+use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Admin: lesson categories CRUD
         Route::pattern('lesson_category', '[0-9]+');
         Route::resource('lesson-categories', LessonCategoryController::class);
+
+        // Admin: lessons CRUD
+        Route::pattern('lesson', '[0-9]+');
+        Route::resource('lessons', LessonController::class);
     });
 });
 
