@@ -1,14 +1,9 @@
 <?php
 
-use App\Models\User;
 use App\Models\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
-
-function adminUser(): User {
-    return User::factory()->create(['role' => 'admin']);
-}
 
 it('admin can view stores index', function () {
     $admin = adminUser();

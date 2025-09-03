@@ -32,17 +32,17 @@
 - **Webhook**: 自動同期
 
 #### Stripe連携とプラン紐付け（指針）
-- プラン定義はアプリ（`subscription_plans`）に保持し、請求は常に`stripe_price_id`を用いる（アプリ側の`price`は表示用）。
-- Stripeで作成したProduct/PriceのID（`stripe_product_id`/`stripe_price_id`）を管理画面からプランに登録し、一意制約を付与する。
-- **管理画面での自動入力機能**: `stripe_price_id`入力時にStripe APIから価格を自動取得し、`price`フィールドに自動入力する（サーバーサイドAPI経由・認可必須・レート制限適用: Gate `manage-subscription-plans`、throttle設定）。
-- 決済はStripe Checkoutを優先（保存済みPM向けの`->create()`ではなく`->checkout([...])`を使用）。
-- 契約作成後はWebhookで同期：`checkout.session.completed`/`customer.subscription.created`/`invoice.paid`/`invoice.payment_failed`などを処理。
-- 利用回数リセットは`invoice.paid`で当期開始時に`current_month_used_count=0`へ更新。
-- 監査性確保のため、`user_subscriptions`に当期の`stripe_price_id`（任意で`monthly_quota`）も保存。
-- 管理画面入力バリデーション：`stripe_product_id`は`/^prod_/`、`stripe_price_id`は`/^price_/`にマッチ必須。
+- プラン定義はアプリ（`subscription_plans`）に保持し、請求は常に`stripe_price_id`を用いる（アプリ側の`price`は表示用）
+- Stripeで作成したProduct/PriceのID（`stripe_product_id`/`stripe_price_id`）を管理画面からプランに登録し、一意制約を付与する
+- **管理画面での自動入力機能**: `stripe_price_id`入力時にStripe APIから価格を自動取得し、`price`フィールドに自動入力する（サーバーサイドAPI経由・認可必須・レート制限適用: Gate `manage-subscription-plans`、throttle設定）
+- 決済はStripe Checkoutを優先（保存済みPM向けの`->create()`ではなく`->checkout([...])`を使用）
+- 契約作成後はWebhookで同期：`checkout.session.completed`/`customer.subscription.created`/`invoice.paid`/`invoice.payment_failed`などを処理
+- 利用回数リセットは`invoice.paid`で当期開始時に`current_month_used_count=0`へ更新
+- 監査性確保のため、`user_subscriptions`に当期の`stripe_price_id`（任意で`monthly_quota`）も保存
+- 管理画面入力バリデーション：`stripe_product_id`は`/^prod_/`、`stripe_price_id`は`/^price_/`にマッチ必須
 
 ### 開発ツール
-- **Laravel Head**: 開発環境
+- **Laravel Head**: 開発環境として使用
 - **Laravel Boost**: ^1.0
 - **Laravel Pint**: ^1.24
 - **Laravel Sail**: ^1.41
@@ -66,7 +66,9 @@ stores (店舗) ✅
 lesson_categories (レッスンカテゴリ) ✅
 ├── id, parent_id, name, description, is_active, sort_order, created_at, updated_at
 ├── リレーション: parent, children, lessons
-├── 階層構造: 親→子→孫（3階層対応）
+├── 階層構造: 親→子（2階層対応）
+├── 親カテゴリ制約: 「グループレッスン」「パーソナルレッスン」のみ（削除不可）
+├── 子カテゴリ例: ヨガ、ピラティス、ストレッチ、筋トレなど
 
 subscription_plans (月謝プラン) ✅
 ├── id, name, price, lesson_count, allowed_category_ids (JSON), stripe_product_id, stripe_price_id, description, is_active, created_at, updated_at
@@ -105,14 +107,6 @@ notifications (通知履歴) ✅
 ├── リレーション: user, template
 ├── 制約: 通知の送信履歴・既読管理
 ```
-
-#### 実装済み機能
-- **階層構造**: レッスンカテゴリの親→子→孫対応
-- **多態的関連**: お気に入り機能（店舗・インストラクター対応）
-- **外部キー制約**: データ整合性の保証
-- **インデックス**: パフォーマンス最適化
-- **Eloquent モデル**: リレーションシップ・スコープ・アクセサ実装
-- **バリデーション**: 適切なデータ型・制約設定
 
 ### 機能設計
 
@@ -161,39 +155,13 @@ notifications (通知履歴) ✅
 - **lesson_count**: 1以上（空や0は不可）
 - **price**: 1円以上
 
-#### Stripeとの紐付け例
-```php
-// 決済（Checkout）
-$user->newSubscription('default', $plan->stripe_price_id)
-    ->checkout([
-        'success_url' => route('billing.success'),
-        'cancel_url' => route('billing.cancel'),
-    ]);
-
-// Webhookでの同期（例）
-public function handleInvoicePaid(array $payload): void
-{
-    $sub = $payload['data']['object'];
-    $customer = $sub['customer'];
-    $priceId = $sub['lines']['data'][0]['price']['id'] ?? null;
-
-    $user = User::where('stripe_id', $customer)->first();
-    $plan = SubscriptionPlan::where('stripe_price_id', $priceId)->first();
-
-    if ($user && $plan) {
-        UserSubscription::query()
-            ->where('user_id', $user->id)
-            ->where('plan_id', $plan->id)
-            ->update(['current_month_used_count' => 0, 'payment_status' => 'paid']);
-    }
-}
-```
-
 ### レッスン仕様
 
 #### 基本仕様
 - **基本時間**: 60分（設定可能）
-- **レッスンカテゴリ**: 階層構造で管理（親カテゴリ：パーソナルレッスン・グループレッスン、子カテゴリ：各レッスン種別）
+- **レッスンカテゴリ**: 階層構造で管理
+  - **親カテゴリ**: 「グループレッスン」「パーソナルレッスン」（固定・削除不可）
+  - **子カテゴリ**: ヨガ、ピラティス、ストレッチ、筋トレなど（自由に追加・編集・削除可能）
 - **定員**: レッスンごとに個別設定
 - **インストラクター**: レッスン内容により変更
 
@@ -208,21 +176,12 @@ public function handleInvoicePaid(array $payload): void
 - **複数プラン契約時**: プラン間で予約可能内容が重複しないよう設計
   - 万が一重複した場合：ユーザーが選択（UIは実装時に決定）
 
-#### インストラクター例
-- Aさんのパーソナル
-- グループヨガAさん担当
-- グループヨガBさん担当
-
 ### 権限管理
 
 #### ユーザー権限
 - **一般ユーザー** (role: user): 予約・キャンセル・履歴確認
 - **インストラクター** (role: instructor): 自分のレッスン管理・予約一覧確認
 - **管理者** (role: admin): 全機能管理
-
-#### インストラクター機能
-- 自分のレッスン予約枠の作成・編集・削除
-- 自分のレッスンへの予約一覧確認
 
 #### セキュリティ対策
 - **ロール変更制限**: roleフィールドはfillableに含めず、専用メソッドでのみ変更可能
@@ -246,25 +205,13 @@ public function handleInvoicePaid(array $payload): void
 - **レート制限**: API・フォーム送信の頻度制限
 - **入力検証**: Form Requestによる厳密なバリデーション
 
-## ページ構成
+## 認証・権限・UI要件
 
-### メインページ
-1. **トップページ**: アプリケーションのメインページ
-   - パーソナルレッスンボタン → /reservations/personal
-   - グループレッスンボタン → /reservations/group
-2. **予約ページ**: レッスン予約・キャンセル機能
-   - 基本URL: /reservations/{category}（personal|group）
-   - 絞り込み: ?date=...&instructor=...&store=...（URLパラメータ）
-3. **店舗一覧**: 登録店舗の一覧・詳細表示・お気に入り登録/解除
-4. **インストラクター一覧**: インストラクターの一覧・詳細表示・お気に入り登録/解除
-5. **マイページ**: ユーザー情報・予約履歴・サブスクリプション管理・お気に入り管理
-
-### 認証・権限・UI要件
 - **認証状態**: 全ページログイン必須
 - **権限別表示**: ユーザー向けページは内容共通（ロールによる表示内容変更なし）
-- **レスポンシブ**: モバイルファーストデザイン
-
-*各ページの詳細仕様は後日記載予定*
+- **UI設計方針**:
+  - 管理画面：PC優先・レスポンシブ対応
+  - ユーザー画面：モバイルファースト・PCでも違和感の少ないデザイン
 
 #### ログイン後の遷移ルール（実装）
 - 一般ユーザー（role: user）: `home` ルート（`/` トップページ）に固定遷移（`intended` は無視）
@@ -280,26 +227,15 @@ public function handleInvoicePaid(array $payload): void
 - [x] データベース設計・マイグレーション
 - [ ] 基本的なCRUD機能
   - [x] stores（店舗）CRUD
-  - [ ] lesson_categories（レッスンカテゴリ）CRUD
+  - [x] lesson_categories（レッスンカテゴリ）CRUD
   - [ ] lessons（レッスン）CRUD
   - [ ] lesson_schedules（レッスンスケジュール）CRUD
   - [ ] subscription_plans（月謝プラン）CRUD（Phase 2で実装）
   - [ ] notification_templates（通知テンプレート）CRUD
 - [ ] モバイルファーストUI基盤構築
   - [ ] 管理画面UI（PC優先・レスポンシブ対応）
-    - [ ] PCデザインを優先した管理画面レイアウト
-    - [ ] タブレット・モバイルでのレスポンシブ対応
-    - [ ] データテーブル・フォームのPC最適化
   - [ ] ユーザー画面UI（モバイルファースト）
-    - [ ] モバイルファーストデザイン
-    - [ ] PCでも違和感の少ないレスポンシブ対応
-    - [ ] タッチ操作に最適化されたUI/UX
 - [ ] セキュリティ強化実装
-  - [ ] CSRF保護設定
-  - [ ] XSS防止設定
-  - [ ] セッションセキュリティ設定
-  - [ ] レート制限実装
-  - [ ] 入力検証（Form Request）実装
 
 ### Phase 2: 月謝システム
 - [ ] Laravel Cashierインストール・設定
@@ -309,14 +245,9 @@ public function handleInvoicePaid(array $payload): void
 - [ ] サブスクリプション管理
 - [ ] プラン管理機能
 - [ ] 決済失敗時のエラーハンドリング
-  - [ ] 段階的リトライ機能（最大3回、5秒→10秒→20秒）
-  - [ ] ユーザー通知機能（画面表示のみ）
-  - [ ] 手動再試行機能（ユーザー操作）
 
 ### Phase 3: 予約システム
 - [ ] レッスン予約機能（Livewire）
-  - [ ] カテゴリー別予約ページ（/reservations/{category}）
-  - [ ] URLパラメータ絞り込み機能（日付・インストラクター・店舗）
 - [ ] 予約制限・重複チェック
 - [ ] 時間帯重複防止チェック
 - [ ] 定員制限チェック
@@ -325,213 +256,55 @@ public function handleInvoicePaid(array $payload): void
 - [ ] エラーハンドリング（ユーザーフレンドリーなメッセージ）
 - [ ] キャンセル機能
 - [ ] 通知機能（メール送信）
-  - [ ] 通知テンプレート管理システム
-    - [ ] テンプレート作成・編集・削除（管理者）
-    - [ ] 変数置換システム（{{user_name}}, {{lesson_name}} など）
-    - [ ] プレビュー機能（実際のデータで表示確認）
-  - [ ] 通知送信システム
-    - [ ] 予約確認メール（予約完了時）
-    - [ ] 予約リマインダー（24時間前）
-    - [ ] キャンセル通知（キャンセル時）
-    - [ ] サブスク更新通知（プラン更新時）
-  - [ ] 通知履歴管理
-    - [ ] 通知履歴・既読管理
 - [ ] リマインダー機能（24時間前）
-  - [ ] レッスン開始時刻の24時間前にリマインダー送信
-  - [ ] 例：9月15日 10:00開始 → 9月14日 10:00にリマインダー
 - [ ] お気に入り機能（店舗・インストラクター）
-  - [ ] 店舗一覧でのお気に入り登録/解除
-  - [ ] インストラクター一覧でのお気に入り登録/解除
-  - [ ] マイページでのお気に入り管理
 
-#### Phase 3: ユーザー向けページ実装計画
-##### 基本ページ構成
+### Phase 3: ユーザー向けページ実装計画
+
+#### 基本ページ構成
 1. **トップページ** (`/`)
-   - アプリケーションのメインページ
-   - パーソナルレッスンボタン → `/reservations/personal`
-   - グループレッスンボタン → `/reservations/group`
-   - 店舗一覧ボタン → `/stores`
-   - インストラクター一覧ボタン → `/instructors`
-
-2. **認証ページ**
-   - **ログインページ** (`/login`) - 既存のLaravel Breeze
-   - **ユーザー登録ページ** (`/register`) - 既存のLaravel Breeze
-   - **パスワードリセット** (`/forgot-password`) - 既存のLaravel Breeze
-   - **メール認証** (`/verify-email`) - 既存のLaravel Breeze
-
+2. **認証ページ** (`/login`, `/register`, `/forgot-password`, `/verify-email`)
 3. **予約ページ** (`/reservations/{category}`)
-   - 基本URL: `/reservations/{category}`（personal|group）
-   - **グループレッスン** (`/reservations/group`):
-     - 絞り込み機能（LAVAアプリ風）:
-       - 店舗選択タブ（お気に入り店舗・全店舗・組み合わせ条件）
-       - 組み合わせ条件: 店舗とレッスン内容の組み合わせ
-       - 店舗ボタン（横スクロール可能）:
-         - デフォルト: お気に入り店舗を全て表示
-         - お気に入りなし: 店舗IDが低い順で表示
-       - 日付選択（カレンダー表示・週単位ナビゲーション）
-       - 時間帯表示（6時〜12時などの縦軸）
-     - レッスン一覧表示:
-       - デフォルト表示:
-         - お気に入り店舗あり: お気に入り店舗全ての1週間分（店舗ID昇順）
-         - お気に入りなし: 店舗ID最低の店舗の1週間分
-       - 最大表示数: 15個
-       - 時間帯別グループ化（17時、19時など）
-       - レッスンカード（詳細情報 + アクションボタン）
-       - 空き状況表示（オレンジ：空きあり、赤：満員/キャンセル待ち）
-       - 予約状況（予約・キャンセル待ち予約）
-
-   - **パーソナルレッスン** (`/reservations/personal`):
-     - 絞り込み機能（LAVAアプリ風）:
-       - インストラクター選択タブ（お気に入りインストラクター・全インストラクター・組み合わせ条件）
-       - 組み合わせ条件: インストラクターと店舗の組み合わせ
-       - インストラクターボタン（横スクロール可能）:
-         - デフォルト: お気に入りインストラクターを全て表示
-         - お気に入りなし: インストラクターIDが低い順で表示
-       - 日付選択（カレンダー表示・週単位ナビゲーション）
-       - 時間帯表示（6時〜12時などの縦軸）
-     - レッスン一覧表示:
-       - デフォルト表示:
-         - お気に入りインストラクターあり: お気に入りインストラクター全ての予約枠（インストラクターID昇順）
-         - お気に入りなし: 今日から日付の近い順で表示
-       - 最大表示数: 15個
-       - 時間帯別グループ化（17時、19時など）
-       - レッスンカード（詳細情報 + アクションボタン）
-       - 空き状況表示（オレンジ：空きあり、赤：満員/キャンセル待ち）
-       - 予約状況（予約・キャンセル待ち予約）
-
-   - カレンダー表示（Alpine.js）
-   - 時間枠選択（Livewire）
-   - 予約確認・完了フロー
-
+   - グループレッスン (`/reservations/group`)
+   - パーソナルレッスン (`/reservations/personal`)
 4. **店舗一覧・詳細** (`/stores`, `/stores/{store}`)
-   - 店舗一覧表示
-   - 店舗詳細情報
-   - お気に入り登録/解除
-   - その店舗のレッスン一覧
-   - 地図表示（Google Maps）
-
 5. **インストラクター一覧・詳細** (`/instructors`, `/instructors/{instructor}`)
-   - インストラクター一覧表示
-   - インストラクター詳細情報
-   - お気に入り登録/解除
-   - そのインストラクターのレッスン一覧
-   - プロフィール・経歴
-
 6. **マイページ** (`/profile`)
-   - ユーザー情報編集
-   - 予約履歴一覧
-   - サブスクリプション管理
-   - お気に入り管理（店舗・インストラクター）
-   - 利用状況・残り回数確認
-
 7. **予約履歴詳細** (`/reservations/history`)
-   - 過去の予約一覧
-   - キャンセル履歴
-   - 利用統計（月別・カテゴリ別）
-
 8. **サブスクリプション管理** (`/subscriptions`)
-   - 現在の契約プラン一覧
-   - 利用状況・残り回数
-   - プラン変更・解約
-   - 決済履歴
-
 9. **お気に入り管理** (`/favorites`)
-   - お気に入り店舗一覧
-   - お気に入りインストラクター一覧
-   - お気に入り解除
 
-##### 技術実装ポイント
+#### 技術実装ポイント
 - **Livewire活用**: 予約状況のリアルタイム更新、絞り込み検索
 - **Alpine.js活用**: カレンダー操作、フォーム制御、UI状態管理
 - **レスポンシブデザイン**: モバイルファースト、タブレット・デスクトップ対応
 - **パフォーマンス**: 画像遅延読み込み、ページネーション、キャッシュ活用
 - **UX向上**: ローディング状態、エラーハンドリング、成功メッセージ
 
-#### Phase 4: 管理者・インストラクター向けページ実装計画
-##### 管理者専用ページ
+### Phase 4: 管理者・インストラクター向けページ実装計画
+
+#### 管理者専用ページ
 1. **管理者ダッシュボード** (`/dashboard`)
-   - システム全体の統計情報
-   - 売上・予約状況のサマリー
-   - 最近のアクティビティ
-   - アラート・通知
-
 2. **店舗管理** (`/admin/stores`)
-   - 店舗一覧・検索・フィルタリング
-   - 店舗の作成・編集・削除
-   - 店舗の有効/無効切り替え
-   - 店舗別統計情報
-
 3. **レッスンカテゴリ管理** (`/admin/lesson-categories`)
-   - カテゴリ一覧（階層表示）
-   - 親カテゴリ・子カテゴリの作成・編集・削除
-   - 並び順の変更（ドラッグ&ドロップ）
-   - カテゴリ別統計情報
-
+   - 親カテゴリ：「グループレッスン」「パーソナルレッスン」（固定・削除不可）
+   - 子カテゴリ：ヨガ、ピラティス、ストレッチ、筋トレなどの作成・編集・削除
+   - 階層表示・並び順変更（ドラッグ&ドロップ）
 4. **レッスン管理** (`/admin/lessons`)
-   - レッスン一覧・検索・フィルタリング
-   - レッスンの作成・編集・削除
-   - レッスンの有効/無効切り替え
-   - レッスン別予約状況
-
 5. **レッスンスケジュール管理** (`/admin/lesson-schedules`)
-   - スケジュール一覧・カレンダー表示
-   - スケジュールの作成・編集・削除
-   - 一括スケジュール作成
-   - 予約状況の確認
-
 6. **月謝プラン管理** (`/admin/subscription-plans`)
-   - プラン一覧・検索・フィルタリング
-   - プランの作成・編集・削除
-   - Stripe連携設定
-   - プラン別利用統計
-
 7. **通知テンプレート管理** (`/admin/notification-templates`)
-   - テンプレート一覧・検索・フィルタリング
-   - テンプレートの作成・編集・削除
-   - 変数置換システムの管理
-   - プレビュー機能・テスト送信
-
 8. **ユーザー管理** (`/admin/users`)
-   - ユーザー一覧・検索・フィルタリング
-   - ユーザー情報の編集
-   - ロール変更（管理者のみ）
-   - ユーザー別利用統計
-
 9. **予約管理** (`/admin/reservations`)
-   - 予約一覧・検索・フィルタリング
-   - 予約の確認・キャンセル
-   - 予約統計・レポート
-   - 定員オーバー時の対応
-
 10. **サブスクリプション管理** (`/admin/subscriptions`)
-    - 契約一覧・検索・フィルタリング
-    - 契約状況の確認
-    - 決済状況の確認
-    - 契約統計・レポート
-
 11. **システム設定** (`/admin/settings`)
-    - アプリケーション設定
-    - 通知設定
-    - セキュリティ設定
-    - バックアップ・メンテナンス
 
-##### インストラクター専用ページ
+#### インストラクター専用ページ
 1. **インストラクターダッシュボード** (`/instructor/dashboard`)
-   - 自分のレッスン予約状況
-   - 今週・来週のスケジュール
-   - 生徒からのフィードバック
-
 2. **自分のレッスン管理** (`/instructor/lessons`)
-   - 担当レッスン一覧
-   - レッスン情報の編集
-   - レッスンスケジュールの作成・編集
-
 3. **予約確認** (`/instructor/reservations`)
-   - 自分のレッスンへの予約一覧
-   - 予約者情報の確認
-   - キャンセル待ち状況
 
-##### 技術実装ポイント
+#### 技術実装ポイント
 - **権限管理**: ロール別アクセス制御（Gates/Policies）
 - **データテーブル**: 大量データの効率的表示・検索
 - **リアルタイム更新**: Livewireによる予約状況の即座反映
@@ -579,14 +352,6 @@ public function handleInvoicePaid(array $payload): void
 4. **開発効率**: 実装時間が大幅に短縮（4-6時間 vs 26-38時間）
 5. **保守性**: 長期的な運用が容易
 
-### 予約システムでの活用例
-- **カレンダー表示**: Alpine.jsで日付選択のインタラクション
-- **時間枠選択**: Livewireでサーバーサイドの空き状況確認
-- **リアルタイム更新**: 予約状況の即座反映
-- **フォーム検証**: クライアント・サーバー両方でのバリデーション
-- **決済処理**: Stripe Checkoutでセキュアな決済
-- **自動同期**: Webhookでサブスクリプション状態を自動更新
-
 ## 通知・コミュニケーション（確定）
 
 ### 通知の種類
@@ -598,6 +363,8 @@ public function handleInvoicePaid(array $payload): void
 ### 送信設定
 - **送信先**: 登録時のメールアドレス（プロフィール更新時は更新後のアドレス）
 - **送信タイミング**: 各イベント発生時 + リマインダーは24時間前
+- **言語**: 日本語のみ（多言語対応なし）
+- **設定**: ユーザー別通知ON/OFF設定なし、配信停止機能なし
 
 ## セキュリティ設定
 
@@ -615,21 +382,6 @@ SESSION_SAME_SITE=lax
 
 # データベースセキュリティ
 DB_STRICT=true
-```
-
-### セキュリティ設定ファイル
-```php
-// config/session.php
-'secure' => env('SESSION_SECURE_COOKIE', true),
-'http_only' => env('SESSION_HTTP_ONLY', true),
-'same_site' => env('SESSION_SAME_SITE', 'lax'),
-
-// config/auth.php
-'password_timeout' => 10800, // 3時間
-'passwords' => [
-    'throttle' => 60, // 60秒間隔
-    'expire' => 60,   // 60分で期限切れ
-],
 ```
 
 ### セキュリティ実装例
@@ -704,6 +456,7 @@ php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+```
 
 ## Git運用
 
@@ -749,7 +502,6 @@ git add .
 git commit -m "feat: ユーザー認証システム実装"
 git push origin feature/user-authentication
 # PR作成 → developマージ
-```
 ```
 
 ---

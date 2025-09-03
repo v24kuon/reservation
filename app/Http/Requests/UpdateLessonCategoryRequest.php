@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateLessonCategoryRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->can('access-admin') ?? false;
+    }
+
+    /**
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $category = $this->route('lesson_category');
+        $isRoot = $category && is_null($category->parent_id);
+
+        return [
+            'parent_id' => $isRoot
+                ? ['prohibited']
+                : [
+                    'required',
+                    'integer',
+                    Rule::exists('lesson_categories', 'id')->where(function ($query) {
+                        $query->whereNull('parent_id'); // Only allow root categories as parents
+                    }),
+                ],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'is_active' => ['required', 'boolean'],
+            'sort_order' => ['required', 'integer', 'min:0', 'max:100000'],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $payload = [];
+        if ($this->has('is_active')) {
+            $payload['is_active'] = $this->boolean('is_active');
+        }
+        $this->merge($payload);
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'parent_id' => '親カテゴリ',
+            'name' => '名称',
+            'description' => '説明',
+            'is_active' => '有効フラグ',
+            'sort_order' => '表示順',
+        ];
+    }
+}

@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -21,6 +22,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->as('admin.')->middleware('can:access-admin')->group(function () {
         Route::pattern('store', '[0-9]+');
         Route::resource('stores', StoreController::class);
+
+        // Admin: lesson categories CRUD
+        Route::pattern('lesson_category', '[0-9]+');
+        Route::resource('lesson-categories', LessonCategoryController::class);
     });
 });
 
