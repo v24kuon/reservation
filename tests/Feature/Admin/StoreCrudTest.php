@@ -56,3 +56,13 @@ it('admin can delete a store', function () {
         ->assertRedirect();
     $this->assertDatabaseMissing('stores', ['id' => $store->id]);
 });
+
+it('admin sees edit link on stores index', function () {
+    $admin = adminUser();
+    $store = Store::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.stores.index'))
+        ->assertOk()
+        ->assertSee('編集');
+});
