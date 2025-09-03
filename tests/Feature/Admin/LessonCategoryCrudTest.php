@@ -79,3 +79,49 @@ it('admin sees edit link on lesson categories index', function () {
         ->assertOk()
         ->assertSee('編集');
 });
+
+it('cannot create root category', function () {
+    $admin = adminUser();
+    $payload = [
+        'name' => 'New Root',
+        'parent_id' => null,
+        'sort_order' => 1,
+        'is_active' => true,
+    ];
+
+    $this->actingAs($admin)
+        ->post(route('admin.lesson-categories.store'), $payload)
+        ->assertSessionHasErrors(['parent_id']);
+});
+
+it('cannot set non-root category as parent', function () {
+    $admin = adminUser();
+    $root = LessonCategory::factory()->create(['parent_id' => null]);
+    $child = LessonCategory::factory()->create(['parent_id' => $root->id]);
+
+    $payload = [
+        'name' => 'Test Category',
+        'parent_id' => $child->id,
+        'sort_order' => 1,
+        'is_active' => true,
+    ];
+
+    $this->actingAs($admin)
+        ->post(route('admin.lesson-categories.store'), $payload)
+        ->assertSessionHasErrors(['parent_id']);
+});
+
+it('cannot change root category to have parent', function () {
+    $admin = adminUser();
+    $root1 = LessonCategory::factory()->create(['parent_id' => null]);
+    $root2 = LessonCategory::factory()->create(['parent_id' => null]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.lesson-categories.update', $root1), [
+            'name' => $root1->name,
+            'parent_id' => $root2->id,
+            'sort_order' => $root1->sort_order,
+            'is_active' => true,
+        ])
+        ->assertSessionHasErrors(['parent_id']);
+});
