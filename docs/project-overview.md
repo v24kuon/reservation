@@ -93,6 +93,17 @@ user_favorites (ユーザーお気に入り) ✅
 ├── id, user_id, favoritable_type, favoritable_id, created_at, updated_at
 ├── リレーション: user, favoritable (多態的関連)
 ├── 制約: 同一ユーザーの重複お気に入り防止
+
+notification_templates (通知テンプレート) ✅
+├── id, name, type, subject, body_text, body_html, variables (JSON), is_active, created_at, updated_at
+├── リレーション: notifications
+├── 制約: type に一意制約（予約確認、リマインダー、キャンセル、サブスク更新）
+├── 変数置換: {{user_name}}, {{lesson_name}}, {{store_name}}, {{datetime}}, {{remaining_count}} など
+
+notifications (通知履歴) ✅
+├── id, user_id, template_id, type, subject, body, sent_at, read_at, created_at, updated_at
+├── リレーション: user, template
+├── 制約: 通知の送信履歴・既読管理
 ```
 
 #### 実装済み機能
@@ -273,7 +284,16 @@ public function handleInvoicePaid(array $payload): void
   - [ ] lessons（レッスン）CRUD
   - [ ] lesson_schedules（レッスンスケジュール）CRUD
   - [ ] subscription_plans（月謝プラン）CRUD（Phase 2で実装）
+  - [ ] notification_templates（通知テンプレート）CRUD
 - [ ] モバイルファーストUI基盤構築
+  - [ ] 管理画面UI（PC優先・レスポンシブ対応）
+    - [ ] PCデザインを優先した管理画面レイアウト
+    - [ ] タブレット・モバイルでのレスポンシブ対応
+    - [ ] データテーブル・フォームのPC最適化
+  - [ ] ユーザー画面UI（モバイルファースト）
+    - [ ] モバイルファーストデザイン
+    - [ ] PCでも違和感の少ないレスポンシブ対応
+    - [ ] タッチ操作に最適化されたUI/UX
 - [ ] セキュリティ強化実装
   - [ ] CSRF保護設定
   - [ ] XSS防止設定
@@ -305,6 +325,17 @@ public function handleInvoicePaid(array $payload): void
 - [ ] エラーハンドリング（ユーザーフレンドリーなメッセージ）
 - [ ] キャンセル機能
 - [ ] 通知機能（メール送信）
+  - [ ] 通知テンプレート管理システム
+    - [ ] テンプレート作成・編集・削除（管理者）
+    - [ ] 変数置換システム（{{user_name}}, {{lesson_name}} など）
+    - [ ] プレビュー機能（実際のデータで表示確認）
+  - [ ] 通知送信システム
+    - [ ] 予約確認メール（予約完了時）
+    - [ ] 予約リマインダー（24時間前）
+    - [ ] キャンセル通知（キャンセル時）
+    - [ ] サブスク更新通知（プラン更新時）
+  - [ ] 通知履歴管理
+    - [ ] 通知履歴・既読管理
 - [ ] リマインダー機能（24時間前）
   - [ ] レッスン開始時刻の24時間前にリマインダー送信
   - [ ] 例：9月15日 10:00開始 → 9月14日 10:00にリマインダー
@@ -454,25 +485,31 @@ public function handleInvoicePaid(array $payload): void
    - Stripe連携設定
    - プラン別利用統計
 
-7. **ユーザー管理** (`/admin/users`)
+7. **通知テンプレート管理** (`/admin/notification-templates`)
+   - テンプレート一覧・検索・フィルタリング
+   - テンプレートの作成・編集・削除
+   - 変数置換システムの管理
+   - プレビュー機能・テスト送信
+
+8. **ユーザー管理** (`/admin/users`)
    - ユーザー一覧・検索・フィルタリング
    - ユーザー情報の編集
    - ロール変更（管理者のみ）
    - ユーザー別利用統計
 
-8. **予約管理** (`/admin/reservations`)
+9. **予約管理** (`/admin/reservations`)
    - 予約一覧・検索・フィルタリング
    - 予約の確認・キャンセル
    - 予約統計・レポート
    - 定員オーバー時の対応
 
-9. **サブスクリプション管理** (`/admin/subscriptions`)
-   - 契約一覧・検索・フィルタリング
-   - 契約状況の確認
-   - 決済状況の確認
-   - 契約統計・レポート
+10. **サブスクリプション管理** (`/admin/subscriptions`)
+    - 契約一覧・検索・フィルタリング
+    - 契約状況の確認
+    - 決済状況の確認
+    - 契約統計・レポート
 
-10. **システム設定** (`/admin/settings`)
+11. **システム設定** (`/admin/settings`)
     - アプリケーション設定
     - 通知設定
     - セキュリティ設定
