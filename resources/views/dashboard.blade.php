@@ -14,6 +14,19 @@
                 <div class="p-6">
                     @livewire('demo.counter')
                 </div>
+                @can('access-admin')
+                <div class="p-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">管理メニュー</h3>
+                    <ul class="list-disc ml-6 space-y-2">
+                        <li>
+                            <a class="text-indigo-600" href="{{ route('admin.stores.index') }}">店舗一覧</a>
+                        </li>
+                        <li>
+                            <a class="text-indigo-600" href="{{ route('admin.lesson-categories.index') }}">レッスンカテゴリ一覧</a>
+                        </li>
+                    </ul>
+                </div>
+                @endcan
             </div>
         </div>
     </div>
