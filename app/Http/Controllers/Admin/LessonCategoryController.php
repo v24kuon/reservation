@@ -30,7 +30,7 @@ class LessonCategoryController extends Controller
      */
     public function create(): View
     {
-        $parents = LessonCategory::query()->orderBy('sort_order')->get(['id', 'name']);
+        $parents = LessonCategory::query()->whereNull('parent_id')->orderBy('sort_order')->get(['id', 'name']);
 
         return view('admin.lesson_categories.create', compact('parents'));
     }
@@ -62,6 +62,7 @@ class LessonCategoryController extends Controller
     public function edit(LessonCategory $lesson_category): View
     {
         $parents = LessonCategory::query()
+            ->whereNull('parent_id')
             ->where('id', '!=', $lesson_category->id)
             ->orderBy('sort_order')
             ->get(['id', 'name']);

@@ -17,7 +17,7 @@ class StoreLessonCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'parent_id' => ['nullable', 'integer', 'exists:lesson_categories,id'],
+            'parent_id' => ['required', 'integer', 'exists:lesson_categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['required', 'boolean'],

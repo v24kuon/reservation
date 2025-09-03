@@ -20,8 +20,7 @@
 
                         <div>
                             <label for="parent_id" class="block text-sm font-medium">親カテゴリ</label>
-                            <select id="parent_id" name="parent_id" class="mt-1 w-full border rounded p-2">
-                                <option value="">なし</option>
+                            <select id="parent_id" name="parent_id" class="mt-1 w-full border rounded p-2" required>
                                 @foreach($parents as $parent)
                                     <option value="{{ $parent->id }}" @selected(old('parent_id') == $parent->id)>{{ $parent->name }}</option>
                                 @endforeach

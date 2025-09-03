@@ -12,12 +12,14 @@ it('admin can view lesson categories index', function () {
         ->assertOk();
 });
 
-it('admin can create a lesson category', function () {
+it('admin can create a lesson category under fixed root', function () {
     $admin = adminUser();
+    $root = App\Models\LessonCategory::factory()->create(['parent_id' => null]);
     $payload = [
         'name' => 'Yoga',
         'sort_order' => 1,
         'is_active' => true,
+        'parent_id' => $root->id,
     ];
 
     $this->actingAs($admin)
@@ -27,21 +29,23 @@ it('admin can create a lesson category', function () {
     $this->assertDatabaseHas('lesson_categories', ['name' => 'Yoga']);
 });
 
-it('validation fails without required fields for lesson categories', function () {
+it('validation fails without required fields for lesson categories and parent required', function () {
     $admin = adminUser();
     $this->actingAs($admin)
         ->post(route('admin.lesson-categories.store'), [])
-        ->assertSessionHasErrors(['name','is_active','sort_order']);
+        ->assertSessionHasErrors(['name','is_active','sort_order','parent_id']);
 });
 
 it('admin can update a lesson category', function () {
     $admin = adminUser();
-    $category = LessonCategory::factory()->create();
+    $root = App\Models\LessonCategory::factory()->create(['parent_id' => null]);
+    $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
     $this->actingAs($admin)
         ->patch(route('admin.lesson-categories.update', $category), [
             'name' => 'Renamed',
             'sort_order' => $category->sort_order,
             'is_active' => true,
+            'parent_id' => $root->id,
         ])
         ->assertRedirect();
     $this->assertDatabaseHas('lesson_categories', ['id' => $category->id, 'name' => 'Renamed']);
