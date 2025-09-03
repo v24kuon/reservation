@@ -21,15 +21,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin: stores CRUD
     Route::prefix('admin')->as('admin.')->middleware('can:access-admin')->group(function () {
-        Route::pattern('store', '[0-9]+');
         Route::resource('stores', StoreController::class);
 
         // Admin: lesson categories CRUD
-        Route::pattern('lesson_category', '[0-9]+');
         Route::resource('lesson-categories', LessonCategoryController::class);
 
         // Admin: lessons CRUD
-        Route::pattern('lesson', '[0-9]+');
         Route::resource('lessons', LessonController::class);
     });
 });

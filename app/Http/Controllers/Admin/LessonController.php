@@ -10,10 +10,12 @@ use App\Models\LessonCategory;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 
 class LessonController extends Controller
 {
+    // Note: Controller base class does not include AuthorizesRequests here; route middleware already protects admin.
     public function index(): View
     {
         $lessons = Lesson::query()
@@ -65,7 +67,12 @@ class LessonController extends Controller
 
     public function destroy(Lesson $lesson): RedirectResponse
     {
-        $lesson->delete();
+        try {
+            $lesson->delete();
+        } catch (QueryException $e) {
+            return redirect()->route('admin.lessons.index')
+                ->with('status', '関連データが存在するため削除できませんでした');
+        }
 
         return redirect()->route('admin.lessons.index')->with('status', 'レッスンを削除しました');
     }

@@ -228,7 +228,7 @@ notifications (通知履歴) ✅
 - [ ] 基本的なCRUD機能
   - [x] stores（店舗）CRUD
   - [x] lesson_categories（レッスンカテゴリ）CRUD
-  - [ ] lessons（レッスン）CRUD
+  - [x] lessons（レッスン）CRUD
   - [ ] lesson_schedules（レッスンスケジュール）CRUD
   - [ ] subscription_plans（月謝プラン）CRUD（Phase 2で実装）
   - [ ] notification_templates（通知テンプレート）CRUD

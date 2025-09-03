@@ -34,9 +34,10 @@ it('admin can create a lesson', function () {
         'is_active' => true,
     ];
 
-    $this->actingAs($admin)
-        ->post(route('admin.lessons.store'), $payload)
-        ->assertRedirect();
+    $response = $this->actingAs($admin)
+        ->post(route('admin.lessons.store'), $payload);
+    $response->assertRedirect(route('admin.lessons.index'));
+    $response->assertSessionHasNoErrors();
 
     $this->assertDatabaseHas('lessons', ['name' => 'Test Lesson']);
 });
@@ -44,13 +45,18 @@ it('admin can create a lesson', function () {
 it('admin can update a lesson', function () {
     $admin = adminUser();
     $lesson = Lesson::factory()->create();
-    $this->actingAs($admin)
+    $response = $this->actingAs($admin)
         ->patch(route('admin.lessons.update', $lesson), array_merge($lesson->toArray(), [
             'name' => 'Renamed',
             'is_active' => true,
-        ]))
-        ->assertRedirect();
-    $this->assertDatabaseHas('lessons', ['id' => $lesson->id, 'name' => 'Renamed']);
+        ]));
+    $response->assertRedirect(route('admin.lessons.index'));
+    $response->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('lessons', [
+        'id' => $lesson->id,
+        'name' => 'Renamed',
+        'is_active' => 1,
+    ]);
 });
 
 it('admin can delete a lesson', function () {
@@ -59,5 +65,5 @@ it('admin can delete a lesson', function () {
     $this->actingAs($admin)
         ->delete(route('admin.lessons.destroy', $lesson))
         ->assertRedirect();
-    $this->assertDatabaseMissing('lessons', ['id' => $lesson->id]);
+    $this->assertModelMissing($lesson);
 });

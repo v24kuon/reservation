@@ -30,11 +30,12 @@
                                     <tr class="border-t">
                                         <td class="px-2 py-1">{{ $lesson->id }}</td>
                                         <td class="px-2 py-1">{{ $lesson->name }}</td>
-                                        <td class="px-2 py-1">{{ $lesson->store->name ?? '-' }}</td>
-                                        <td class="px-2 py-1">{{ $lesson->category->name ?? '-' }}</td>
-                                        <td class="px-2 py-1">{{ $lesson->instructor->name ?? '-' }}</td>
+                                        <td class="px-2 py-1">{{ $lesson->store?->name ?? '-' }}</td>
+                                        <td class="px-2 py-1">{{ $lesson->category?->name ?? '-' }}</td>
+                                        <td class="px-2 py-1">{{ $lesson->instructor?->name ?? '-' }}</td>
                                         <td class="px-2 py-1">{{ $lesson->is_active ? '有効' : '無効' }}</td>
                                         <td class="px-2 py-1 space-x-2">
+                                            <a href="{{ route('admin.lessons.show', $lesson) }}" class="text-indigo-600">詳細</a>
                                             <a href="{{ route('admin.lessons.edit', $lesson) }}" class="text-blue-600">編集</a>
                                             <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
                                                 @csrf
@@ -53,5 +54,3 @@
         </div>
     </div>
 </x-app-layout>
-
-

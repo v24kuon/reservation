@@ -10,18 +10,20 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 space-y-2">
                     <p><strong>名称:</strong> {{ $lesson->name }}</p>
-                    <p><strong>店舗:</strong> {{ $lesson->store->name ?? '-' }}</p>
-                    <p><strong>カテゴリ:</strong> {{ $lesson->category->name ?? '-' }}</p>
-                    <p><strong>インストラクター:</strong> {{ $lesson->instructor->name ?? '-' }}</p>
+                    <p><strong>店舗:</strong> {{ $lesson->store?->name ?? '-' }}</p>
+                    <p><strong>カテゴリ:</strong> {{ $lesson->category?->name ?? '-' }}</p>
+                    <p><strong>インストラクター:</strong> {{ $lesson->instructor?->name ?? '-' }}</p>
                     <p><strong>時間:</strong> {{ $lesson->duration }} 分</p>
                     <p><strong>定員:</strong> {{ $lesson->capacity }}</p>
                     <p><strong>予約期限:</strong> {{ $lesson->booking_deadline_hours }} 時間前</p>
                     <p><strong>キャンセル期限:</strong> {{ $lesson->cancel_deadline_hours }} 時間前</p>
                     <p><strong>有効:</strong> {{ $lesson->is_active ? '有効' : '無効' }}</p>
+                    <div class="pt-4 space-x-2">
+                        <a href="{{ route('admin.lessons.edit', $lesson) }}" class="px-4 py-2 bg-indigo-600 text-white rounded">編集へ</a>
+                        <a href="{{ route('admin.lessons.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
-
-

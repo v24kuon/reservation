@@ -17,21 +17,40 @@ class LessonFactory extends Factory
 
     public function definition(): array
     {
-        $store = Store::factory()->create();
-        $instructor = User::factory()->create(['role' => 'instructor']);
-        $root = LessonCategory::factory()->create(['parent_id' => null]);
-        $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
+        // 遅延生成: create時に関連が作成される
+        $childCategoryId = function () {
+            $root = LessonCategory::factory()->create(['parent_id' => null]);
+
+            return LessonCategory::factory()->create(['parent_id' => $root->id])->id;
+        };
 
         return [
-            'store_id' => $store->id,
+            'store_id' => Store::factory(),
             'name' => $this->faker->words(2, true),
-            'category_id' => $category->id,
-            'instructor_user_id' => $instructor->id,
+            'category_id' => $childCategoryId,
+            'instructor_user_id' => User::factory()->state([
+                'role' => User::ROLE_INSTRUCTOR,
+            ]),
             'duration' => 60,
             'capacity' => 10,
             'booking_deadline_hours' => 24,
             'cancel_deadline_hours' => 24,
             'is_active' => true,
         ];
+    }
+
+    public function forStore(Store $store): static
+    {
+        return $this->state(fn (): array => ['store_id' => $store->id]);
+    }
+
+    public function forCategory(LessonCategory $category): static
+    {
+        return $this->state(fn (): array => ['category_id' => $category->id]);
+    }
+
+    public function forInstructor(User $user): static
+    {
+        return $this->state(fn (): array => ['instructor_user_id' => $user->id]);
     }
 }
