@@ -230,7 +230,6 @@ notifications (通知履歴) ✅
   - [x] lesson_categories（レッスンカテゴリ）CRUD
   - [x] lessons（レッスン）CRUD
   - [x] lesson_schedules（レッスンスケジュール）CRUD
-  - [ ] subscription_plans（月謝プラン）CRUD（Phase 2で実装）
   - [ ] notification_templates（通知テンプレート）CRUD
 - [ ] モバイルファーストUI基盤構築
   - [ ] 管理画面UI（PC優先・レスポンシブ対応）
@@ -243,7 +242,7 @@ notifications (通知履歴) ✅
 - [ ] Stripe Checkout統合
 - [ ] Webhook設定・自動同期
 - [ ] サブスクリプション管理
-- [ ] プラン管理機能
+- [ ] subscription_plans（月謝プラン）CRUD実装
 - [ ] 決済失敗時のエラーハンドリング
 
 ### Phase 3: 予約システム
@@ -328,7 +327,7 @@ notifications (通知履歴) ✅
    - 階層表示・並び順変更（ドラッグ&ドロップ）
 4. **レッスン管理** (`/admin/lessons`)
 5. **レッスンスケジュール管理** (`/admin/lesson-schedules`)
-6. **月謝プラン管理** (`/admin/subscription-plans`)
+6. **月謝プラン管理** (`/admin/subscription-plans`)（Phase 2で実装済み）
 7. **通知テンプレート管理** (`/admin/notification-templates`)
 8. **ユーザー管理** (`/admin/users`)
 9. **予約管理** (`/admin/reservations`)
