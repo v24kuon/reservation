@@ -39,7 +39,7 @@
 
             <div>
                 <label class="block text-sm">利用できる変数（システム設定の許可リスト）</label>
-                <p class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;users_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
+                <p class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;user_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
             </div>
 
             @php
@@ -60,7 +60,11 @@
                             <legend class="text-sm font-medium px-1">{{ $tableLabels[$tbl] ?? $tbl }}</legend>
                             <div class="flex flex-wrap gap-2 mt-2">
                                 @foreach($items as $ph)
-                                    <button type="button" class="px-2 py-1 text-xs border rounded bg-white copy-chip" data-ph="{{ $ph }}">&#123;&#123;{{ $ph }}&#125;&#125;</button>
+                                    <button type="button"
+                                            class="px-2 py-1 text-xs border rounded bg-white copy-chip"
+                                            data-ph="{{ $ph }}"
+                                            data-copy="{{ '{{' . $ph . '}}' }}"
+                                    >&#123;&#123;{{ $ph }}&#125;&#125;</button>
                                 @endforeach
                             </div>
                         </fieldset>
@@ -88,9 +92,9 @@
         (function() {
             function copy(text){
                 if(navigator.clipboard){ navigator.clipboard.writeText(text); return; }
-                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.execCommand('copy'); document.body.removeChild(ta);
             }
-            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy('{{' + btn.dataset.ph + '}}')));
+            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy(btn.dataset.copy)));
         })();
     </script>
 </x-app-layout>

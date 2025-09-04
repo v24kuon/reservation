@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\SystemSetting;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,5 +44,22 @@ class StoreNotificationTemplateRequest extends FormRequest
                 ? (json_decode($this->input('variables'), true) ?? $this->input('variables'))
                 : $this->input('variables'),
         ]);
+    }
+
+    public function withValidator(ValidatorContract $validator): void
+    {
+        $validator->after(function (ValidatorContract $v) {
+            $body = (string) $this->input('body_text', '');
+            if ($body === '') {
+                return;
+            }
+            preg_match_all('/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/', $body, $m);
+            $used = array_unique($m[1] ?? []);
+            $whitelist = SystemSetting::getJson('email_variables_whitelist', []);
+            $disallowed = array_values(array_diff($used, $whitelist));
+            if (! empty($disallowed)) {
+                $v->errors()->add('body_text', '未許可の変数が含まれています: '.implode(', ', $disallowed));
+            }
+        });
     }
 }
