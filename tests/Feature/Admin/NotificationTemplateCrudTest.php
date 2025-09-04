@@ -21,7 +21,6 @@ it('admin can create a notification template', function () {
         'type' => 'reservation_confirmation',
         'subject' => '【予約確認】{{user_name}}様',
         'body_text' => 'ご予約ありがとうございます。',
-        'body_html' => '<p>ご予約ありがとうございます。</p>',
         'variables' => json_encode(['user_name', 'lesson_name']),
         'is_active' => true,
     ];
@@ -78,5 +77,3 @@ it('admin can delete a notification template', function () {
         'id' => $template->id,
     ]);
 });
-
-

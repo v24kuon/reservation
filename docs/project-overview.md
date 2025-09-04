@@ -97,10 +97,12 @@ user_favorites (ユーザーお気に入り) ✅
 ├── 制約: 同一ユーザーの重複お気に入り防止
 
 notification_templates (通知テンプレート) ✅
-├── id, name, type, subject, body_text, body_html, variables (JSON), is_active, created_at, updated_at
+├── id, name, type, subject, body_text, variables (JSON), is_active, created_at, updated_at
 ├── リレーション: notifications
-├── 制約: type に一意制約（予約確認、リマインダー、キャンセル、サブスク更新）
+├── 制約: type は固定集合（reservation_confirmation, reminder, cancellation, subscription_update）かつ一意制約
+├── 本文: テキストのみ（HTML なし）
 ├── 変数置換: {{user_name}}, {{lesson_name}}, {{store_name}}, {{datetime}}, {{remaining_count}} など
+├── 入力方法: variables は JSON 配列（例: ["user_name","lesson_name","store_name","datetime"]）、本文では {{user_name}} 等を埋め込み
 
 notifications (通知履歴) ✅
 ├── id, user_id, template_id, type, subject, body, sent_at, read_at, created_at, updated_at

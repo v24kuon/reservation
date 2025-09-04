@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreNotificationTemplateRequest extends FormRequest
 {
@@ -21,12 +22,13 @@ class StoreNotificationTemplateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $types = ['reservation_confirmation', 'reminder', 'cancellation', 'subscription_update'];
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'max:255', 'unique:notification_templates,type'],
+            'type' => ['required', 'string', 'max:255', Rule::in($types), 'unique:notification_templates,type'],
             'subject' => ['required', 'string', 'max:255'],
             'body_text' => ['nullable', 'string'],
-            'body_html' => ['nullable', 'string'],
             'variables' => ['nullable', 'json'],
             'is_active' => ['required', 'boolean'],
         ];

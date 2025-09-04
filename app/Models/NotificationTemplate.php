@@ -15,7 +15,6 @@ class NotificationTemplate extends Model
         'type',
         'subject',
         'body_text',
-        'body_html',
         'variables',
         'is_active',
     ];

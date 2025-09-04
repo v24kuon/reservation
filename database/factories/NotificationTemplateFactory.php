@@ -23,7 +23,6 @@ class NotificationTemplateFactory extends Factory
             ]),
             'subject' => $this->faker->sentence(6),
             'body_text' => $this->faker->paragraph(),
-            'body_html' => '<p>'.$this->faker->sentence(8).'</p>',
             'variables' => ['user_name', 'lesson_name', 'datetime'],
             'is_active' => true,
         ];

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateNotificationTemplateRequest extends FormRequest
 {
@@ -22,13 +23,13 @@ class UpdateNotificationTemplateRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('notification_template')?->id;
+        $types = ['reservation_confirmation', 'reminder', 'cancellation', 'subscription_update'];
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'type' => ['sometimes', 'string', 'max:255', 'unique:notification_templates,type,'.($id ?? 'NULL').',id'],
+            'type' => ['sometimes', 'string', 'max:255', Rule::in($types), 'unique:notification_templates,type,'.($id ?? 'NULL').',id'],
             'subject' => ['sometimes', 'string', 'max:255'],
             'body_text' => ['nullable', 'string'],
-            'body_html' => ['nullable', 'string'],
             'variables' => ['nullable', 'json'],
             'is_active' => ['sometimes', 'boolean'],
         ];
