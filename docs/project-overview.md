@@ -109,6 +109,12 @@ notifications (通知履歴) ✅
 ├── id, user_id, template_id, type, subject, body, sent_at, read_at, created_at, updated_at
 ├── リレーション: user, template
 ├── 制約: 通知の送信履歴・既読管理
+
+system_settings (システム設定) ✅
+├── id, key (unique), value (text), type (text), description (nullable), created_at, updated_at
+├── 用途: アプリケーション全体の設定値管理
+├── 主要設定: email_variables_whitelist（メール通知で利用可能な変数リスト）
+├── データ型: JSON、テキスト、数値など（typeフィールドで管理）
 ```
 
 ### 機能設計
