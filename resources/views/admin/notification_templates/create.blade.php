@@ -38,25 +38,36 @@
             </div>
 
             <div>
-                <label class="block text-sm">利用できる変数（JSON文字列で入力）</label>
-                <input id="variables-json" type="text" name="variables" value='{{ old('variables', "[]") }}' class="border rounded w-full p-2" placeholder='["users_name","lessons_name"]'>
-                <p class="text-xs text-gray-600 mt-1">本文中では @{{users_name}} のように記述します。チェックの選択内容は上のJSONに同期されます。</p>
-                @error('variables') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+                <label class="block text-sm">利用できる変数（システム設定の許可リスト）</label>
+                <div class="border rounded p-3 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">JSON形式</div>
+                        <button type="button" id="copy-json" class="text-xs px-2 py-1 border rounded">コピー</button>
+                    </div>
+                    <textarea id="whitelist-json" class="border rounded w-full p-2 mt-2" rows="3" readonly>@json($whitelist ?? [])</textarea>
+                </div>
+                <p class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;users_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
             </div>
 
-            @if(!empty($availableByTable))
+            @php
+                $grouped = [];
+                foreach (($whitelist ?? []) as $ph) {
+                    $pos = strpos($ph, '_');
+                    $tbl = $pos !== false ? substr($ph, 0, $pos) : 'others';
+                    $grouped[$tbl][] = $ph;
+                }
+            @endphp
+
+            @if(!empty($grouped))
             <div class="border rounded p-3 bg-gray-50">
-                <div class="font-semibold mb-2">テーブル別の候補</div>
+                <div class="font-semibold mb-2">テーブル別</div>
                 <div class="grid md:grid-cols-2 gap-4">
-                    @foreach($availableByTable as $table => $placeholders)
+                    @foreach($grouped as $tbl => $items)
                         <fieldset class="border rounded p-2">
-                            <legend class="text-sm font-medium px-1">{{ $tableLabels[$table] ?? $table }}</legend>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                                @foreach($placeholders as $placeholder => $column)
-                                    <label class="inline-flex items-center text-sm">
-                                        <input type="checkbox" class="var-checkbox" value="{{ $placeholder }}">
-                                        <span class="ml-2">&#123;&#123;{{ $placeholder }}&#125;&#125; <span class="text-gray-500">({{ $column }})</span></span>
-                                    </label>
+                            <legend class="text-sm font-medium px-1">{{ $tableLabels[$tbl] ?? $tbl }}</legend>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                @foreach($items as $ph)
+                                    <button type="button" class="px-2 py-1 text-xs border rounded bg-white copy-chip" data-ph="{{ $ph }}">&#123;&#123;{{ $ph }}&#125;&#125;</button>
                                 @endforeach
                             </div>
                         </fieldset>
@@ -80,4 +91,16 @@
             </div>
         </form>
     </div>
+    <script>
+        (function() {
+            function copy(text){
+                if(navigator.clipboard){ navigator.clipboard.writeText(text); return; }
+                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            }
+            const jsonBtn = document.getElementById('copy-json');
+            const jsonArea = document.getElementById('whitelist-json');
+            jsonBtn?.addEventListener('click', () => copy(jsonArea.value));
+            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy('{{' + btn.dataset.ph + '}}')));
+        })();
+    </script>
 </x-app-layout>

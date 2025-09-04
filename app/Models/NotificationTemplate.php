@@ -48,6 +48,9 @@ class NotificationTemplate extends Model
         ];
 
         $systemColumns = ['id', 'created_at', 'updated_at', 'deleted_at'];
+        $sensitiveByTable = [
+            'users' => ['password', 'remember_token', 'email_verified_at'],
+        ];
 
         $groups = [];
         foreach ($tables as $table => $label) {
@@ -58,6 +61,9 @@ class NotificationTemplate extends Model
             $columns = Schema::getColumnListing($table);
             foreach ($columns as $column) {
                 if (in_array($column, $systemColumns, true)) {
+                    continue;
+                }
+                if (isset($sensitiveByTable[$table]) && in_array($column, $sensitiveByTable[$table], true)) {
                     continue;
                 }
                 $placeholder = $table.'_'.$column; // e.g. users_name

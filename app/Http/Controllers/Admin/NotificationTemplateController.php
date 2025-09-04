@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreNotificationTemplateRequest;
 use App\Http\Requests\UpdateNotificationTemplateRequest;
 use App\Models\NotificationTemplate;
+use App\Models\SystemSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -30,8 +31,9 @@ class NotificationTemplateController extends Controller
     {
         $availableByTable = NotificationTemplate::getAvailableVariablesByTable();
         $tableLabels = NotificationTemplate::getTableLabels();
+        $whitelist = SystemSetting::getJson('email_variables_whitelist', []);
 
-        return view('admin.notification_templates.create', compact('availableByTable', 'tableLabels'));
+        return view('admin.notification_templates.create', compact('availableByTable', 'tableLabels', 'whitelist'));
     }
 
     /**
@@ -40,7 +42,8 @@ class NotificationTemplateController extends Controller
     public function store(StoreNotificationTemplateRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['variables'] = isset($data['variables']) ? json_decode($data['variables'], true) : null;
+        // システム設定の許可リストを自動適用（手動入力は不可）
+        $data['variables'] = SystemSetting::getJson('email_variables_whitelist', []);
         NotificationTemplate::create($data);
 
         return redirect()
@@ -63,11 +66,13 @@ class NotificationTemplateController extends Controller
     {
         $availableByTable = NotificationTemplate::getAvailableVariablesByTable();
         $tableLabels = NotificationTemplate::getTableLabels();
+        $whitelist = SystemSetting::getJson('email_variables_whitelist', []);
 
         return view('admin.notification_templates.edit', [
             'template' => $notification_template,
             'availableByTable' => $availableByTable,
             'tableLabels' => $tableLabels,
+            'whitelist' => $whitelist,
         ]);
     }
 
@@ -77,7 +82,8 @@ class NotificationTemplateController extends Controller
     public function update(UpdateNotificationTemplateRequest $request, NotificationTemplate $notification_template): RedirectResponse
     {
         $data = $request->validated();
-        $data['variables'] = isset($data['variables']) ? json_decode($data['variables'], true) : $notification_template->variables;
+        // 常に許可リストを反映
+        $data['variables'] = SystemSetting::getJson('email_variables_whitelist', []);
         $notification_template->update($data);
 
         return redirect()
