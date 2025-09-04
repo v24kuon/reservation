@@ -24,7 +24,7 @@ class LessonScheduleController extends Controller
 
     public function create(): View
     {
-        $lessons = Lesson::query()->orderBy('id')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
 
         return view('admin.lesson_schedules.create', compact('lessons'));
     }
@@ -46,7 +46,7 @@ class LessonScheduleController extends Controller
 
     public function edit(LessonSchedule $lesson_schedule): View
     {
-        $lessons = Lesson::query()->orderBy('id')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
 
         return view('admin.lesson_schedules.edit', [
             'schedule' => $lesson_schedule,
@@ -64,6 +64,10 @@ class LessonScheduleController extends Controller
 
     public function destroy(LessonSchedule $lesson_schedule): RedirectResponse
     {
+        if ($lesson_schedule->reservations()->exists()) {
+            return redirect()->route('admin.lesson-schedules.index')
+                ->withErrors('予約が存在するため削除できません');
+        }
         $lesson_schedule->delete();
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを削除しました');

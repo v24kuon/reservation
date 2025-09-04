@@ -21,24 +21,33 @@ class StoreLessonScheduleRequest extends FormRequest
             'lesson_id' => ['required', 'integer', Rule::exists('lessons', 'id')],
             'start_datetime' => [
                 'required',
-                Rule::date()->afterOrEqual('now'),
+                'date',
+                'after_or_equal:now',
             ],
             'end_datetime' => [
                 'required',
-                Rule::date()->after('start_datetime'),
+                'date',
+                'after:start_datetime',
             ],
-            'current_bookings' => ['required', 'integer', 'min:0'],
+            'current_bookings' => [
+                'required', 'integer', 'min:0',
+                function (string $attribute, $value, \Closure $fail) {
+                    $lessonId = $this->input('lesson_id');
+                    $lesson = $lessonId ? \App\Models\Lesson::find($lessonId) : null;
+                    if ($lesson && $value > $lesson->capacity) {
+                        $fail('現在予約数は定員を超えられません。');
+                    }
+                },
+            ],
             'is_active' => ['required', 'boolean'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        $payload = [];
-        if ($this->has('is_active')) {
-            $payload['is_active'] = $this->boolean('is_active');
-        }
-        $this->merge($payload);
+        $this->merge([
+            'is_active' => $this->boolean('is_active'),
+        ]);
     }
 
     public function attributes(): array

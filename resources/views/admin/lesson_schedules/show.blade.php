@@ -15,12 +15,10 @@
             <p><strong>レッスン:</strong> {{ $schedule->lesson?->name ?? '-' }}</p>
             <p><strong>店舗:</strong> {{ $schedule->lesson?->store?->name ?? '-' }}</p>
             <p><strong>カテゴリ:</strong> {{ $schedule->lesson?->category?->name ?? '-' }}</p>
-            <p><strong>開始:</strong> {{ $schedule->start_datetime->format('Y-m-d H:i') }}</p>
-            <p><strong>終了:</strong> {{ $schedule->end_datetime->format('Y-m-d H:i') }}</p>
+            <p><strong>開始:</strong> {{ optional($schedule->start_datetime)?->format('Y-m-d H:i') ?? '-' }}</p>
+            <p><strong>終了:</strong> {{ optional($schedule->end_datetime)?->format('Y-m-d H:i') ?? '-' }}</p>
             <p><strong>現在予約数:</strong> {{ $schedule->current_bookings }}</p>
             <p><strong>有効:</strong> {{ $schedule->is_active ? 'はい' : 'いいえ' }}</p>
         </div>
     </div>
 </x-app-layout>
-
-

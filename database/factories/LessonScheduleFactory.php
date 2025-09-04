@@ -26,4 +26,14 @@ class LessonScheduleFactory extends Factory
             'is_active' => true,
         ];
     }
+
+    public function inactive(): self
+    {
+        return $this->state(fn () => ['is_active' => false]);
+    }
+
+    public function withBookings(int $count = 1): self
+    {
+        return $this->state(fn () => ['current_bookings' => $count]);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class UpdateLessonScheduleRequest extends FormRequest
@@ -21,24 +22,44 @@ class UpdateLessonScheduleRequest extends FormRequest
             'lesson_id' => ['sometimes', 'integer', Rule::exists('lessons', 'id')],
             'start_datetime' => [
                 'sometimes',
-                Rule::date()->afterOrEqual('now'),
+                'date_format:Y-m-d H:i',
+                'after_or_equal:now',
             ],
             'end_datetime' => [
                 'sometimes',
-                Rule::date()->after('start_datetime'),
+                'date',
+                function (string $attribute, $value, \Closure $fail) {
+                    $current = $this->input('start_datetime')
+                        ?? optional($this->route('lesson_schedule'))->start_datetime;
+                    if ($current) {
+                        $end = Carbon::parse($value);
+                        $start = $current instanceof \Carbon\CarbonInterface ? $current : Carbon::parse($current);
+                        if ($end->lte($start)) {
+                            $fail('終了日時は開始日時より後である必要があります。');
+                        }
+                    }
+                },
             ],
-            'current_bookings' => ['sometimes', 'integer', 'min:0'],
+            'current_bookings' => [
+                'sometimes', 'integer', 'min:0',
+                function (string $attribute, $value, \Closure $fail) {
+                    $lesson = $this->input('lesson_id')
+                        ? \App\Models\Lesson::find($this->input('lesson_id'))
+                        : optional($this->route('lesson_schedule'))->lesson;
+                    if ($lesson && $value > $lesson->capacity) {
+                        $fail('現在予約数は定員を超えられません。');
+                    }
+                },
+            ],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        $payload = [];
-        if ($this->has('is_active')) {
-            $payload['is_active'] = $this->boolean('is_active');
-        }
-        $this->merge($payload);
+        $this->merge([
+            'is_active' => $this->boolean('is_active'),
+        ]);
     }
 
     public function attributes(): array

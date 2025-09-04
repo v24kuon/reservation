@@ -6,6 +6,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    \Carbon\Carbon::setTestNow('2025-01-01 12:00:00');
+});
+
+afterEach(function () {
+    \Carbon\Carbon::setTestNow();
+});
+
 it('admin can view lesson schedules index', function () {
     $admin = adminUser();
     $this->actingAs($admin)
@@ -29,14 +37,19 @@ it('admin can create a lesson schedule', function () {
         ->assertRedirect(route('admin.lesson-schedules.index'))
         ->assertSessionHasNoErrors();
 
-    $this->assertDatabaseHas('lesson_schedules', ['lesson_id' => $lesson->id]);
+    $this->assertDatabaseHas('lesson_schedules', [
+        'lesson_id' => $lesson->id,
+        'start_datetime' => $payload['start_datetime'],
+        'end_datetime' => $payload['end_datetime'],
+        'is_active' => 1,
+    ]);
 });
 
 it('validation fails for invalid schedule payload', function () {
     $admin = adminUser();
     $this->actingAs($admin)
         ->post(route('admin.lesson-schedules.store'), [])
-        ->assertSessionHasErrors(['lesson_id', 'start_datetime', 'end_datetime', 'current_bookings', 'is_active']);
+        ->assertSessionHasErrors(['lesson_id', 'start_datetime', 'end_datetime', 'current_bookings']);
 });
 
 it('admin can update a lesson schedule', function () {
@@ -59,6 +72,7 @@ it('admin can update a lesson schedule', function () {
 
     $schedule->refresh();
     expect($schedule->current_bookings)->toBe(2);
+    $this->assertDatabaseHas('lesson_schedules', ['id' => $schedule->id, 'current_bookings' => 2]);
 });
 
 it('admin can delete a lesson schedule', function () {

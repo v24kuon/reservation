@@ -39,7 +39,8 @@
 
         <div>
             <label class="inline-flex items-center">
-                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', true))>
+                <input type="hidden" name="is_active" value="0">
+                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', '1'))>
                 <span class="ml-2">有効</span>
             </label>
             @error('is_active') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
@@ -52,5 +53,3 @@
     </form>
     </div>
 </x-app-layout>
-
-
