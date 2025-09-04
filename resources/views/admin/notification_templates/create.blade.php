@@ -39,13 +39,6 @@
 
             <div>
                 <label class="block text-sm">利用できる変数（システム設定の許可リスト）</label>
-                <div class="border rounded p-3 bg-gray-50">
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-700">JSON形式</div>
-                        <button type="button" id="copy-json" class="text-xs px-2 py-1 border rounded">コピー</button>
-                    </div>
-                    <textarea id="whitelist-json" class="border rounded w-full p-2 mt-2" rows="3" readonly>@json($whitelist ?? [])</textarea>
-                </div>
                 <p class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;users_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
             </div>
 
@@ -97,9 +90,6 @@
                 if(navigator.clipboard){ navigator.clipboard.writeText(text); return; }
                 const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
             }
-            const jsonBtn = document.getElementById('copy-json');
-            const jsonArea = document.getElementById('whitelist-json');
-            jsonBtn?.addEventListener('click', () => copy(jsonArea.value));
             document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy('{{' + btn.dataset.ph + '}}')));
         })();
     </script>
