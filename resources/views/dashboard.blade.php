@@ -33,6 +33,9 @@
                         <li>
                             <a class="text-indigo-600" href="{{ route('admin.notification-templates.index') }}">通知テンプレート一覧</a>
                         </li>
+                        <li>
+                            <a class="text-indigo-600" href="{{ route('admin.settings.edit') }}">システム設定</a>
+                        </li>
                     </ul>
                 </div>
                 @endcan
