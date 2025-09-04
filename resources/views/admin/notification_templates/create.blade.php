@@ -39,10 +39,31 @@
 
             <div>
                 <label class="block text-sm">利用できる変数（JSON文字列で入力）</label>
-                <input type="text" name="variables" value='{{ old('variables', "[\"user_name\",\"lesson_name\",\"store_name\",\"datetime\"]") }}' class="border rounded w-full p-2">
-                <p class="text-xs text-gray-600 mt-1">例: ["user_name","lesson_name","store_name","datetime"]。本文中では @{{user_name}}、@{{lesson_name}}、@{{store_name}}、@{{datetime}} のように記述します。</p>
+                <input id="variables-json" type="text" name="variables" value='{{ old('variables', "[]") }}' class="border rounded w-full p-2" placeholder='["users_name","lessons_name"]'>
+                <p class="text-xs text-gray-600 mt-1">本文中では @{{users_name}} のように記述します。チェックの選択内容は上のJSONに同期されます。</p>
                 @error('variables') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
+
+            @if(!empty($availableByTable))
+            <div class="border rounded p-3 bg-gray-50">
+                <div class="font-semibold mb-2">テーブル別の候補</div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    @foreach($availableByTable as $table => $placeholders)
+                        <fieldset class="border rounded p-2">
+                            <legend class="text-sm font-medium px-1">{{ $tableLabels[$table] ?? $table }}</legend>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                @foreach($placeholders as $placeholder => $column)
+                                    <label class="inline-flex items-center text-sm">
+                                        <input type="checkbox" class="var-checkbox" value="{{ $placeholder }}">
+                                        <span class="ml-2">&#123;&#123;{{ $placeholder }}&#125;&#125; <span class="text-gray-500">({{ $column }})</span></span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <div>
                 <label class="inline-flex items-center">

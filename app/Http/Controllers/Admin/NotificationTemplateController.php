@@ -28,7 +28,10 @@ class NotificationTemplateController extends Controller
      */
     public function create(): View
     {
-        return view('admin.notification_templates.create');
+        $availableByTable = NotificationTemplate::getAvailableVariablesByTable();
+        $tableLabels = NotificationTemplate::getTableLabels();
+
+        return view('admin.notification_templates.create', compact('availableByTable', 'tableLabels'));
     }
 
     /**
@@ -58,7 +61,14 @@ class NotificationTemplateController extends Controller
      */
     public function edit(NotificationTemplate $notification_template): View
     {
-        return view('admin.notification_templates.edit', ['template' => $notification_template]);
+        $availableByTable = NotificationTemplate::getAvailableVariablesByTable();
+        $tableLabels = NotificationTemplate::getTableLabels();
+
+        return view('admin.notification_templates.edit', [
+            'template' => $notification_template,
+            'availableByTable' => $availableByTable,
+            'tableLabels' => $tableLabels,
+        ]);
     }
 
     /**
