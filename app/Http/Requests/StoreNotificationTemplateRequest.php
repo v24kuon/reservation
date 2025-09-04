@@ -22,14 +22,14 @@ class StoreNotificationTemplateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $types = ['reservation_confirmation', 'reminder', 'cancellation', 'subscription_update'];
+        $types = \App\Models\NotificationTemplate::TYPES;
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'string', 'max:255', Rule::in($types), 'unique:notification_templates,type'],
             'subject' => ['required', 'string', 'max:255'],
             'body_text' => ['nullable', 'string'],
-            'variables' => ['nullable', 'json'],
+            'variables' => ['nullable', 'array'],
             'is_active' => ['required', 'boolean'],
         ];
     }
@@ -38,6 +38,9 @@ class StoreNotificationTemplateRequest extends FormRequest
     {
         $this->merge([
             'is_active' => $this->boolean('is_active'),
+            'variables' => is_string($this->input('variables'))
+                ? (json_decode($this->input('variables'), true) ?? $this->input('variables'))
+                : $this->input('variables'),
         ]);
     }
 }

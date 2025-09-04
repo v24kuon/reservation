@@ -8,6 +8,7 @@ use App\Models\SystemSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
@@ -22,12 +23,20 @@ class SettingController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
+        // 許可されるプレースホルダ一覧を算出
+        $groups = NotificationTemplate::getAvailableVariablesByTable();
+        $allowed = [];
+        foreach ($groups as $m) {
+            $allowed = array_merge($allowed, array_keys($m));
+        }
+        $allowed = array_values(array_unique($allowed));
+
         $request->validate([
             'variables' => ['nullable', 'array'],
-            'variables.*' => ['string'],
+            'variables.*' => ['string', 'distinct', Rule::in($allowed)],
         ]);
 
-        $variables = $request->input('variables', []);
+        $variables = array_values(array_unique($request->input('variables', [])));
         SystemSetting::put('email_variables_whitelist', array_values($variables), 'json', 'メールで使用可能な変数の許可リスト');
 
         return redirect()->route('admin.settings.edit')->with('status', '設定を更新しました');

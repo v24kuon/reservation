@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('notification_templates', function (Blueprint $table) {
-            if (Schema::hasColumn('notification_templates', 'body_html')) {
+        if (! Schema::hasTable('notification_templates')) {
+            return;
+        }
+        if (Schema::hasColumn('notification_templates', 'body_html')) {
+            Schema::table('notification_templates', function (Blueprint $table) {
                 $table->dropColumn('body_html');
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -23,10 +26,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('notification_templates', function (Blueprint $table) {
-            if (! Schema::hasColumn('notification_templates', 'body_html')) {
+        if (! Schema::hasTable('notification_templates')) {
+            return;
+        }
+        if (! Schema::hasColumn('notification_templates', 'body_html')) {
+            Schema::table('notification_templates', function (Blueprint $table) {
                 $table->text('body_html')->nullable();
-            }
-        });
+            });
+        }
     }
 };

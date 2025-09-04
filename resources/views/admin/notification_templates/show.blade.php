@@ -16,7 +16,7 @@
 
         <div>
             <p class="font-semibold">変数</p>
-            <pre class="border rounded p-2 whitespace-pre-wrap">{{ json_encode($template->variables) }}</pre>
+            <pre class="border rounded p-2 whitespace-pre-wrap">@json($template->variables ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)</pre>
         </div>
 
         <div class="pt-4">

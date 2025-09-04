@@ -21,7 +21,7 @@ it('admin can create a notification template', function () {
         'type' => 'reservation_confirmation',
         'subject' => '【予約確認】{{user_name}}様',
         'body_text' => 'ご予約ありがとうございます。',
-        'variables' => json_encode(['user_name', 'lesson_name']),
+        'variables' => ['user_name', 'lesson_name'],
         'is_active' => true,
     ];
 

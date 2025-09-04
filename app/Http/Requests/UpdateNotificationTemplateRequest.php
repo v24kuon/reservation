@@ -22,15 +22,22 @@ class UpdateNotificationTemplateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('notification_template')?->id;
-        $types = ['reservation_confirmation', 'reminder', 'cancellation', 'subscription_update'];
+        /** @var \App\Models\NotificationTemplate|\Illuminate\Database\Eloquent\Model|int|string|null $current */
+        $current = $this->route('notification_template');
+        $types = \App\Models\NotificationTemplate::TYPES;
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'type' => ['sometimes', 'string', 'max:255', Rule::in($types), 'unique:notification_templates,type,'.($id ?? 'NULL').',id'],
+            'type' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::in($types),
+                Rule::unique('notification_templates', 'type')->ignore($current),
+            ],
             'subject' => ['sometimes', 'string', 'max:255'],
             'body_text' => ['nullable', 'string'],
-            'variables' => ['nullable', 'json'],
+            'variables' => ['nullable', 'array'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
@@ -39,6 +46,9 @@ class UpdateNotificationTemplateRequest extends FormRequest
     {
         $this->merge([
             'is_active' => $this->boolean('is_active'),
+            'variables' => is_string($this->input('variables'))
+                ? (json_decode($this->input('variables'), true) ?? $this->input('variables'))
+                : $this->input('variables'),
         ]);
     }
 }

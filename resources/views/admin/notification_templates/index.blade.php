@@ -32,15 +32,19 @@
                             <a class="text-blue-700 underline" href="{{ route('admin.notification-templates.show', $template) }}">{{ $template->name }}</a>
                         </td>
                         <td class="px-2 py-1">{{ $template->type }}</td>
-                        <td class="px-2 py-1">{{ $template->subject }}</td>
+                        <td class="px-2 py-1 max-w-[40ch] truncate">{{ $template->subject }}</td>
                         <td class="px-2 py-1">{{ $template->is_active ? 'はい' : 'いいえ' }}</td>
                         <td class="px-2 py-1 space-x-2">
-                            <a href="{{ route('admin.notification-templates.edit', $template) }}" class="text-blue-700 underline">編集</a>
-                            <form class="inline" method="POST" action="{{ route('admin.notification-templates.destroy', $template) }}" onsubmit="return confirm('削除しますか？')">
+                            @can('update', $template)
+                            <a href="{{ route('admin.notification-templates.edit', $template) }}" class="text-blue-700 underline" aria-label="『{{ $template->name }}』を編集">編集</a>
+                            @endcan
+                            @can('delete', $template)
+                            <form class="inline" method="POST" action="{{ route('admin.notification-templates.destroy', $template) }}" onsubmit="return confirm('削除しますか？')" aria-label="『{{ $template->name }}』を削除">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-700 underline">削除</button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                 @empty

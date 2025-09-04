@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Schema;
 
 class NotificationTemplate extends Model
 {
+    public const TYPES = [
+        'reservation_confirmation',
+        'reminder',
+        'cancellation',
+        'subscription_update',
+    ];
+
     /** @use HasFactory<\Database\Factories\NotificationTemplateFactory> */
     use HasFactory;
 
@@ -37,15 +44,7 @@ class NotificationTemplate extends Model
      */
     public static function getAvailableVariablesByTable(): array
     {
-        $tables = [
-            'users' => 'ユーザー',
-            'lessons' => 'レッスン',
-            'stores' => '店舗',
-            'lesson_schedules' => 'スケジュール',
-            'reservations' => '予約',
-            'subscription_plans' => 'プラン',
-            'user_subscriptions' => 'ユーザーサブスク',
-        ];
+        $tables = static::getTableLabels();
 
         $systemColumns = ['id', 'created_at', 'updated_at', 'deleted_at'];
         $sensitiveByTable = [
@@ -53,7 +52,7 @@ class NotificationTemplate extends Model
         ];
 
         $groups = [];
-        foreach ($tables as $table => $label) {
+        foreach (array_keys($tables) as $table) {
             if (! Schema::hasTable($table)) {
                 continue;
             }

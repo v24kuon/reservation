@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('type')->unique();
             $table->string('subject');
             $table->text('body_text')->nullable();
-            $table->text('body_html')->nullable();
             $table->json('variables')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
