@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         Route::pattern('lesson_category', '[0-9]+');
         Route::pattern('lesson', '[0-9]+');
         Route::pattern('lesson_schedule', '[0-9]+');
+        Route::pattern('notification_template', '[0-9]+');
 
         Gate::define('access-dashboard', fn (User $user): bool => $user->hasPrivilegedRole());
         Gate::define('access-admin', fn (User $user): bool => $user->hasRole(User::ROLE_ADMIN));

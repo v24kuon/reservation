@@ -14,7 +14,7 @@
 ## 技術スタック
 
 ### バックエンド
-- **PHP**: 8.4.11
+- **PHP**: 8.2+
 - **Laravel Framework**: 12.26.3
 - **データベース**:
   - 開発環境: SQLite
@@ -97,15 +97,24 @@ user_favorites (ユーザーお気に入り) ✅
 ├── 制約: 同一ユーザーの重複お気に入り防止
 
 notification_templates (通知テンプレート) ✅
-├── id, name, type, subject, body_text, body_html, variables (JSON), is_active, created_at, updated_at
+├── id, name, type, subject, body_text, variables (JSON), is_active, created_at, updated_at
 ├── リレーション: notifications
-├── 制約: type に一意制約（予約確認、リマインダー、キャンセル、サブスク更新）
-├── 変数置換: {{user_name}}, {{lesson_name}}, {{store_name}}, {{datetime}}, {{remaining_count}} など
+├── 制約: type は固定集合（reservation_confirmation, reminder, cancellation, subscription_update）かつ一意制約
+├── 本文: テキストのみ（HTML なし）
+├── 変数置換: {{users_name}}, {{lessons_name}}, {{stores_name}}, {{lesson_schedules_start_datetime}} など
+├── 変数管理: システム設定でテーブル別に許可リスト管理、テンプレート作成時は自動適用（手動入力不可）
+├── 利用可能変数: データベーススキーマから動的取得、機密カラム（password等）は除外
 
 notifications (通知履歴) ✅
 ├── id, user_id, template_id, type, subject, body, sent_at, read_at, created_at, updated_at
 ├── リレーション: user, template
 ├── 制約: 通知の送信履歴・既読管理
+
+system_settings (システム設定) ✅
+├── id, key (unique), value (text), type (text), description (nullable), created_at, updated_at
+├── 用途: アプリケーション全体の設定値管理
+├── 主要設定: email_variables_whitelist（メール通知で利用可能な変数リスト）
+├── データ型: JSON、テキスト、数値など（typeフィールドで管理）
 ```
 
 ### 機能設計
@@ -230,8 +239,7 @@ notifications (通知履歴) ✅
   - [x] lesson_categories（レッスンカテゴリ）CRUD
   - [x] lessons（レッスン）CRUD
   - [x] lesson_schedules（レッスンスケジュール）CRUD
-  - [ ] subscription_plans（月謝プラン）CRUD（Phase 2で実装）
-  - [ ] notification_templates（通知テンプレート）CRUD
+  - [x] notification_templates（通知テンプレート）CRUD
 - [ ] モバイルファーストUI基盤構築
   - [ ] 管理画面UI（PC優先・レスポンシブ対応）
   - [ ] ユーザー画面UI（モバイルファースト）
@@ -243,7 +251,7 @@ notifications (通知履歴) ✅
 - [ ] Stripe Checkout統合
 - [ ] Webhook設定・自動同期
 - [ ] サブスクリプション管理
-- [ ] プラン管理機能
+- [ ] subscription_plans（月謝プラン）CRUD実装
 - [ ] 決済失敗時のエラーハンドリング
 
 ### Phase 3: 予約システム
@@ -328,12 +336,12 @@ notifications (通知履歴) ✅
    - 階層表示・並び順変更（ドラッグ&ドロップ）
 4. **レッスン管理** (`/admin/lessons`)
 5. **レッスンスケジュール管理** (`/admin/lesson-schedules`)
-6. **月謝プラン管理** (`/admin/subscription-plans`)
-7. **通知テンプレート管理** (`/admin/notification-templates`)
+6. **月謝プラン管理** (`/admin/subscription-plans`)（Phase 2で実装予定）
+7. **通知テンプレート管理** (`/admin/notification-templates`) ✅
 8. **ユーザー管理** (`/admin/users`)
 9. **予約管理** (`/admin/reservations`)
 10. **サブスクリプション管理** (`/admin/subscriptions`)
-11. **システム設定** (`/admin/settings`)
+11. **システム設定** (`/admin/settings`) ✅
 
 #### インストラクター専用ページ
 1. **インストラクターダッシュボード** (`/instructor/dashboard`)
@@ -395,6 +403,13 @@ notifications (通知履歴) ✅
 - **予約リマインダー**: 24時間前に送信
 - **キャンセル通知**: キャンセル時に送信
 - **サブスク更新通知**: Stripeからの通知 + アプリからの通知
+
+### 通知テンプレート管理
+- **テンプレート種別**: 固定4種類（reservation_confirmation, reminder, cancellation, subscription_update）
+- **変数管理**: システム設定でテーブル別に許可リスト管理
+- **動的変数取得**: データベーススキーマから自動取得、機密カラムは除外
+- **テンプレート作成**: 変数は自動適用、手動入力不可
+- **UI/UX**: コピー用チップ表示、テーブル別グループ化
 
 ### 送信設定
 - **送信先**: 登録時のメールアドレス（プロフィール更新時は更新後のアドレス）
@@ -543,5 +558,5 @@ git push origin feature/user-authentication
 ---
 
 **作成日**: 2025年9月
-**バージョン**: 1.3
-**ステータス**: 要件定義完了・実装準備完了
+**バージョン**: 1.4
+**ステータス**: 基盤CRUD完了・通知テンプレート管理実装完了
