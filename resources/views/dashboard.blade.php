@@ -27,6 +27,12 @@
                         <li>
                             <a class="text-indigo-600" href="{{ route('admin.lessons.index') }}">レッスン一覧</a>
                         </li>
+                        <li>
+                            <a class="text-indigo-600" href="{{ route('admin.lesson-schedules.index') }}">レッスンスケジュール一覧</a>
+                        </li>
+                        <li>
+                            <a class="text-indigo-600" href="{{ route('admin.notification-templates.index') }}">通知テンプレート一覧</a>
+                        </li>
                     </ul>
                 </div>
                 @endcan
