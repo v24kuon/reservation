@@ -33,14 +33,14 @@
 
             <div>
                 <label class="block text-sm">本文（テキスト）</label>
-                <textarea name="body_text" rows="6" class="border rounded w-full p-2" placeholder="例: {{'{{user_name}}'}} 様、{{'{{lesson_name}}'}} のご予約を受け付けました。日時: {{'{{datetime}}'}}">{{ old('body_text') }}</textarea>
+                <textarea name="body_text" rows="6" class="border rounded w-full p-2" placeholder="例: @{{user_name}} 様、@{{lesson_name}} のご予約を受け付けました。日時: @{{datetime}}">{{ old('body_text') }}</textarea>
                 @error('body_text') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label class="block text-sm">利用できる変数（JSON文字列で入力）</label>
                 <input type="text" name="variables" value='{{ old('variables', "[\"user_name\",\"lesson_name\",\"store_name\",\"datetime\"]") }}' class="border rounded w-full p-2">
-                <p class="text-xs text-gray-600 mt-1">例: ["user_name","lesson_name","store_name","datetime"]。本文中では {{'{{user_name}}'}}, {{'{{lesson_name}}'}}, {{'{{store_name}}'}}, {{'{{datetime}}'}} のように記述します。</p>
+                <p class="text-xs text-gray-600 mt-1">例: ["user_name","lesson_name","store_name","datetime"]。本文中では @{{user_name}}、@{{lesson_name}}、@{{store_name}}、@{{datetime}} のように記述します。</p>
                 @error('variables') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
@@ -60,5 +60,3 @@
         </form>
     </div>
 </x-app-layout>
-
-

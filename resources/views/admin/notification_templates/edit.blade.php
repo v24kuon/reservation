@@ -40,7 +40,7 @@
             <div>
                 <label class="block text-sm">利用できる変数（JSON文字列で入力）</label>
                 <input type="text" name="variables" value='{{ old('variables', json_encode($template->variables)) }}' class="border rounded w-full p-2">
-                <p class="text-xs text-gray-600 mt-1">例: ["user_name","lesson_name","store_name","datetime"]。本文中では {{'{{user_name}}'}}, {{'{{lesson_name}}'}}, {{'{{store_name}}'}}, {{'{{datetime}}'}} のように記述します。</p>
+                <p class="text-xs text-gray-600 mt-1">例: ["user_name","lesson_name","store_name","datetime"]。本文中では @{{user_name}}、@{{lesson_name}}、@{{store_name}}、@{{datetime}} のように記述します。</p>
                 @error('variables') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
@@ -60,5 +60,3 @@
         </form>
     </div>
 </x-app-layout>
-
-

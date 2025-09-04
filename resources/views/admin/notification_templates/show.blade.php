@@ -13,7 +13,7 @@
             <p class="font-semibold">本文（テキスト）</p>
             <pre class="border rounded p-2 whitespace-pre-wrap">{{ $template->body_text }}</pre>
         </div>
-        
+
         <div>
             <p class="font-semibold">変数</p>
             <pre class="border rounded p-2 whitespace-pre-wrap">{{ json_encode($template->variables) }}</pre>
@@ -25,5 +25,3 @@
         </div>
     </div>
 </x-app-layout>
-
-
