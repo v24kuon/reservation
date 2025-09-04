@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\LessonController;
+use App\Http\Controllers\Admin\LessonScheduleController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Admin: lessons CRUD
         Route::resource('lessons', LessonController::class);
+
+        // Admin: lesson schedules CRUD
+        Route::resource('lesson-schedules', LessonScheduleController::class);
     });
 });
 
