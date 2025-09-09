@@ -8,6 +8,18 @@ use Illuminate\Validation\Rules\File;
 class UpdateInstructorProfileRequest extends FormRequest
 {
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'bio' => $this->bio ? trim($this->bio) : null,
+            'qualifications' => $this->qualifications ? trim($this->qualifications) : null,
+            'notes' => $this->notes ? trim($this->notes) : null,
+        ]);
+    }
+
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -23,10 +35,10 @@ class UpdateInstructorProfileRequest extends FormRequest
             return true;
         }
 
-        // If route has {instructor} parameter, only allow when targeting own ID
-        $routeInstructor = $this->route('instructor');
-        if ($routeInstructor !== null) {
-            $routeId = (int) ($routeInstructor->id ?? $routeInstructor);
+        // If route has {instructor} or {user} parameter, only allow when targeting own ID
+        $routeTarget = $this->route('instructor') ?? $this->route('user');
+        if ($routeTarget !== null) {
+            $routeId = (int) ($routeTarget->id ?? $routeTarget);
 
             return $user->id === $routeId;
         }
@@ -49,6 +61,7 @@ class UpdateInstructorProfileRequest extends FormRequest
                     ->types(['jpg', 'jpeg', 'png', 'webp'])
                     ->max(10 * 1024), // 10MB
             ],
+            'remove_image' => ['sometimes', 'boolean'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'qualifications' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:2000'],
@@ -63,7 +76,7 @@ class UpdateInstructorProfileRequest extends FormRequest
         return [
             'image.image' => '画像ファイルを指定してください。',
             'image.max' => '画像は10MB以下にしてください。',
-            'image.mimes' => '画像はjpg/png/webp形式でアップロードしてください。',
+            'image.mimes' => '画像はjpg, jpeg, png, webp形式でアップロードしてください。',
             'bio.max' => '自己紹介は2000文字以内で入力してください。',
             'qualifications.max' => '資格は2000文字以内で入力してください。',
             'notes.max' => '備考は2000文字以内で入力してください。',

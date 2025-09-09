@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateInstructorProfileRequest;
 use App\Models\InstructorProfile;
-use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class InstructorProfileController extends Controller
 {
+    public function __construct()
+    {
+        // Ensure only authenticated users can access self-profile endpoints
+        $this->middleware('auth')->only(['editSelf', 'updateSelf']);
+    }
+
     /**
      * Show the instructor's own profile edit page.
      */
@@ -37,49 +43,38 @@ class InstructorProfileController extends Controller
 
         $profile = $user->instructorProfile ?: new InstructorProfile(['user_id' => $user->id]);
 
+        // Reject unexpected user_id field just in case
+        unset($data['user_id']);
+
+        // Remove existing image when requested
+        if (! empty($data['remove_image']) && $profile->image_path) {
+            Storage::disk('public')->delete($profile->image_path);
+            $profile->image_path = null;
+        }
+
+        $oldPath = $profile->image_path;
+        $newPath = null;
         if (isset($data['image'])) {
             $path = $data['image']->store('instructors', 'public');
             $data['image_path'] = $path;
+            $newPath = $path;
             unset($data['image']);
         }
 
         $profile->fill($data);
+        // Ensure user_id is set on first creation
+        if (! $profile->user_id) {
+            $profile->user_id = $user->id;
+        }
         $profile->save();
+
+        // If image was replaced, cleanup the old file
+        if (! empty($newPath) && ! empty($oldPath) && $oldPath !== $newPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
 
         return redirect()->route('instructor.profile.edit')->with('status', 'プロフィールを更新しました');
     }
 
-    /**
-     * Show admin edit page for a specific instructor.
-     */
-    public function edit(User $instructor): View
-    {
-        $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
-
-        return view('admin.instructors.edit', [
-            'user' => $instructor,
-            'profile' => $profile,
-        ]);
-    }
-
-    /**
-     * Update admin-managed instructor profile.
-     */
-    public function update(UpdateInstructorProfileRequest $request, User $instructor): RedirectResponse
-    {
-        $data = $request->validated();
-
-        $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
-
-        if (isset($data['image'])) {
-            $path = $data['image']->store('instructors', 'public');
-            $data['image_path'] = $path;
-            unset($data['image']);
-        }
-
-        $profile->fill($data);
-        $profile->save();
-
-        return redirect()->route('admin.instructors.edit', $instructor)->with('status', 'プロフィールを更新しました');
-    }
+    // Admin edit/update are handled by Admin\InstructorController. Methods removed as unused.
 }

@@ -25,8 +25,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Instructor self profile
-    Route::get('/instructor/profile', [InstructorProfileController::class, 'editSelf'])->name('instructor.profile.edit');
-    Route::put('/instructor/profile', [InstructorProfileController::class, 'updateSelf'])->name('instructor.profile.update');
+    Route::get('/instructor/profile', [InstructorProfileController::class, 'editSelf'])
+        ->middleware('can:access-instructor')
+        ->name('instructor.profile.edit');
+    Route::put('/instructor/profile', [InstructorProfileController::class, 'updateSelf'])
+        ->middleware('can:access-instructor')
+        ->name('instructor.profile.update');
 
     // Admin: stores CRUD
     Route::prefix('admin')->as('admin.')->middleware('can:access-admin')->group(function () {

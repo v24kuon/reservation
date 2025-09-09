@@ -24,7 +24,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($instructors as $instructor)
+                                @forelse($instructors as $instructor)
                                     <tr class="border-t">
                                         <td class="px-2 py-1">{{ $instructor->id }}</td>
                                         <td class="px-2 py-1">{{ $instructor->name }}</td>
@@ -39,7 +39,11 @@
                                             </form>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr class="border-t">
+                                        <td colspan="5" class="px-2 py-6 text-center text-gray-500">インストラクターが登録されていません</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

@@ -23,6 +23,12 @@
                                     <div class="mt-2">
                                         <img src="{{ $profile->image_url }}" alt="現在の画像" class="h-24 w-24 object-cover rounded" />
                                     </div>
+                                    <div class="mt-2">
+                                        <label class="inline-flex items-center gap-2">
+                                            <input type="checkbox" name="remove_image" value="1">
+                                            <span>画像を削除する</span>
+                                        </label>
+                                    </div>
                                 @endif
                                 <x-input-error class="mt-2" :messages="$errors->get('image')" />
                             </div>

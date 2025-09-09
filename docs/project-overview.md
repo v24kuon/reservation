@@ -229,7 +229,7 @@ system_settings (システム設定) ✅
   - `User::instructorProfile()`（HasOne）
   - `InstructorProfile::user()`（BelongsTo）
 - 画像バリデーション:
-  - 拡張子: jpg, png, webp
+  - 拡張子: jpg, jpeg, png, webp
   - 最大サイズ: 10MB（例: `max:10240`）
 - テキストバリデーション（例）:
   - `bio`, `qualifications`, `notes`: `nullable|string|max:2000`
@@ -250,7 +250,7 @@ system_settings (システム設定) ✅
   - 管理画面：PC優先・レスポンシブ対応
   - ユーザー画面：モバイルファースト・PCでも違和感の少ないデザイン
 
-#### ロール定義
+### ロール定義
 - **一般ユーザー** (role: user): 予約・キャンセル・履歴確認
 - **インストラクター** (role: instructor): 自分のレッスン管理・予約一覧確認
 - **管理者** (role: admin): 全機能管理
@@ -274,8 +274,8 @@ system_settings (システム設定) ✅
   - [x] lesson_schedules（レッスンスケジュール）CRUD
   - [x] notification_templates（通知テンプレート）CRUD
   - [x] system_settings（システム設定）CRUD
-  - [ ] instructors（インストラクター）CRUD
-  - [ ] instructor_profiles（インストラクタープロフィール）CRUD（専用テーブル）
+  - [x] instructors（インストラクター）CRUD
+  - [x] instructor_profiles（インストラクタープロフィール）CRUD（専用テーブル）
 - [ ] レッスンスケジュール機能の改善
   - [ ] 一括作成機能（同じレッスンで複数スケジュールを一度に作成）
   - [ ] 時間重複チェック機能（同じレッスンで時間が重複するスケジュールの防止）
@@ -408,7 +408,7 @@ system_settings (システム設定) ✅
 - 月次リセット: 契約日から1ヶ月ごとの請求サイクルで未使用回数をリセット
 
 ### 技術的考慮事項
-- **Stripe統合（Checkout / Webhook）**: 「決済システム」を参照
+- **Stripe統合（Checkout / Webhook）**: [決済システム](#決済システム)を参照
 - **予約の同時性**: 同時予約時の競合処理（定員・重複・月謝制限チェック）
 - **エラーハンドリング**: ユーザーフレンドリーなエラーメッセージ
 - **決済失敗処理**: 段階的リトライ・手動再試行・画面通知

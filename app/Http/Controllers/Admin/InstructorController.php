@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InstructorStoreRequest;
-use App\Http\Requests\UpdateInstructorProfileRequest;
+use App\Http\Requests\Admin\InstructorUpdateRequest;
 use App\Models\InstructorProfile;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class InstructorController extends Controller
 {
@@ -52,29 +54,63 @@ class InstructorController extends Controller
         ]);
     }
 
-    public function update(InstructorStoreRequest $request, UpdateInstructorProfileRequest $profileRequest, User $instructor): RedirectResponse
+    public function update(InstructorUpdateRequest $request, User $instructor): RedirectResponse
     {
         abort_unless($instructor->role === 'instructor', 404);
-        $attributes = $request->validated();
-        $profileData = $profileRequest->validated();
+        $validated = $request->validated();
+        $attributes = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'] ?? null,
+        ];
+        $profileData = [
+            'image' => $validated['image'] ?? null,
+            'remove_image' => $validated['remove_image'] ?? null,
+            'bio' => $validated['bio'] ?? null,
+            'qualifications' => $validated['qualifications'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ];
 
-        $instructor->name = $attributes['name'];
-        $instructor->email = $attributes['email'];
-        if (! empty($attributes['password'])) {
-            $instructor->password = Hash::make($attributes['password']);
-        }
-        $instructor->role = 'instructor';
-        $instructor->save();
+        $oldPath = $instructor->instructorProfile?->image_path;
+        $newPath = null;
 
-        // Update or create instructor profile (image, bio, qualifications, notes)
-        $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
-        if (isset($profileData['image'])) {
-            $path = $profileData['image']->store('instructors', 'public');
-            $profileData['image_path'] = $path;
-            unset($profileData['image']);
+        DB::transaction(function () use ($instructor, $attributes, &$profileData, &$newPath) {
+            // Update user basic info
+            $instructor->name = $attributes['name'];
+            $instructor->email = $attributes['email'];
+            if (! empty($attributes['password'])) {
+                $instructor->password = Hash::make($attributes['password']);
+            }
+            $instructor->role = 'instructor';
+            $instructor->save();
+
+            // Prepare profile
+            $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
+
+            // Remove existing image when requested
+            if (! empty($profileData['remove_image']) && $profile->image_path) {
+                Storage::disk('public')->delete($profile->image_path);
+                $profile->image_path = null;
+            }
+
+            if (isset($profileData['image'])) {
+                $path = $profileData['image']->store('instructors', 'public');
+                $profileData['image_path'] = $path;
+                $newPath = $path;
+                unset($profileData['image']);
+            }
+            unset($profileData['user_id']);
+            $profile->fill($profileData);
+            if (! $profile->user_id) {
+                $profile->user_id = $instructor->id;
+            }
+            $profile->save();
+        });
+
+        // Cleanup old file if replaced
+        if (! empty($newPath) && ! empty($oldPath) && $oldPath !== $newPath) {
+            Storage::disk('public')->delete($oldPath);
         }
-        $profile->fill($profileData);
-        $profile->save();
 
         return redirect()->route('admin.instructors.index')->with('status', 'インストラクターを更新しました。');
     }
@@ -82,6 +118,9 @@ class InstructorController extends Controller
     public function destroy(User $instructor): RedirectResponse
     {
         abort_unless($instructor->role === 'instructor', 404);
+        if ($instructor->instructorProfile && $instructor->instructorProfile->image_path) {
+            Storage::disk('public')->delete($instructor->instructorProfile->image_path);
+        }
         $instructor->delete();
 
         return redirect()->route('admin.instructors.index')->with('status', 'インストラクターを削除しました。');

@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD024 -->
 # Tasks Document for Yoga & Pilates Reservation System
 # ヨガ・ピラティス予約システム - タスクドキュメント
 
@@ -415,7 +416,7 @@
 ### Stripe Product and Price Management Tasks
 ### Stripeプロダクト・価格管理タスク
 
-- [ ] 17. Create Stripe products and prices via Stripe Dashboard
+- [ ] 25. Create Stripe products and prices via Stripe Dashboard
   - External: Stripe Dashboard (stripe.com)
   - Create products for Group Lessons and Personal Lessons
   - Create prices for each subscription tier
@@ -425,7 +426,7 @@
   - Estimated time: 30 minutes
 
 #### 日本語
-- [ ] 17. Stripeダッシュボード経由でStripeプロダクトと価格を作成
+- [ ] 25. Stripeダッシュボード経由でStripeプロダクトと価格を作成
   - 外部: Stripe Dashboard (stripe.com)
   - グループレッスンとパーソナルレッスン用のプロダクトを作成
   - 各サブスクリプション階層の価格を作成
@@ -434,7 +435,7 @@
   - 依存関係: タスク14
   - 推定時間: 30分
 
-- [ ] 18. Update SubscriptionPlan model for Stripe integration
+- [ ] 26. Update SubscriptionPlan model for Stripe integration
   - File: app/Models/SubscriptionPlan.php (modify)
   - Add Billable trait from Cashier
   - Update fillable attributes for Stripe IDs
@@ -444,7 +445,7 @@
   - Estimated time: 15 minutes
 
 #### 日本語
-- [ ] 18. Stripe統合用にSubscriptionPlanモデルを更新
+- [ ] 26. Stripe統合用にSubscriptionPlanモデルを更新
   - ファイル: app/Models/SubscriptionPlan.php (修正)
   - CashierからBillableトレイトを追加
   - Stripe ID用のfillable属性を更新
@@ -453,27 +454,27 @@
   - 依存関係: タスク13
   - 推定時間: 15分
 
-- [ ] 19. Create SubscriptionPlan seeder with Stripe data
+- [ ] 27. Create SubscriptionPlan seeder with Stripe data
   - File: database/seeders/SubscriptionPlanSeeder.php (new)
   - Populate subscription plans with Stripe product/price IDs
   - Purpose: Seed database with subscription plan data
   - Requirements: 6.1
-  - Dependencies: Tasks 17, 18
+  - Dependencies: Tasks 25, 26
   - Estimated time: 20 minutes
 
 #### 日本語
-- [ ] 19. StripeデータでSubscriptionPlanシーダーを作成
+- [ ] 27. StripeデータでSubscriptionPlanシーダーを作成
   - ファイル: database/seeders/SubscriptionPlanSeeder.php (新規)
   - Stripeプロダクト/価格IDでサブスクリプションプランを設定
   - 目的: サブスクリプションプランデータでデータベースをシード
   - 要件: 6.1
-  - 依存関係: タスク17, 18
+  - 依存関係: タスク25, 26
   - 推定時間: 20分
 
 ### Stripe Checkout Integration Tasks
 ### Stripe Checkout統合タスク
 
-- [ ] 20. Create checkout session controller
+- [ ] 28. Create checkout session controller
   - File: app/Http/Controllers/SubscriptionController.php (new)
   - Method: createCheckoutSession($planId)
   - Purpose: Handle Stripe checkout session creation
@@ -482,7 +483,7 @@
   - Estimated time: 25 minutes
 
 #### 日本語
-- [ ] 20. チェックアウトセッションコントローラーを作成
+- [ ] 28. チェックアウトセッションコントローラーを作成
   - ファイル: app/Http/Controllers/SubscriptionController.php (新規)
   - メソッド: createCheckoutSession($planId)
   - 目的: Stripeチェックアウトセッション作成を処理
@@ -490,44 +491,44 @@
   - 依存関係: タスク13, 14
   - 推定時間: 25分
 
-- [ ] 21. Add subscription routes
+- [ ] 29. Add subscription routes
   - File: routes/web.php (modify)
   - Add routes for subscription checkout and success
   - Purpose: Define URL routing for subscription features
   - Requirements: 7.1
-  - Dependencies: Task 20
+  - Dependencies: Task 28
   - Estimated time: 10 minutes
 
 #### 日本語
-- [ ] 21. サブスクリプションルートを追加
+- [ ] 29. サブスクリプションルートを追加
   - ファイル: routes/web.php (修正)
   - サブスクリプションチェックアウトと成功用のルートを追加
   - 目的: サブスクリプション機能のURLルーティングを定義
   - 要件: 7.1
-  - 依存関係: タスク20
+  - 依存関係: タスク28
   - 推定時間: 10分
 
-- [ ] 22. Create checkout success page
+- [ ] 30. Create checkout success page
   - File: resources/views/subscription/success.blade.php (new)
   - Display subscription confirmation and next steps
   - Purpose: Provide user feedback after successful subscription
   - Requirements: 7.1
-  - Dependencies: Task 21
+  - Dependencies: Task 29
   - Estimated time: 15 minutes
 
 #### 日本語
-- [ ] 22. チェックアウト成功ページを作成
+- [ ] 30. チェックアウト成功ページを作成
   - ファイル: resources/views/subscription/success.blade.php (新規)
   - サブスクリプション確認と次のステップを表示
   - 目的: サブスクリプション成功後のユーザーフィードバックを提供
   - 要件: 7.1
-  - 依存関係: タスク21
+  - 依存関係: タスク29
   - 推定時間: 15分
 
 ### Webhook Processing Tasks
 ### Webhook処理タスク
 
-- [ ] 23. Create webhook controller
+- [ ] 31. Create webhook controller
   - File: app/Http/Controllers/WebhookController.php (new)
   - Handle Stripe webhook events (customer.subscription.created, invoice.payment_succeeded, etc.)
   - Purpose: Process Stripe webhook notifications
@@ -536,7 +537,7 @@
   - Estimated time: 30 minutes
 
 #### 日本語
-- [ ] 23. Webhookコントローラーを作成
+- [ ] 31. Webhookコントローラーを作成
   - ファイル: app/Http/Controllers/WebhookController.php (新規)
   - Stripe webhookイベントを処理 (customer.subscription.created, invoice.payment_succeeded等)
   - 目的: Stripe webhook通知を処理
@@ -544,44 +545,44 @@
   - 依存関係: タスク13, 14
   - 推定時間: 30分
 
-- [ ] 24. Add webhook route
+- [ ] 32. Add webhook route
   - File: routes/web.php (modify)
   - Add POST route for Stripe webhooks
   - Exclude CSRF protection for webhook endpoint
   - Purpose: Accept Stripe webhook notifications
   - Requirements: 7.2
-  - Dependencies: Task 23
+  - Dependencies: Task 31
   - Estimated time: 5 minutes
 
 #### 日本語
-- [ ] 24. Webhookルートを追加
+- [ ] 32. Webhookルートを追加
   - ファイル: routes/web.php (修正)
   - Stripe webhook用のPOSTルートを追加
   - WebhookエンドポイントからCSRF保護を除外
   - 目的: Stripe webhook通知を受け入れる
   - 要件: 7.2
-  - 依存関係: タスク23
+  - 依存関係: タスク31
   - 推定時間: 5分
 
-- [ ] 25. Implement webhook event handlers
+- [ ] 33. Implement webhook event handlers
   - File: app/Http/Controllers/WebhookController.php (modify)
   - Handle subscription status changes
   - Update user subscription records
   - Send notifications for subscription events
   - Purpose: Process subscription lifecycle events
   - Requirements: 7.2, 10.2
-  - Dependencies: Task 23
+  - Dependencies: Task 31
   - Estimated time: 40 minutes
 
 #### 日本語
-- [ ] 25. Webhookイベントハンドラーを実装
+- [ ] 33. Webhookイベントハンドラーを実装
   - ファイル: app/Http/Controllers/WebhookController.php (修正)
   - サブスクリプションステータス変更を処理
   - ユーザーサブスクリプションレコードを更新
   - サブスクリプションイベントの通知を送信
   - 目的: サブスクリプションライフサイクルイベントを処理
   - 要件: 7.2, 10.2
-  - 依存関係: タスク23
+  - 依存関係: タスク31
   - 推定時間: 40分
 
 ### Reservation System Implementation Tasks
@@ -673,7 +674,7 @@
   - Estimated time: 45 minutes
 
 #### 日本語
-- [ ] 30. 予約予約Livewireコンポーネントを作成
+- [ ] 30. 予約Livewireコンポーネントを作成
   - ファイル: app/Livewire/ReservationBooking.php (新規)
   - 利用可能なレッスンを表示し予約を処理
   - 目的: レッスン予約のユーザーインターフェース

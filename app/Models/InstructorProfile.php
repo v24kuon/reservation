@@ -17,7 +17,6 @@ class InstructorProfile extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'user_id',
         'image_path',
         'bio',
         'qualifications',

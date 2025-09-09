@@ -280,6 +280,7 @@ This feature supports the core business goals of streamlining reservation manage
 - **Authentication**: All endpoints require proper authentication and authorization
 - **Input Validation**: All user inputs must be validated using Form Requests
 - **CSRF Protection**: Enable CSRF protection for all state-changing operations
+  - Exception: Third-party webhook endpoints (e.g., Stripe) are excluded and validated by signed secret
 - **XSS Prevention**: Use Blade's automatic escaping and proper output sanitization
 - **SQL Injection Prevention**: Use Eloquent ORM and parameterized queries exclusively
 - **Rate Limiting**: Implement throttling on authentication and booking endpoints
@@ -288,6 +289,7 @@ This feature supports the core business goals of streamlining reservation manage
 - **認証**: すべてのエンドポイントで適切な認証と認可が必要
 - **入力検証**: すべてのユーザー入力はForm Requestを使用して検証必須
 - **CSRF保護**: 状態変更操作すべてでCSRF保護を有効化
+  - 例外: サードパーティWebhookエンドポイント（例：Stripe）は除外され、署名付きシークレットで検証
 - **XSS防止**: Bladeの自動エスケープと適切な出力サニタイズを使用
 - **SQLインジェクション防止**: Eloquent ORMとパラメータ化クエリのみを使用
 - **レート制限**: 認証と予約エンドポイントにスロットリングを実装

@@ -25,3 +25,6 @@ Thumbs.db
 
 # IDE MCP configs
 .cursor/
+
+# spec-workflow runtime sessions (do not commit)
+.spec-workflow/session.json

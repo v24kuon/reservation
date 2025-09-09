@@ -32,4 +32,14 @@ class InstructorStoreRequest extends FormRequest
             'password.confirmed' => 'パスワード（確認）が一致しません。',
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => '氏名',
+            'email' => 'メールアドレス',
+            'password' => 'パスワード',
+            'password_confirmation' => 'パスワード（確認）',
+        ];
+    }
 }
