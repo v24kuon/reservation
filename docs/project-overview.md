@@ -15,7 +15,7 @@
 
 ### バックエンド
 - **PHP**: 8.2+
-- **Laravel Framework**: 12.26.3
+- **Laravel Framework**: 12.x
 - **データベース**:
   - 開発環境: SQLite
   - 本番環境: MySQL
@@ -314,7 +314,7 @@ system_settings (システム設定) ✅
   - [ ] タッチ操作最適化
   - [ ] パフォーマンス最適化（画像遅延読み込み、キャッシュ）
 
-### Phase 3: ユーザー向けページ実装計画
+### ユーザー向けページ実装計画
 
 #### 基本ページ構成
 1. **トップページ** (`/`)
@@ -498,8 +498,8 @@ class ReservationRequest extends FormRequest
 ### 開発環境
 - **Laravel Head**: 開発環境として使用
 - **GitHub**: バージョン管理・コード共有
-- **PHP**: 8.4.11
-- **Laravel**: 12.26.3
+- **PHP**: 8.2+
+- **Laravel**: 12.x
 - **データベース**: SQLite（開発）
 
 ### 必要なパッケージ

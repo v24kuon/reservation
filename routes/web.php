@@ -53,9 +53,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');
 
         // Admin: instructors CRUD (create by admin only)
-        Route::resource('instructors', InstructorController::class)->parameters([
-            'instructors' => 'instructor',
-        ]);
+        Route::resource('instructors', InstructorController::class)
+            ->except(['show'])
+            ->parameters([
+                'instructors' => 'instructor',
+            ]);
     });
 });
 

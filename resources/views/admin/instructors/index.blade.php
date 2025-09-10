@@ -31,12 +31,16 @@
                                         <td class="px-2 py-1">{{ $instructor->email }}</td>
                                         <td class="px-2 py-1">{{ $instructor->created_at?->format('Y-m-d') }}</td>
                                         <td class="px-2 py-1 space-x-2">
+                                            @can('access-admin')
                                             <a href="{{ route('admin.instructors.edit', $instructor) }}" class="text-blue-600">編集</a>
-                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
+                                            @endcan
+                                            @can('access-admin')
+                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" data-confirm="削除しますか？">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>
                                             </form>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

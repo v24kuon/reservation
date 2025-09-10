@@ -266,13 +266,13 @@ This feature supports the core business goals of streamlining reservation manage
 - **Database Optimization**: Use proper indexing on frequently queried columns (start_datetime, user_id, etc.)
 - **Query Optimization**: Implement eager loading to prevent N+1 query problems
 - **Caching Strategy**: Cache frequently accessed data like settings and category hierarchies
-- **Response Time**: API responses should complete within 500ms for most operations
+- **Response Time/SLO**: p95 ≤ 500ms, p99 ≤ 1s for API responses (most operations)
 
 #### 日本語
 - **データベース最適化**: 頻繁にクエリされるカラム（start_datetime、user_idなど）に適切なインデックスを使用
 - **クエリ最適化**: N+1クエリ問題を防ぐためにeager loadingを実装
 - **キャッシュ戦略**: 設定やカテゴリ階層などの頻繁にアクセスされるデータをキャッシュ
-- **応答時間**: ほとんどの操作でAPI応答は500ms以内に完了すべき
+- **応答時間/SLO**: API応答のp95 ≤ 500ms、p99 ≤ 1s（ほとんどの操作）
 
 ### Security
 
@@ -284,6 +284,7 @@ This feature supports the core business goals of streamlining reservation manage
 - **XSS Prevention**: Use Blade's automatic escaping and proper output sanitization
 - **SQL Injection Prevention**: Use Eloquent ORM and parameterized queries exclusively
 - **Rate Limiting**: Implement throttling on authentication and booking endpoints
+- **Image Upload Security**: File type validation, size limits, secure storage paths, EXIF stripping
 
 #### 日本語
 - **認証**: すべてのエンドポイントで適切な認証と認可が必要
@@ -293,6 +294,7 @@ This feature supports the core business goals of streamlining reservation manage
 - **XSS防止**: Bladeの自動エスケープと適切な出力サニタイズを使用
 - **SQLインジェクション防止**: Eloquent ORMとパラメータ化クエリのみを使用
 - **レート制限**: 認証と予約エンドポイントにスロットリングを実装
+- **画像アップロードセキュリティ**: ファイルタイプ検証、サイズ制限、安全なストレージパス、EXIF除去
 
 ### Reliability
 

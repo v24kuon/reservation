@@ -62,7 +62,9 @@ class InstructorProfile extends Model
         if (! $this->qualifications) {
             return [];
         }
+        $lines = preg_split("/\r?\n/", $this->qualifications) ?: [];
+        $lines = array_map(static fn ($line) => trim($line), $lines);
 
-        return array_values(array_filter(preg_split("/\r?\n/", $this->qualifications) ?: []));
+        return array_values(array_filter($lines, static fn ($line) => $line !== ''));
     }
 }

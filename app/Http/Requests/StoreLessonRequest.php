@@ -8,6 +8,11 @@ use Illuminate\Validation\Rule;
 
 class StoreLessonRequest extends FormRequest
 {
+    private const NUMERIC_FIELDS = [
+        'store_id', 'category_id', 'instructor_user_id',
+        'duration', 'capacity', 'booking_deadline_hours', 'cancel_deadline_hours',
+    ];
+
     public function authorize(): bool
     {
         return $this->user()?->can('access-admin') ?? false;
@@ -42,12 +47,12 @@ class StoreLessonRequest extends FormRequest
     {
         $payload = [];
         foreach (['is_active'] as $f) {
-            if ($this->has($f)) {
+            if ($this->filled($f)) {
                 $payload[$f] = $this->boolean($f);
             }
         }
-        foreach (['store_id', 'category_id', 'instructor_user_id', 'duration', 'capacity', 'booking_deadline_hours', 'cancel_deadline_hours'] as $f) {
-            if ($this->has($f)) {
+        foreach (self::NUMERIC_FIELDS as $f) {
+            if ($this->filled($f)) {
                 $payload[$f] = (int) $this->input($f);
             }
         }

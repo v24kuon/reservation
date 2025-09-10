@@ -11,6 +11,8 @@ class InstructorUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
+            'name' => $this->name ? trim($this->name) : null,
+            'email' => $this->email ? trim($this->email) : null,
             'bio' => $this->bio ? trim($this->bio) : null,
             'qualifications' => $this->qualifications ? trim($this->qualifications) : null,
             'notes' => $this->notes ? trim($this->notes) : null,
@@ -25,8 +27,8 @@ class InstructorUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $routeInstructor = $this->route('instructor');
-        $instructorId = is_object($routeInstructor) ? ($routeInstructor->id ?? null) : (int) $routeInstructor;
+        $routeTarget = $this->route('instructor') ?? $this->route('user');
+        $instructorId = is_object($routeTarget) ? ($routeTarget->id ?? null) : (int) $routeTarget;
 
         return [
             // User basic fields
@@ -43,6 +45,7 @@ class InstructorUpdateRequest extends FormRequest
             // Profile fields
             'image' => [
                 'nullable',
+                Rule::excludeIf(fn () => $this->boolean('remove_image')),
                 File::image()
                     ->types(config('uploads.instructor_profile.allowed_types', ['jpg', 'jpeg', 'png', 'webp']))
                     ->max(config('uploads.instructor_profile.max_kb', 10 * 1024)),
@@ -56,6 +59,8 @@ class InstructorUpdateRequest extends FormRequest
 
     public function messages(): array
     {
+        $maxMb = intdiv((int) config('uploads.instructor_profile.max_kb', 10 * 1024), 1024);
+
         return [
             'name.required' => '氏名は必須です。',
             'email.required' => 'メールアドレスは必須です。',
@@ -65,7 +70,7 @@ class InstructorUpdateRequest extends FormRequest
             'password.confirmed' => 'パスワード（確認）が一致しません。',
             'image.image' => '画像ファイルを指定してください。',
             'image.mimes' => '画像はjpg, jpeg, png, webp形式でアップロードしてください。',
-            'image.max' => '画像は10MB以下にしてください。',
+            'image.max' => "画像は{$maxMb}MB以下にしてください。",
             'bio.max' => '自己紹介は2000文字以内で入力してください。',
             'qualifications.max' => '資格は2000文字以内で入力してください。',
             'notes.max' => '備考は2000文字以内で入力してください。',

@@ -79,7 +79,7 @@ class InstructorProfileController extends Controller
 
         // After commit: delete old file if removed or replaced
         if (($shouldDeleteOld && $oldPath) || ($newPath && $oldPath && $oldPath !== $newPath)) {
-            Storage::disk('public')->delete($oldPath);
+            DB::afterCommit(fn () => Storage::disk('public')->delete($oldPath));
         }
 
         return redirect()->route('instructor.profile.edit')->with('status', 'プロフィールを更新しました');

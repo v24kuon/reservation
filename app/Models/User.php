@@ -129,7 +129,11 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function instructorProfile(): HasOne
     {
-        return $this->hasOne(InstructorProfile::class)->withDefault();
+        return $this->hasOne(InstructorProfile::class)->withDefault([
+            'bio' => '',
+            'qualifications' => '',
+            'notes' => '',
+        ]);
     }
 
     /**

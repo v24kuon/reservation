@@ -23,7 +23,7 @@
                                     </div>
                                     <div class="mt-2">
                                         <label class="inline-flex items-center gap-2">
-                                            <input type="checkbox" name="remove_image" value="1">
+                                            <input type="checkbox" name="remove_image" value="1" @checked(old('remove_image'))>
                                             <span>画像を削除する</span>
                                         </label>
                                     </div>

@@ -422,7 +422,7 @@
   - Create prices for each subscription tier
   - Purpose: Set up Stripe products matching our subscription plans
   - Requirements: 6.1
-  - Dependencies: Task 14
+  - Dependencies: Tasks 21-22
   - Estimated time: 30 minutes
 
 #### 日本語
@@ -432,7 +432,7 @@
   - 各サブスクリプション階層の価格を作成
   - 目的: サブスクリプションプランに合致するStripeプロダクトを設定
   - 要件: 6.1
-  - 依存関係: タスク14
+  - 依存関係: タスク21-22
   - 推定時間: 30分
 
 - [ ] 26. Update SubscriptionPlan model for Stripe integration
@@ -441,7 +441,7 @@
   - Update fillable attributes for Stripe IDs
   - Purpose: Enable Stripe integration on subscription plans
   - Requirements: 6.1, 7.1
-  - Dependencies: Task 13
+  - Dependencies: Task 25
   - Estimated time: 15 minutes
 
 #### 日本語
@@ -451,7 +451,7 @@
   - Stripe ID用のfillable属性を更新
   - 目的: サブスクリプションプランでStripe統合を有効化
   - 要件: 6.1, 7.1
-  - 依存関係: タスク13
+  - 依存関係: タスク25
   - 推定時間: 15分
 
 - [ ] 27. Create SubscriptionPlan seeder with Stripe data
@@ -479,7 +479,7 @@
   - Method: createCheckoutSession($planId)
   - Purpose: Handle Stripe checkout session creation
   - Requirements: 7.1
-  - Dependencies: Tasks 13, 14
+  - Dependencies: Tasks 25, 26
   - Estimated time: 25 minutes
 
 #### 日本語
@@ -488,7 +488,7 @@
   - メソッド: createCheckoutSession($planId)
   - 目的: Stripeチェックアウトセッション作成を処理
   - 要件: 7.1
-  - 依存関係: タスク13, 14
+  - 依存関係: タスク25, 26
   - 推定時間: 25分
 
 - [ ] 29. Add subscription routes
@@ -533,7 +533,7 @@
   - Handle Stripe webhook events (customer.subscription.created, invoice.payment_succeeded, etc.)
   - Purpose: Process Stripe webhook notifications
   - Requirements: 7.2
-  - Dependencies: Tasks 13, 14
+  - Dependencies: Task 22
   - Estimated time: 30 minutes
 
 #### 日本語
@@ -542,7 +542,7 @@
   - Stripe webhookイベントを処理 (customer.subscription.created, invoice.payment_succeeded等)
   - 目的: Stripe webhook通知を処理
   - 要件: 7.2
-  - 依存関係: タスク13, 14
+  - 依存関係: タスク22
   - 推定時間: 30分
 
 - [ ] 32. Add webhook route
@@ -588,7 +588,7 @@
 ### Reservation System Implementation Tasks
 ### 予約システム実装タスク
 
-- [ ] 26. Create Reservation model and migration
+- [ ] 31. Create Reservation model and migration
   - File: app/Models/Reservation.php (new)
   - File: database/migrations/create_reservations_table.php (new)
   - Define relationships and business logic methods
@@ -598,7 +598,7 @@
   - Estimated time: 20 minutes
 
 #### 日本語
-- [ ] 26. Reservationモデルとマイグレーションを作成
+- [ ] 31. Reservationモデルとマイグレーションを作成
   - ファイル: app/Models/Reservation.php (新規)
   - ファイル: database/migrations/create_reservations_table.php (新規)
   - リレーションシップとビジネスロジックメソッドを定義
@@ -607,117 +607,117 @@
   - 依存関係: なし
   - 推定時間: 20分
 
-- [ ] 27. Extend LessonSchedule model
+- [ ] 32. Extend LessonSchedule model
   - File: app/Models/LessonSchedule.php (modify)
   - Add reservations relationship
   - Add availability checking methods
   - Purpose: Enable reservation functionality on lesson schedules
   - Requirements: 8.3, 8.4
-  - Dependencies: Task 26
+  - Dependencies: Task 31
   - Estimated time: 15 minutes
 
 #### 日本語
-- [ ] 27. LessonScheduleモデルを拡張
+- [ ] 32. LessonScheduleモデルを拡張
   - ファイル: app/Models/LessonSchedule.php (修正)
   - 予約リレーションシップを追加
   - 空き状況チェックメソッドを追加
   - 目的: レッスンスケジュールで予約機能を有効化
   - 要件: 8.3, 8.4
-  - 依存関係: タスク26
+  - 依存関係: タスク31
   - 推定時間: 15分
 
-- [ ] 28. Create reservation controller
+- [ ] 33. Create reservation controller
   - File: app/Http/Controllers/Admin/ReservationController.php (new)
   - Implement CRUD operations for reservation management
   - Add filtering and search functionality
   - Purpose: Admin interface for reservation management
   - Requirements: 8.5
-  - Dependencies: Task 26
+  - Dependencies: Task 31
   - Estimated time: 30 minutes
 
 #### 日本語
-- [ ] 28. 予約コントローラーを作成
+- [ ] 33. 予約コントローラーを作成
   - ファイル: app/Http/Controllers/Admin/ReservationController.php (新規)
   - 予約管理のCRUD操作を実装
   - フィルタリングと検索機能を追加
   - 目的: 予約管理の管理者インターフェース
   - 要件: 8.5
-  - 依存関係: タスク26
+  - 依存関係: タスク31
   - 推定時間: 30分
 
-- [ ] 29. Add reservation routes
+- [ ] 34. Add reservation routes
   - File: routes/web.php (modify)
   - Add admin routes for reservation management
   - Purpose: Define URL routing for reservation features
   - Requirements: 8.5
-  - Dependencies: Task 28
+  - Dependencies: Task 33
   - Estimated time: 10 minutes
 
 #### 日本語
-- [ ] 29. 予約ルートを追加
+- [ ] 34. 予約ルートを追加
   - ファイル: routes/web.php (修正)
   - 予約管理用の管理者ルートを追加
   - 目的: 予約機能のURLルーティングを定義
   - 要件: 8.5
-  - 依存関係: タスク28
+  - 依存関係: タスク33
   - 推定時間: 10分
 
 ### Livewire Component Development Tasks
 ### Livewireコンポーネント開発タスク
 
-- [ ] 30. Create reservation booking Livewire component
+- [ ] 35. Create reservation booking Livewire component
   - File: app/Livewire/ReservationBooking.php (new)
   - Display available lessons and handle booking
   - Purpose: User interface for lesson reservation
   - Requirements: 8.1, 8.2
-  - Dependencies: Tasks 26, 27
+  - Dependencies: Tasks 31, 32
   - Estimated time: 45 minutes
 
 #### 日本語
-- [ ] 30. 予約Livewireコンポーネントを作成
+- [ ] 35. 予約Livewireコンポーネントを作成
   - ファイル: app/Livewire/ReservationBooking.php (新規)
   - 利用可能なレッスンを表示し予約を処理
   - 目的: レッスン予約のユーザーインターフェース
   - 要件: 8.1, 8.2
-  - 依存関係: タスク26, 27
+  - 依存関係: タスク31, 32
   - 推定時間: 45分
 
-- [ ] 31. Create reservation cancellation component
+- [ ] 36. Create reservation cancellation component
   - File: app/Livewire/ReservationCancellation.php (new)
   - Handle reservation cancellation logic
   - Check cancellation deadlines and permissions
   - Purpose: User interface for reservation cancellation
   - Requirements: 8.4
-  - Dependencies: Task 30
+  - Dependencies: Task 35
   - Estimated time: 25 minutes
 
 #### 日本語
-- [ ] 31. 予約キャンセルコンポーネントを作成
+- [ ] 36. 予約キャンセルコンポーネントを作成
   - ファイル: app/Livewire/ReservationCancellation.php (新規)
   - 予約キャンセルロジックを処理
   - キャンセル期限と権限をチェック
   - 目的: 予約キャンセルのユーザーインターフェース
   - 要件: 8.4
-  - 依存関係: タスク30
+  - 依存関係: タスク35
   - 推定時間: 25分
 
-- [ ] 32. Create reservation history component
+- [ ] 37. Create reservation history component
   - File: app/Livewire/ReservationHistory.php (new)
   - Display user's reservation history
   - Show upcoming and past reservations
   - Purpose: User interface for reservation history
   - Requirements: 8.5
-  - Dependencies: Task 30
+  - Dependencies: Task 35
   - Estimated time: 20 minutes
 
 #### 日本語
-- [ ] 32. 予約履歴コンポーネントを作成
+- [ ] 37. 予約履歴コンポーネントを作成
   - ファイル: app/Livewire/ReservationHistory.php (新規)
   - ユーザーの予約履歴を表示
   - 今後の予約と過去の予約を表示
   - 目的: 予約履歴のユーザーインターフェース
   - 要件: 8.5
-  - 依存関係: タスク30
+  - 依存関係: タスク35
   - 推定時間: 20分
 
 ### Notification System Implementation Tasks
@@ -1040,7 +1040,7 @@ Execute in order: 47 → 48 → 49
 ### User Experience
 ### ユーザーエクスペリエンス
 - [ ] Intuitive reservation booking process
-  - [ ] 直感的な予約予約プロセス
+  - [ ] 直感的な予約プロセス
 - [ ] Clear error messages and validation feedback
   - [ ] 明確なエラーメッセージとバリデーションフィードバック
 - [ ] Responsive design works on mobile devices

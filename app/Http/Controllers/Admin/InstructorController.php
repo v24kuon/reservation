@@ -114,9 +114,9 @@ class InstructorController extends Controller
             throw $e;
         }
 
-        // Cleanup old file if removed or replaced
+        // Cleanup old file if removed or replaced (after commit)
         if (($removeOld && ! empty($oldPath)) || (! empty($newPath) && ! empty($oldPath) && $oldPath !== $newPath)) {
-            Storage::disk('public')->delete($oldPath);
+            DB::afterCommit(fn () => Storage::disk('public')->delete($oldPath));
         }
 
         return redirect()->route('admin.instructors.index')->with('status', 'インストラクターを更新しました。');

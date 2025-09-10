@@ -12,12 +12,15 @@ class UpdateInstructorProfileRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $payload = [
             'bio' => $this->bio ? trim($this->bio) : null,
             'qualifications' => $this->qualifications ? trim($this->qualifications) : null,
             'notes' => $this->notes ? trim($this->notes) : null,
-            'remove_image' => $this->boolean('remove_image'),
-        ]);
+        ];
+        if ($this->has('remove_image')) {
+            $payload['remove_image'] = $this->boolean('remove_image');
+        }
+        $this->merge($payload);
     }
 
     /**
@@ -58,6 +61,7 @@ class UpdateInstructorProfileRequest extends FormRequest
         return [
             'image' => [
                 'nullable',
+                'prohibited_if:remove_image,true',
                 File::image()
                     ->types(config('uploads.instructor_profile.allowed_types', ['jpg', 'jpeg', 'png', 'webp']))
                     ->max(config('uploads.instructor_profile.max_kb', 10 * 1024)), // KB
@@ -76,7 +80,7 @@ class UpdateInstructorProfileRequest extends FormRequest
     {
         return [
             'image.image' => '画像ファイルを指定してください。',
-            'image.max' => '画像は10MB以下にしてください。',
+            'image.max' => '画像は:maxKB以下にしてください。',
             'image.mimes' => '画像はjpg, jpeg, png, webp形式でアップロードしてください。',
             'bio.max' => '自己紹介は2000文字以内で入力してください。',
             'qualifications.max' => '資格は2000文字以内で入力してください。',

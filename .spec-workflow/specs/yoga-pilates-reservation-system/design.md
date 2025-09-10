@@ -483,7 +483,9 @@ class InstructorProfile extends Model
 
     public function getQualificationsArrayAttribute(): array
     {
-        return $this->qualifications ? explode("\n", $this->qualifications) : [];
+        return $this->qualifications
+            ? preg_split("/\r\n|\r|\n/", $this->qualifications)
+            : [];
     }
 }
 ```
@@ -516,7 +518,9 @@ class InstructorProfile extends Model
 
     public function getQualificationsArrayAttribute(): array
     {
-        return $this->qualifications ? explode("\n", $this->qualifications) : [];
+        return $this->qualifications
+            ? preg_split("/\r\n|\r|\n/", $this->qualifications)
+            : [];
     }
 }
 ```

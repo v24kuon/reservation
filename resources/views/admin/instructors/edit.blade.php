@@ -11,7 +11,7 @@
                 <div class="p-6">
                     <form method="POST" action="{{ route('admin.instructors.update', $instructor) }}" enctype="multipart/form-data">
                         @method('PUT')
-                        @include('admin.instructors._form')
+                        @include('admin.instructors._form', ['showActions' => false])
 
                         <div class="mt-10 space-y-6">
                             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">プロフィール情報</h3>
@@ -19,13 +19,13 @@
                             <div>
                                 <x-input-label for="image" value="プロフィール画像 (jpg/png/webp, 最大10MB)" />
                                 <input id="image" name="image" type="file" class="mt-1 block w-full" accept="image/jpeg,image/png,image/webp" />
-                                @if(isset($profile) && $profile->image_url)
+                                @if(!empty($profile->image_url))
                                     <div class="mt-2">
                                         <img src="{{ $profile->image_url }}" alt="現在の画像" class="h-24 w-24 object-cover rounded" />
                                     </div>
                                     <div class="mt-2">
                                         <label class="inline-flex items-center gap-2">
-                                            <input type="checkbox" name="remove_image" value="1">
+                                            <input type="checkbox" name="remove_image" value="1" {{ old('remove_image') ? 'checked' : '' }}>
                                             <span>画像を削除する</span>
                                         </label>
                                     </div>
