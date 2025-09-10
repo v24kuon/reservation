@@ -73,42 +73,49 @@ class InstructorController extends Controller
 
         $oldPath = $instructor->instructorProfile?->image_path;
         $newPath = null;
+        $removeOld = ! empty($profileData['remove_image']);
+        unset($profileData['remove_image']);
 
-        DB::transaction(function () use ($instructor, $attributes, &$profileData, &$newPath) {
-            // Update user basic info
-            $instructor->name = $attributes['name'];
-            $instructor->email = $attributes['email'];
-            if (! empty($attributes['password'])) {
-                $instructor->password = Hash::make($attributes['password']);
+        try {
+            DB::transaction(function () use ($instructor, $attributes, &$profileData, &$newPath, $removeOld) {
+                // Update user basic info
+                $instructor->name = $attributes['name'];
+                $instructor->email = $attributes['email'];
+                if (! empty($attributes['password'])) {
+                    $instructor->password = Hash::make($attributes['password']);
+                }
+                $instructor->role = 'instructor';
+                $instructor->save();
+
+                // Prepare profile
+                $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
+
+                if (isset($profileData['image'])) {
+                    $path = $profileData['image']->store('instructors', 'public');
+                    $profileData['image_path'] = $path;
+                    $newPath = $path;
+                    unset($profileData['image']);
+                }
+
+                unset($profileData['user_id']);
+                if ($removeOld) {
+                    $profile->image_path = null;
+                }
+                $profile->fill(\Illuminate\Support\Arr::only($profileData, ['image_path', 'bio', 'qualifications', 'notes']));
+                if (! $profile->user_id) {
+                    $profile->user_id = $instructor->id;
+                }
+                $profile->save();
+            });
+        } catch (\Throwable $e) {
+            if (! empty($newPath)) {
+                Storage::disk('public')->delete($newPath);
             }
-            $instructor->role = 'instructor';
-            $instructor->save();
+            throw $e;
+        }
 
-            // Prepare profile
-            $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
-
-            // Remove existing image when requested
-            if (! empty($profileData['remove_image']) && $profile->image_path) {
-                Storage::disk('public')->delete($profile->image_path);
-                $profile->image_path = null;
-            }
-
-            if (isset($profileData['image'])) {
-                $path = $profileData['image']->store('instructors', 'public');
-                $profileData['image_path'] = $path;
-                $newPath = $path;
-                unset($profileData['image']);
-            }
-            unset($profileData['user_id']);
-            $profile->fill($profileData);
-            if (! $profile->user_id) {
-                $profile->user_id = $instructor->id;
-            }
-            $profile->save();
-        });
-
-        // Cleanup old file if replaced
-        if (! empty($newPath) && ! empty($oldPath) && $oldPath !== $newPath) {
+        // Cleanup old file if removed or replaced
+        if (($removeOld && ! empty($oldPath)) || (! empty($newPath) && ! empty($oldPath) && $oldPath !== $newPath)) {
             Storage::disk('public')->delete($oldPath);
         }
 

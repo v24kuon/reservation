@@ -8,6 +8,16 @@ use Illuminate\Validation\Rules\File;
 
 class InstructorUpdateRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'bio' => $this->bio ? trim($this->bio) : null,
+            'qualifications' => $this->qualifications ? trim($this->qualifications) : null,
+            'notes' => $this->notes ? trim($this->notes) : null,
+            'remove_image' => $this->boolean('remove_image'),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->can('access-admin') ?? false;
@@ -33,7 +43,9 @@ class InstructorUpdateRequest extends FormRequest
             // Profile fields
             'image' => [
                 'nullable',
-                File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max(10 * 1024),
+                File::image()
+                    ->types(config('uploads.instructor_profile.allowed_types', ['jpg', 'jpeg', 'png', 'webp']))
+                    ->max(config('uploads.instructor_profile.max_kb', 10 * 1024)),
             ],
             'remove_image' => ['sometimes', 'boolean'],
             'bio' => ['nullable', 'string', 'max:2000'],
@@ -68,6 +80,7 @@ class InstructorUpdateRequest extends FormRequest
             'password' => 'パスワード',
             'password_confirmation' => 'パスワード（確認）',
             'image' => '画像',
+            'remove_image' => 'プロフィール画像を削除する',
             'bio' => '自己紹介',
             'qualifications' => '資格',
             'notes' => '備考',

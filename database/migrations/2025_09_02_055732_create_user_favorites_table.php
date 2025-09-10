@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('favoritable_type'); // App\Models\Store, App\Models\User
             $table->unsignedBigInteger('favoritable_id');
             $table->timestamps();
-            
+
             // 多態的関連のインデックス
             $table->index(['favoritable_type', 'favoritable_id']);
             // 同一ユーザーが同じ対象をお気に入り登録することを防ぐ

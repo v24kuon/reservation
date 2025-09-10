@@ -46,7 +46,7 @@ class StoreLessonRequest extends FormRequest
                 $payload[$f] = $this->boolean($f);
             }
         }
-        foreach (['store_id','category_id','instructor_user_id','duration','capacity','booking_deadline_hours','cancel_deadline_hours'] as $f) {
+        foreach (['store_id', 'category_id', 'instructor_user_id', 'duration', 'capacity', 'booking_deadline_hours', 'cancel_deadline_hours'] as $f) {
             if ($this->has($f)) {
                 $payload[$f] = (int) $this->input($f);
             }

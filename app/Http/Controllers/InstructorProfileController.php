@@ -7,14 +7,15 @@ use App\Models\InstructorProfile;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class InstructorProfileController extends Controller
 {
     public function __construct()
     {
-        // Ensure only authenticated users can access self-profile endpoints
-        $this->middleware('auth')->only(['editSelf', 'updateSelf']);
+        // Ensure only authenticated instructors/admins can access these endpoints (defense-in-depth)
+        $this->middleware(['auth', 'can:access-instructor'])->only(['editSelf', 'updateSelf']);
     }
 
     /**
@@ -46,30 +47,38 @@ class InstructorProfileController extends Controller
         // Reject unexpected user_id field just in case
         unset($data['user_id']);
 
-        // Remove existing image when requested
-        if (! empty($data['remove_image']) && $profile->image_path) {
-            Storage::disk('public')->delete($profile->image_path);
-            $profile->image_path = null;
-        }
-
         $oldPath = $profile->image_path;
         $newPath = null;
-        if (isset($data['image'])) {
-            $path = $data['image']->store('instructors', 'public');
-            $data['image_path'] = $path;
-            $newPath = $path;
-            unset($data['image']);
+        $shouldDeleteOld = ! empty($data['remove_image']) && ! empty($oldPath);
+        unset($data['remove_image']);
+
+        try {
+            if (isset($data['image'])) {
+                $newPath = $data['image']->store('instructors', 'public');
+                $data['image_path'] = $newPath;
+                unset($data['image']);
+            }
+
+            DB::transaction(function () use ($user, $profile, $data, $shouldDeleteOld) {
+                if ($shouldDeleteOld) {
+                    $profile->image_path = null;
+                }
+                $profile->fill(\Illuminate\Support\Arr::only($data, ['image_path', 'bio', 'qualifications', 'notes']));
+                // Ensure user_id is set on first creation
+                if (! $profile->user_id) {
+                    $profile->user_id = $user->id;
+                }
+                $profile->save();
+            });
+        } catch (\Throwable $e) {
+            if ($newPath) {
+                Storage::disk('public')->delete($newPath);
+            }
+            throw $e;
         }
 
-        $profile->fill($data);
-        // Ensure user_id is set on first creation
-        if (! $profile->user_id) {
-            $profile->user_id = $user->id;
-        }
-        $profile->save();
-
-        // If image was replaced, cleanup the old file
-        if (! empty($newPath) && ! empty($oldPath) && $oldPath !== $newPath) {
+        // After commit: delete old file if removed or replaced
+        if (($shouldDeleteOld && $oldPath) || ($newPath && $oldPath && $oldPath !== $newPath)) {
             Storage::disk('public')->delete($oldPath);
         }
 

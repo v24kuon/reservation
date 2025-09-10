@@ -16,6 +16,7 @@ class UpdateInstructorProfileRequest extends FormRequest
             'bio' => $this->bio ? trim($this->bio) : null,
             'qualifications' => $this->qualifications ? trim($this->qualifications) : null,
             'notes' => $this->notes ? trim($this->notes) : null,
+            'remove_image' => $this->boolean('remove_image'),
         ]);
     }
 
@@ -58,8 +59,8 @@ class UpdateInstructorProfileRequest extends FormRequest
             'image' => [
                 'nullable',
                 File::image()
-                    ->types(['jpg', 'jpeg', 'png', 'webp'])
-                    ->max(10 * 1024), // 10MB
+                    ->types(config('uploads.instructor_profile.allowed_types', ['jpg', 'jpeg', 'png', 'webp']))
+                    ->max(config('uploads.instructor_profile.max_kb', 10 * 1024)), // KB
             ],
             'remove_image' => ['sometimes', 'boolean'],
             'bio' => ['nullable', 'string', 'max:2000'],

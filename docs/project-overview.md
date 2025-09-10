@@ -237,7 +237,7 @@ system_settings (システム設定) ✅
   - `Storage::disk('public')` を使用し `instructors/` へ保存（`php artisan storage:link` 必須）
 - 画面/ルート:
   - 講師本人: `GET /instructor/profile`, `PUT /instructor/profile`
-  - 管理側: `GET /admin/instructors/{user}/edit`, `PUT /admin/instructors/{user}`
+  - 管理側: `GET /admin/instructors/{instructor}/edit`, `PUT /admin/instructors/{instructor}`
 - 権限:
   - 作成/削除: 管理者のみ
   - 編集: インストラクター本人（自身のみ）または管理者
