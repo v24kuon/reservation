@@ -33,6 +33,21 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
             foreach ($items as $idx => $row) {
                 if (is_array($row)) {
                     $items[$idx]['is_active'] = filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+                    // Normalize datetime-local (YYYY-MM-DDTHH:MM) or other formats to Y-m-d H:i:s
+                    if (! empty($row['start_datetime'])) {
+                        try {
+                            $items[$idx]['start_datetime'] = \Illuminate\Support\Carbon::parse(str_replace('T', ' ', (string) $row['start_datetime']))->format('Y-m-d H:i:s');
+                        } catch (\Throwable $e) {
+                            // keep original; validation will catch invalid date
+                        }
+                    }
+                    if (! empty($row['end_datetime'])) {
+                        try {
+                            $items[$idx]['end_datetime'] = \Illuminate\Support\Carbon::parse(str_replace('T', ' ', (string) $row['end_datetime']))->format('Y-m-d H:i:s');
+                        } catch (\Throwable $e) {
+                            // keep original; validation will catch invalid date
+                        }
+                    }
                 }
             }
             $this->merge(['items' => $items]);

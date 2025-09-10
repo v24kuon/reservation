@@ -21,9 +21,9 @@ class GenerateRecurringLessonSchedulesRequest extends FormRequest
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
-            'interval_weeks' => ['sometimes', 'integer', 'min:1'],
+            'interval_weeks' => ['required', 'integer', 'min:1'],
             'weekdays' => ['required', 'array', 'min:1'],
-            'weekdays.*' => ['integer', 'between:0,6'],
+            'weekdays.*' => ['integer', 'between:0,6', 'distinct'],
         ];
     }
 
@@ -31,16 +31,12 @@ class GenerateRecurringLessonSchedulesRequest extends FormRequest
     {
         $weekdays = $this->input('weekdays');
         if (is_array($weekdays)) {
-            $weekdays = array_values(array_unique(array_map('intval', $weekdays)));
+            $weekdays = array_values($weekdays);
         }
-        $interval = (int) ($this->input('interval_weeks') ?? 1);
-        if ($interval < 1) {
-            $interval = 1;
+        if (! $this->has('interval_weeks')) {
+            $this->merge(['interval_weeks' => 1]);
         }
-        $this->merge([
-            'weekdays' => $weekdays,
-            'interval_weeks' => $interval,
-        ]);
+        $this->merge(['weekdays' => $weekdays]);
     }
 
     public function attributes(): array
@@ -52,6 +48,7 @@ class GenerateRecurringLessonSchedulesRequest extends FormRequest
             'end_time' => '終了時刻',
             'interval_weeks' => '間隔（週）',
             'weekdays' => '曜日',
+            'weekdays.*' => '曜日（各要素）',
         ];
     }
 }

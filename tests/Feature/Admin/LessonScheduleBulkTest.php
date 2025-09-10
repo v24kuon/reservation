@@ -61,6 +61,50 @@ it('admin can bulk store schedules', function () {
     ]);
 });
 
+it('admin can bulk store schedules with datetime-local format', function () {
+    $admin = adminUser();
+    $lesson = Lesson::factory()->create();
+
+    $start1 = now()->addDays(2)->format('Y-m-d\TH:i');
+    $end1 = now()->addDays(2)->addHour()->format('Y-m-d\TH:i');
+    $start2 = now()->addDays(9)->format('Y-m-d\TH:i');
+    $end2 = now()->addDays(9)->addHour()->format('Y-m-d\TH:i');
+
+    $payload = [
+        'lesson_id' => $lesson->id,
+        'items' => [
+            [
+                'start_datetime' => $start1,
+                'end_datetime' => $end1,
+                'is_active' => true,
+            ],
+            [
+                'start_datetime' => $start2,
+                'end_datetime' => $end2,
+                'is_active' => false,
+            ],
+        ],
+    ];
+
+    $this->actingAs($admin)
+        ->post(route('admin.lesson-schedules.bulk.store'), $payload)
+        ->assertRedirect(route('admin.lesson-schedules.index'))
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('lesson_schedules', [
+        'lesson_id' => $lesson->id,
+        'start_datetime' => \Carbon\Carbon::parse(str_replace('T', ' ', $start1))->format('Y-m-d H:i:s'),
+        'end_datetime' => \Carbon\Carbon::parse(str_replace('T', ' ', $end1))->format('Y-m-d H:i:s'),
+        'is_active' => 1,
+    ]);
+    $this->assertDatabaseHas('lesson_schedules', [
+        'lesson_id' => $lesson->id,
+        'start_datetime' => \Carbon\Carbon::parse(str_replace('T', ' ', $start2))->format('Y-m-d H:i:s'),
+        'end_datetime' => \Carbon\Carbon::parse(str_replace('T', ' ', $end2))->format('Y-m-d H:i:s'),
+        'is_active' => 0,
+    ]);
+});
+
 it('bulk store requires valid payload', function () {
     $admin = adminUser();
     $this->actingAs($admin)

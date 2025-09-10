@@ -11,6 +11,7 @@ use App\Models\Lesson;
 use App\Models\LessonSchedule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Carbon;
 
 class LessonScheduleController extends Controller
 {
@@ -88,14 +89,17 @@ class LessonScheduleController extends Controller
         $lessonId = $validated['lesson_id'];
         $items = $validated['items'];
 
+        $now = now();
         $payloads = [];
         foreach ($items as $row) {
             $payloads[] = [
                 'lesson_id' => $lessonId,
-                'start_datetime' => $row['start_datetime'],
-                'end_datetime' => $row['end_datetime'],
+                'start_datetime' => Carbon::parse($row['start_datetime'])->format('Y-m-d H:i:s'),
+                'end_datetime' => Carbon::parse($row['end_datetime'])->format('Y-m-d H:i:s'),
                 'current_bookings' => 0,
                 'is_active' => $row['is_active'] ?? true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
 

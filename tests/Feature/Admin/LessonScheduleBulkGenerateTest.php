@@ -38,6 +38,14 @@ it('generates weekly tuesdays within range', function () {
         ->json();
 
     expect($res['count'])->toBeGreaterThan(0);
+    // ensure ascending order by start_datetime
+    $startTimes = array_column($res['items'], 'start_datetime');
+    $sortedStartTimes = $startTimes;
+    sort($sortedStartTimes, SORT_STRING);
+    expect($startTimes)->toBe($sortedStartTimes);
+
+    // ensure no duplicate start_datetime
+    expect(count($startTimes))->toBe(count(array_unique($startTimes)));
     foreach ($res['items'] as $item) {
         expect($item['start_datetime'])->toContain('10:00:00');
         expect($item['end_datetime'])->toContain('11:00:00');
