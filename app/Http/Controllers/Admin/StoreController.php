@@ -17,6 +17,7 @@ class StoreController extends Controller
     public function index(): View
     {
         $stores = Store::query()->latest()->paginate(15);
+
         return view('admin.stores.index', compact('stores'));
     }
 
@@ -72,6 +73,7 @@ class StoreController extends Controller
     public function destroy(Store $store): RedirectResponse
     {
         $store->delete();
+
         return redirect()->route('admin.stores.index')->with('status', '店舗を削除しました');
     }
 }

@@ -100,6 +100,6 @@ class Lesson extends Model
      */
     public function getFormattedDurationAttribute(): string
     {
-        return $this->duration . '分';
+        return $this->duration.'分';
     }
 }

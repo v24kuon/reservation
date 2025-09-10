@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\LessonScheduleController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
-use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\InstructorProfileController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Instructor self profile
+    Route::get('/instructor/profile', [InstructorProfileController::class, 'editSelf'])
+        ->middleware('can:access-instructor')
+        ->name('instructor.profile.edit');
+    Route::put('/instructor/profile', [InstructorProfileController::class, 'updateSelf'])
+        ->middleware('can:access-instructor')
+        ->name('instructor.profile.update');
 
     // Admin: stores CRUD
     Route::prefix('admin')->as('admin.')->middleware('can:access-admin')->group(function () {
@@ -41,6 +51,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Admin: system settings
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');
+
+        // Admin: instructors CRUD (create by admin only)
+        Route::resource('instructors', InstructorController::class)
+            ->except(['show'])
+            ->parameters([
+                'instructors' => 'instructor',
+            ]);
     });
 });
 

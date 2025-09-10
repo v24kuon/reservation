@@ -31,7 +31,7 @@ it('validation fails without required fields', function () {
     $admin = adminUser();
     $this->actingAs($admin)
         ->post(route('admin.stores.store'), [])
-        ->assertSessionHasErrors(['name','address','phone']);
+        ->assertSessionHasErrors(['name', 'address', 'phone']);
 });
 
 it('admin can update a store', function () {

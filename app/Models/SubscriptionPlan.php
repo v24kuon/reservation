@@ -49,6 +49,6 @@ class SubscriptionPlan extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return '¥' . number_format($this->price);
+        return '¥'.number_format($this->price);
     }
 }

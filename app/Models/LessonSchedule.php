@@ -79,7 +79,7 @@ class LessonSchedule extends Model
      */
     public function hasAvailableSpots(): bool
     {
-        return !$this->isFullyBooked();
+        return ! $this->isFullyBooked();
     }
 
     /**

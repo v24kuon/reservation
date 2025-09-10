@@ -1,0 +1,21 @@
+{
+  "id": "approval_1757252618279_yt7lfd4ba",
+  "title": "Requirements Document for Yoga & Pilates Reservation System",
+  "filePath": ".spec-workflow/specs/yoga-pilates-reservation-system/requirements.md",
+  "type": "document",
+  "status": "needs-revision",
+  "createdAt": "2025-09-07T13:43:38.280Z",
+  "category": "spec",
+  "categoryName": "yoga-pilates-reservation-system",
+  "response": "Feedback Summary (1 comments):\n\nGeneral Comments:\n1. 確認済み\n\n",
+  "annotations": "{\n  \"decision\": \"needs-revision\",\n  \"comments\": [\n    {\n      \"type\": \"general\",\n      \"comment\": \"確認済み\",\n      \"timestamp\": \"2025-09-07T14:06:04.042Z\",\n      \"id\": \"comment_1757253964043_3ye857jld\"\n    }\n  ],\n  \"summary\": \"Feedback Summary (1 comments):\\n\\nGeneral Comments:\\n1. 確認済み\\n\\n\",\n  \"timestamp\": \"2025-09-07T14:06:32.888Z\"\n}",
+  "respondedAt": "2025-09-07T14:06:32.932Z",
+  "comments": [
+    {
+      "type": "general",
+      "comment": "確認済み",
+      "timestamp": "2025-09-07T14:06:04.042Z",
+      "id": "comment_1757253964043_3ye857jld"
+    }
+  ]
+}

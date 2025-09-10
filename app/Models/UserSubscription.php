@@ -114,6 +114,6 @@ class UserSubscription extends Model
      */
     public function getFormattedPeriodAttribute(): string
     {
-        return $this->current_period_start->format('Y年m月d日') . ' ～ ' . $this->current_period_end->format('Y年m月d日');
+        return $this->current_period_start->format('Y年m月d日').' ～ '.$this->current_period_end->format('Y年m月d日');
     }
 }
