@@ -45,6 +45,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Admin: lesson schedules CRUD
         Route::resource('lesson-schedules', LessonScheduleController::class);
 
+        // Admin: lesson schedules bulk create
+        Route::get('lesson-schedules/bulk/create', [LessonScheduleController::class, 'bulkCreate'])
+            ->name('lesson-schedules.bulk.create');
+        Route::post('lesson-schedules/bulk', [LessonScheduleController::class, 'bulkStore'])
+            ->name('lesson-schedules.bulk.store');
+
+        // Admin: lesson schedules recurrence generator (server-side)
+        Route::post('lesson-schedules/bulk/generate', [LessonScheduleController::class, 'bulkGenerate'])
+            ->name('lesson-schedules.bulk.generate');
+
         // Admin: notification templates CRUD
         Route::resource('notification-templates', NotificationTemplateController::class);
 
