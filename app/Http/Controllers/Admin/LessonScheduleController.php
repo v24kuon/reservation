@@ -11,7 +11,6 @@ use App\Models\Lesson;
 use App\Models\LessonSchedule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Carbon;
 
 class LessonScheduleController extends Controller
 {
@@ -94,10 +93,10 @@ class LessonScheduleController extends Controller
         foreach ($items as $row) {
             $payloads[] = [
                 'lesson_id' => $lessonId,
-                'start_datetime' => Carbon::parse($row['start_datetime'])->format('Y-m-d H:i:s'),
-                'end_datetime' => Carbon::parse($row['end_datetime'])->format('Y-m-d H:i:s'),
+                'start_datetime' => $row['start_datetime'],
+                'end_datetime' => $row['end_datetime'],
                 'current_bookings' => 0,
-                'is_active' => $row['is_active'] ?? true,
+                'is_active' => isset($row['is_active']) ? (int) (bool) $row['is_active'] : 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
@@ -120,6 +119,9 @@ class LessonScheduleController extends Controller
 
         $items = [];
         foreach ($weekdays as $weekday) {
+            if (count($items) > 1000) {
+                return response()->json(['message' => '生成件数が多すぎます（>1000）。期間や曜日を見直してください。'], 422);
+            }
             $cursor = $startDate->copy();
             // advance to first matching weekday
             while ($cursor->dayOfWeek !== (int) $weekday) {
