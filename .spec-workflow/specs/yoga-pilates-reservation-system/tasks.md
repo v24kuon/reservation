@@ -192,7 +192,7 @@
 ### Lesson Schedule Enhancement Tasks
 ### レッスンスケジュール機能強化タスク
 
-- [ ] 12. Add bulk schedule creation feature
+- [x] 12. Add bulk schedule creation feature
   - File: app/Http/Controllers/Admin/LessonScheduleController.php (modify)
   - Add method for creating multiple schedules at once
   - Purpose: Allow creating recurring lesson schedules efficiently
