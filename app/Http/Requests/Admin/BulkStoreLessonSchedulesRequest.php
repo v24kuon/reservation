@@ -4,7 +4,8 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
+use Illuminate\Support\Carbon;
 use App\Models\LessonSchedule;
 
 class BulkStoreLessonSchedulesRequest extends FormRequest
@@ -67,9 +68,9 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
     /**
      * Add custom validation to prevent overlapping schedules.
      */
-    public function withValidator(Validator $validator): void
+    public function withValidator(ValidatorContract $validator): void
     {
-        $validator->after(function (Validator $v) {
+        $validator->after(function (ValidatorContract $v) {
             $data = $this->all();
             if (!isset($data['lesson_id']) || !isset($data['items']) || !is_array($data['items'])) {
                 return;
@@ -86,6 +87,12 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
                 $aStart = $a['start_datetime'] ?? null;
                 $aEnd = $a['end_datetime'] ?? null;
                 if (empty($aStart) || empty($aEnd)) { continue; }
+                try {
+                    $aStartAt = Carbon::parse($aStart);
+                    $aEndAt = Carbon::parse($aEnd);
+                } catch (\Throwable $e) {
+                    continue; // base rules will flag invalid format
+                }
 
                 // In-payload overlap
                 for ($j = $i + 1; $j < $count; $j++) {
@@ -94,15 +101,21 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
                     $bStart = $b['start_datetime'] ?? null;
                     $bEnd = $b['end_datetime'] ?? null;
                     if (empty($bStart) || empty($bEnd)) { continue; }
-                    // Overlap if a.start < b.end && a.end > b.start
-                    if ($aStart < $bEnd && $aEnd > $bStart) {
+                    try {
+                        $bStartAt = Carbon::parse($bStart);
+                        $bEndAt = Carbon::parse($bEnd);
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                    // Overlap if a.start < b.end && a.end > b.start  (half-open)
+                    if ($aStartAt->lt($bEndAt) && $aEndAt->gt($bStartAt)) {
                         $v->errors()->add('items.'.$i.'.start_datetime', '同一送信内で時間帯が重複しています');
                         $v->errors()->add('items.'.$j.'.start_datetime', '同一送信内で時間帯が重複しています');
                     }
                 }
 
                 // DB overlap for same lesson
-                if (LessonSchedule::hasOverlap($lessonId, $aStart, $aEnd)) {
+                if (isset($aStartAt, $aEndAt) && LessonSchedule::hasOverlap($lessonId, $aStartAt, $aEndAt)) {
                     $v->errors()->add('items.'.$i.'.start_datetime', '既存スケジュールと時間帯が重複しています');
                 }
             }
