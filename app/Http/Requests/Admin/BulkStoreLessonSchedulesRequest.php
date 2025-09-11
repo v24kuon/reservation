@@ -4,6 +4,8 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
+use App\Models\LessonSchedule;
 
 class BulkStoreLessonSchedulesRequest extends FormRequest
 {
@@ -60,6 +62,51 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
             }
             $this->merge(['items' => $items]);
         }
+    }
+
+    /**
+     * Add custom validation to prevent overlapping schedules.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            $data = $this->all();
+            if (!isset($data['lesson_id']) || !isset($data['items']) || !is_array($data['items'])) {
+                return;
+            }
+
+            $lessonId = (int) $data['lesson_id'];
+            $items = $data['items'];
+
+            // Check overlaps within payload (pairwise) and against DB
+            $count = count($items);
+            for ($i = 0; $i < $count; $i++) {
+                $a = $items[$i] ?? null;
+                if (!is_array($a)) { continue; }
+                $aStart = $a['start_datetime'] ?? null;
+                $aEnd = $a['end_datetime'] ?? null;
+                if (empty($aStart) || empty($aEnd)) { continue; }
+
+                // In-payload overlap
+                for ($j = $i + 1; $j < $count; $j++) {
+                    $b = $items[$j] ?? null;
+                    if (!is_array($b)) { continue; }
+                    $bStart = $b['start_datetime'] ?? null;
+                    $bEnd = $b['end_datetime'] ?? null;
+                    if (empty($bStart) || empty($bEnd)) { continue; }
+                    // Overlap if a.start < b.end && a.end > b.start
+                    if ($aStart < $bEnd && $aEnd > $bStart) {
+                        $v->errors()->add('items.'.$i.'.start_datetime', '同一送信内で時間帯が重複しています');
+                        $v->errors()->add('items.'.$j.'.start_datetime', '同一送信内で時間帯が重複しています');
+                    }
+                }
+
+                // DB overlap for same lesson
+                if (LessonSchedule::hasOverlap($lessonId, $aStart, $aEnd)) {
+                    $v->errors()->add('items.'.$i.'.start_datetime', '既存スケジュールと時間帯が重複しています');
+                }
+            }
+        });
     }
 
     public function attributes(): array

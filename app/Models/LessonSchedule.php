@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 class LessonSchedule extends Model
 {
@@ -104,5 +106,29 @@ class LessonSchedule extends Model
     public function getFormattedEndTimeAttribute(): string
     {
         return $this->end_datetime->format('H:i');
+    }
+
+    /**
+     * Scope: schedules that overlap the given [start, end) interval.
+     */
+    public function scopeOverlapping(Builder $query, \DateTimeInterface $start, \DateTimeInterface $end): Builder
+    {
+        return $query
+            ->where('start_datetime', '<', $end)
+            ->where('end_datetime', '>', $start);
+    }
+
+    /**
+     * Determine if any existing schedule for the given lesson overlaps the interval.
+     */
+    public static function hasOverlap(int $lessonId, \DateTimeInterface|string $start, \DateTimeInterface|string $end): bool
+    {
+        $startAt = $start instanceof \DateTimeInterface ? $start : Carbon::parse((string) $start);
+        $endAt = $end instanceof \DateTimeInterface ? $end : Carbon::parse((string) $end);
+
+        return static::query()
+            ->where('lesson_id', $lessonId)
+            ->overlapping($startAt, $endAt)
+            ->exists();
     }
 }
