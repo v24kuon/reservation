@@ -5,10 +5,7 @@
 
     <div class="container mx-auto px-4 py-6">
         <div class="flex justify-between items-center mb-4">
-            <div class="space-x-2">
-                <a href="{{ route('admin.lesson-schedules.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded">新規作成</a>
-                <a href="{{ route('admin.lesson-schedules.bulk.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded">一括作成</a>
-            </div>
+            <a href="{{ route('admin.lesson-schedules.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded">新規作成</a>
         </div>
 
     @if (session('status'))
@@ -66,3 +63,5 @@
     </div>
     </div>
 </x-app-layout>
+
+
