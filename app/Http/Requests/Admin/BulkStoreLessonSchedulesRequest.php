@@ -20,8 +20,8 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
         return [
             'lesson_id' => ['required', 'integer', Rule::exists('lessons', 'id')],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.start_datetime' => ['required', 'date', 'after_or_equal:now'],
-            'items.*.end_datetime' => ['required', 'date', 'after:start_datetime'],
+            'items.*.start_datetime' => ['required', 'date_format:Y-m-d H:i:s', 'after_or_equal:now'],
+            'items.*.end_datetime' => ['required', 'date_format:Y-m-d H:i:s', 'after:start_datetime'],
             'items.*.is_active' => ['sometimes', 'boolean'],
         ];
     }
@@ -32,7 +32,15 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
         if (is_array($items)) {
             foreach ($items as $idx => $row) {
                 if (is_array($row)) {
-                    $items[$idx]['is_active'] = filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+                    if (array_key_exists('is_active', $row)) {
+                        $casted = filter_var($row['is_active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                        if ($casted !== null) {
+                            $items[$idx]['is_active'] = $casted;
+                        }
+                        // invalid values are left as-is to be caught by validation
+                    } else {
+                        $items[$idx]['is_active'] = true; // default when not provided
+                    }
                     // Normalize datetime-local (YYYY-MM-DDTHH:MM) or other formats to Y-m-d H:i:s
                     if (! empty($row['start_datetime'])) {
                         try {
