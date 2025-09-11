@@ -104,9 +104,9 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 13. Implement time overlap validation / 時間重複バリデーションを実装
+- [x] 13. Implement time overlap validation / 時間重複バリデーションを実装
   - File: app/Models/LessonSchedule.php (modify) / ファイル: app/Models/LessonSchedule.php (修正)
-  - Add validation to prevent overlapping schedules for same lesson / 同じレッスンの重複スケジュールを防ぐバリデーションを追加
+  - Prevent overlaps both within payload and against DB; interval semantics = [start, end) / 入力内およびDBに対して重複を防止（半開区間 [start, end)）
   - Purpose: Prevent scheduling conflicts / 目的: スケジュールの競合を防ぐ
   - Requirements: 5.2 / 要件: 5.2
   - Dependencies: Task 12 / 依存関係: タスク12
