@@ -101,7 +101,11 @@ class LessonSchedule extends Model
     }
 
     /**
-     * Get the formatted end time.
+     * Return the schedule's end time formatted as `H:i` (24-hour).
+     *
+     * Formats the model's `end_datetime` attribute to a short time string (hours and minutes).
+     *
+     * @return string The formatted end time, e.g. "14:30".
      */
     public function getFormattedEndTimeAttribute(): string
     {
@@ -109,7 +113,15 @@ class LessonSchedule extends Model
     }
 
     /**
-     * Scope: schedules that overlap the given [start, end) interval.
+     * Scope a query to schedules that overlap the given half-open interval [start, end).
+     *
+     * Returns schedules with start_datetime < $end and end_datetime > $start (i.e. any record that
+     * intersects the provided interval).
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \DateTimeInterface $start Start of the interval (inclusive).
+     * @param \DateTimeInterface $end End of the interval (exclusive).
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeOverlapping(Builder $query, \DateTimeInterface $start, \DateTimeInterface $end): Builder
     {
@@ -119,7 +131,15 @@ class LessonSchedule extends Model
     }
 
     /**
-     * Determine if any existing schedule for the given lesson overlaps the interval.
+     * Determine whether any schedule for the given lesson overlaps the half-open interval [start, end).
+     *
+     * Accepts DateTimeInterface or a date/time string (strings are parsed with Carbon). Returns true if any
+     * existing LessonSchedule for the given lesson_id intersects the interval (i.e. start_datetime < $end AND end_datetime > $start).
+     *
+     * @param int $lessonId ID of the lesson to check.
+     * @param \DateTimeInterface|string $start Interval start.
+     * @param \DateTimeInterface|string $end Interval end.
+     * @return bool True if an overlapping schedule exists, false otherwise.
      */
     public static function hasOverlap(int $lessonId, \DateTimeInterface|string $start, \DateTimeInterface|string $end): bool
     {
