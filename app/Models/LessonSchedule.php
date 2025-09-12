@@ -126,6 +126,10 @@ class LessonSchedule extends Model
         $startAt = $start instanceof \DateTimeInterface ? $start : Carbon::parse((string) $start);
         $endAt = $end instanceof \DateTimeInterface ? $end : Carbon::parse((string) $end);
 
+        if ($endAt <= $startAt) {
+            return false;
+        }
+
         return static::query()
             ->where('lesson_id', $lessonId)
             ->overlapping($startAt, $endAt)
