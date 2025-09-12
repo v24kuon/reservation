@@ -13,9 +13,6 @@ return new class extends Migration
     {
         // lesson_schedules テーブルのインデックス追加
         Schema::table('lesson_schedules', function (Blueprint $table) {
-            // lesson_id の単独インデックス（レッスン別検索用）
-            $table->index('lesson_id', 'lesson_schedules_lesson_id_index');
-
             // is_active の単独インデックス（有効フラグ検索用）
             $table->index('is_active', 'lesson_schedules_is_active_index');
 
@@ -24,6 +21,9 @@ return new class extends Migration
 
             // 複合インデックス（lesson_id + is_active）- レッスン別の有効フラグ検索用
             $table->index(['lesson_id', 'is_active'], 'lesson_schedules_lesson_active_index');
+
+            // 並び替え最適化用の単独インデックス（ORDER BY start_datetime DESC）
+            $table->index('start_datetime', 'lesson_schedules_start_datetime_index');
         });
 
         // lessons テーブルのインデックス追加
@@ -43,10 +43,10 @@ return new class extends Migration
     {
         // lesson_schedules テーブルのインデックス削除
         Schema::table('lesson_schedules', function (Blueprint $table) {
-            $table->dropIndex('lesson_schedules_lesson_id_index');
             $table->dropIndex('lesson_schedules_is_active_index');
             $table->dropIndex('lesson_schedules_lesson_start_index');
             $table->dropIndex('lesson_schedules_lesson_active_index');
+            $table->dropIndex('lesson_schedules_start_datetime_index');
         });
 
         // lessons テーブルのインデックス削除

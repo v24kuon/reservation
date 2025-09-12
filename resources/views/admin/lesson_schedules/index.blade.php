@@ -80,8 +80,8 @@
                         </td>
                         <td class="px-2 py-1">{{ $schedule->lesson?->store?->name ?? '-' }}</td>
                         <td class="px-2 py-1">{{ $schedule->lesson?->category?->name ?? '-' }}</td>
-                        <td class="px-2 py-1">{{ $schedule->formatted_start_time }} ({{ $schedule->start_datetime->format('Y-m-d') }})</td>
-                        <td class="px-2 py-1">{{ $schedule->formatted_end_time }} ({{ $schedule->end_datetime->format('Y-m-d') }})</td>
+                        <td class="px-2 py-1">{{ $schedule->formatted_start_time }} ({{ $schedule->start_datetime?->format('Y-m-d') }})</td>
+                        <td class="px-2 py-1">{{ $schedule->formatted_end_time }} ({{ $schedule->end_datetime?->format('Y-m-d') }})</td>
                         <td class="px-2 py-1">{{ $schedule->current_bookings }}</td>
                         <td class="px-2 py-1">{{ $schedule->is_active ? 'はい' : 'いいえ' }}</td>
                         <td class="px-2 py-1 space-x-2">

@@ -23,10 +23,12 @@ class LessonScheduleController extends Controller
         $validated = $request->validated();
 
         if (!empty($validated['date_from'])) {
-            $query->whereDate('start_datetime', '>=', $validated['date_from']);
+            $from = \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay();
+            $query->where('start_datetime', '>=', $from);
         }
         if (!empty($validated['date_to'])) {
-            $query->whereDate('end_datetime', '<=', $validated['date_to']);
+            $to = \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay();
+            $query->where('end_datetime', '<=', $to);
         }
         if (!empty($validated['lesson_id'])) {
             $query->where('lesson_id', $validated['lesson_id']);
@@ -36,7 +38,7 @@ class LessonScheduleController extends Controller
                 $q->where('instructor_user_id', $validated['instructor_user_id']);
             });
         }
-        if (array_key_exists('is_active', $validated)) {
+        if (isset($validated['is_active'])) {
             $query->where('is_active', (bool) $validated['is_active']);
         }
 
@@ -44,7 +46,10 @@ class LessonScheduleController extends Controller
 
         $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
         $instructors = \App\Models\User::query()
-            ->whereIn('id', Lesson::query()->pluck('instructor_user_id'))
+            ->whereIn('id', Lesson::query()
+                ->whereNotNull('instructor_user_id')
+                ->distinct()
+                ->pluck('instructor_user_id'))
             ->orderBy('name')
             ->get(['id', 'name']);
 

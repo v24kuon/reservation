@@ -17,11 +17,11 @@ class IndexLessonSchedulesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date_from' => ['sometimes', 'date_format:Y-m-d'],
-            'date_to' => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-            'lesson_id' => ['sometimes', 'integer', 'exists:lessons,id'],
-            'instructor_user_id' => ['sometimes', 'integer', 'exists:users,id'],
-            'is_active' => ['sometimes', 'boolean'],
+            'date_from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+            'date_to' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'lesson_id' => ['sometimes', 'nullable', 'integer', 'exists:lessons,id'],
+            'instructor_user_id' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
+            'is_active' => ['sometimes', 'nullable', 'boolean'],
         ];
     }
 
