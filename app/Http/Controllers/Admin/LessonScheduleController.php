@@ -11,17 +11,49 @@ use App\Models\Lesson;
 use App\Models\LessonSchedule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\Admin\IndexLessonSchedulesRequest;
 
 class LessonScheduleController extends Controller
 {
-    public function index(): View
+    public function index(IndexLessonSchedulesRequest $request): View
     {
-        $schedules = LessonSchedule::query()
-            ->with(['lesson.store', 'lesson.category', 'lesson.instructor'])
-            ->latest('start_datetime')
-            ->paginate(15);
+        $query = LessonSchedule::query()
+            ->with(['lesson.store', 'lesson.category', 'lesson.instructor']);
 
-        return view('admin.lesson_schedules.index', compact('schedules'));
+        $validated = $request->validated();
+
+        if (!empty($validated['date_from'])) {
+            $from = \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay();
+            $query->where('start_datetime', '>=', $from);
+        }
+        if (!empty($validated['date_to'])) {
+            $to = \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay();
+            $query->where('end_datetime', '<=', $to);
+        }
+        if (!empty($validated['lesson_id'])) {
+            $query->where('lesson_id', $validated['lesson_id']);
+        }
+        if (!empty($validated['instructor_user_id'])) {
+            $query->whereHas('lesson', function ($q) use ($validated) {
+                $q->where('instructor_user_id', $validated['instructor_user_id']);
+            });
+        }
+        if (isset($validated['is_active'])) {
+            $query->where('is_active', (bool) $validated['is_active']);
+        }
+
+        $schedules = $query->latest('start_datetime')->paginate(15)->withQueryString();
+
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $instructors = \App\Models\User::query()
+            ->whereIn('id', Lesson::query()
+                ->whereNotNull('instructor_user_id')
+                ->distinct()
+                ->pluck('instructor_user_id'))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('admin.lesson_schedules.index', compact('schedules', 'lessons', 'instructors'));
     }
 
     public function create(): View
