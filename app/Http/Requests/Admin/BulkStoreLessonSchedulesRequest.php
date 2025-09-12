@@ -29,6 +29,18 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
         ];
     }
 
+    /**
+     * Normalize and normalize request items before validation.
+     *
+     * Iterates over the `items` input (if an array) and:
+     * - Ensures `is_active` is a boolean when a recognizable value is provided, defaulting to `true` if omitted.
+     * - Attempts to normalize `start_datetime` and `end_datetime` to the `Y-m-d H:i:s` format (accepts ISO-like values such as `YYYY-MM-DDTHH:MM` by replacing `T` with a space).
+     * Invalid or unparsable values are left unchanged so standard validation rules can report errors.
+     *
+     * The transformed `items` array is merged back into the request input.
+     *
+     * @return void
+     */
     protected function prepareForValidation(): void
     {
         $items = $this->input('items');
@@ -66,7 +78,18 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
     }
 
     /**
-     * Add custom validation to prevent overlapping schedules.
+     * Register post-validation checks that prevent overlapping lesson schedules.
+     *
+     * This attaches an after-hook to the provided validator which:
+     * - Exits early if `lesson_id` or `items` are missing or `items` is not an array.
+     * - For each item with both `start_datetime` and `end_datetime`, detects:
+     *   - Overlaps between items in the same request payload (adds errors to
+     *     `items.{index}.start_datetime`).
+     *   - Overlaps with existing schedules for the same lesson using
+     *     `LessonSchedule::hasOverlap($lessonId, $start, $end)` (adds an error to
+     *     `items.{index}.start_datetime`).
+     *
+     * Errors added by this method use Japanese messages indicating overlap.
      */
     public function withValidator(ValidatorContract $validator): void
     {
@@ -122,6 +145,15 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
         });
     }
 
+    /**
+     * Provide human-friendly attribute names for validation errors.
+     *
+     * Returns an associative array mapping request input keys to their display
+     * names (used in validation messages). Wildcard keys (e.g. `items.*.start_datetime`)
+     * are supported for array item attributes.
+     *
+     * @return array<string,string> Mapping of request attribute keys to display names.
+     */
     public function attributes(): array
     {
         return [
