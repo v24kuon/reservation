@@ -4,6 +4,9 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
+use Illuminate\Support\Carbon;
+use App\Models\LessonSchedule;
 
 class BulkStoreLessonSchedulesRequest extends FormRequest
 {
@@ -60,6 +63,63 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
             }
             $this->merge(['items' => $items]);
         }
+    }
+
+    /**
+     * Add custom validation to prevent overlapping schedules.
+     */
+    public function withValidator(ValidatorContract $validator): void
+    {
+        $validator->after(function (ValidatorContract $v) {
+            $data = $this->all();
+            if (!isset($data['lesson_id']) || !isset($data['items']) || !is_array($data['items'])) {
+                return;
+            }
+
+            $lessonId = (int) $data['lesson_id'];
+            $items = $data['items'];
+
+            // Check overlaps within payload (pairwise) and against DB
+            $count = count($items);
+            for ($i = 0; $i < $count; $i++) {
+                $a = $items[$i] ?? null;
+                if (!is_array($a)) { continue; }
+                $aStart = $a['start_datetime'] ?? null;
+                $aEnd = $a['end_datetime'] ?? null;
+                if (empty($aStart) || empty($aEnd)) { continue; }
+                try {
+                    $aStartAt = Carbon::parse($aStart);
+                    $aEndAt = Carbon::parse($aEnd);
+                } catch (\Throwable $e) {
+                    continue; // base rules will flag invalid format
+                }
+
+                // In-payload overlap
+                for ($j = $i + 1; $j < $count; $j++) {
+                    $b = $items[$j] ?? null;
+                    if (!is_array($b)) { continue; }
+                    $bStart = $b['start_datetime'] ?? null;
+                    $bEnd = $b['end_datetime'] ?? null;
+                    if (empty($bStart) || empty($bEnd)) { continue; }
+                    try {
+                        $bStartAt = Carbon::parse($bStart);
+                        $bEndAt = Carbon::parse($bEnd);
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                    // Overlap if a.start < b.end && a.end > b.start  (half-open)
+                    if ($aStartAt->lt($bEndAt) && $aEndAt->gt($bStartAt)) {
+                        $v->errors()->add('items.'.$i.'.start_datetime', '同一送信内で時間帯が重複しています');
+                        $v->errors()->add('items.'.$j.'.start_datetime', '同一送信内で時間帯が重複しています');
+                    }
+                }
+
+                // DB overlap for same lesson
+                if (isset($aStartAt, $aEndAt) && LessonSchedule::hasOverlap($lessonId, $aStartAt, $aEndAt)) {
+                    $v->errors()->add('items.'.$i.'.start_datetime', '既存スケジュールと時間帯が重複しています');
+                }
+            }
+        });
     }
 
     public function attributes(): array
