@@ -88,6 +88,8 @@
 - [x] 11. Implement image upload and storage / 画像アップロードとストレージを実装
   - File: app/Http/Controllers/InstructorProfileController.php (modify) / ファイル: app/Http/Controllers/InstructorProfileController.php (修正)
   - Handle image upload to storage/app/public/instructors/ / storage/app/public/instructors/ への画像アップロードを処理
+  - Run `php artisan storage:link` to expose public disk / 公開ディスク用のシンボリックリンクを作成
+  - Consider S3 (s3 driver) for production and set visibility / 本番はS3利用と可視性設定を検討
   - Purpose: Manage instructor profile image uploads / 目的: インストラクタープロフィール画像アップロードを管理
   - Requirements: Instructor Profile Management / 要件: インストラクタープロフィール管理
   - Dependencies: Task 8 / 依存関係: タスク8
@@ -106,7 +108,11 @@
 
 - [x] 13. Implement time overlap validation / 時間重複バリデーションを実装
   - File: app/Models/LessonSchedule.php (modify) / ファイル: app/Models/LessonSchedule.php (修正)
-  - Prevent overlaps both within payload and against DB; interval semantics = [start, end) / 入力内およびDBに対して重複を防止（半開区間 [start, end)）
+  - Prevent overlaps within payload and against DB; interval = [start, end) / 入力内およびDBに対して重複を防止（半開区間 [start, end)）
+  - Store datetimes in UTC; convert at view-layer / 日時はUTC保存・表示時に変換
+  - DST boundaries covered by tests / DST境界のテストを含める
+  - Overlap scope: same lesson_id AND same instructor_id / 重複判定の対象: 同一lesson_id かつ同一instructor_id（要件に合わせて確定）
+  - Edge cases: end == next.start はOK、start == existing.end はOK / 端点一致は非重複
   - Purpose: Prevent scheduling conflicts / 目的: スケジュールの競合を防ぐ
   - Requirements: 5.2 / 要件: 5.2
   - Dependencies: Task 12 / 依存関係: タスク12
@@ -115,6 +121,8 @@
 - [ ] 14. Add schedule search and filtering / スケジュール検索・フィルタリング機能を追加
   - File: app/Http/Controllers/Admin/LessonScheduleController.php (modify) / ファイル: app/Http/Controllers/Admin/LessonScheduleController.php (修正)
   - Add search by date, lesson, instructor / 日付、レッスン、インストラクターによる検索を追加
+  - DB Indexes: (lesson_id, start_datetime), (instructor_id, start_datetime), start_datetime単独
+  - Query pattern決定後に複合インデックスを見直し / 実クエリに合わせて見直し
   - Purpose: Improve admin usability for schedule management / 目的: スケジュール管理の管理者ユーザビリティを向上
   - Requirements: 5.3 / 要件: 5.3
   - Dependencies: Task 12 / 依存関係: タスク12
@@ -157,6 +165,8 @@
 
 - [ ] 19. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
   - File: app/Http/Kernel.php (modify) / ファイル: app/Http/Kernel.php (修正)
+  - Apply throttle:login to auth, custom throttle to reservation create/cancel / 認証にloginスロットル、予約作成/取消に専用スロットル
+  - Exclude Stripe webhook route from throttling / Webhookはスロットル除外
   - Purpose: Prevent abuse of authentication and booking endpoints / 目的: 認証と予約エンドポイントの悪用を防ぐ
   - Requirements: Security requirements / 要件: セキュリティ要件
   - Dependencies: None / 依存関係: なし
@@ -164,6 +174,7 @@
 
 - [ ] 20. Implement CSRF protection verification / CSRF保護検証を実装
   - File: resources/views/ (review all forms) / ファイル: resources/views/ (すべてのフォームをレビュー)
+  - Verify admin blade forms include @csrf and method spoofing as needed / 管理画面フォームで@csrfとHTTPメソッド疑似化を確認
   - Purpose: Ensure all forms have proper CSRF tokens / 目的: すべてのフォームに適切なCSRFトークンがあることを保証
   - Requirements: Security requirements / 要件: セキュリティ要件
   - Dependencies: None / 依存関係: なし
@@ -220,9 +231,9 @@
 
 - [ ] 26. Update SubscriptionPlan model for Stripe integration / Stripe統合用にSubscriptionPlanモデルを更新
   - File: app/Models/SubscriptionPlan.php (modify) / ファイル: app/Models/SubscriptionPlan.php (修正)
-  - Add Billable trait from Cashier / CashierからBillableトレイトを追加
-  - Update fillable attributes for Stripe IDs / Stripe ID用のfillable属性を更新
-  - Purpose: Enable Stripe integration on subscription plans / 目的: サブスクリプションプランでStripe統合を有効化
+  - UserモデルにBillableトレイトを付与 / User::class に Billable を追加
+  - SubscriptionPlan は Stripe の product/price のメタ情報保持のみ / プラン定義は product_id, price_id 等を保持
+  - Purpose: 課金主体（ユーザー）でCashierを動かし、プランは参照に専念 / 目的: ユーザーを課金主体としてCashierを利用
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
   - Dependencies: Task 25 / 依存関係: タスク25
   - Estimated time: 15 minutes / 推定時間: 15分
@@ -268,6 +279,9 @@
 - [ ] 31. Create webhook controller / Webhookコントローラーを作成
   - File: app/Http/Controllers/WebhookController.php (new) / ファイル: app/Http/Controllers/WebhookController.php (新規)
   - Handle Stripe webhook events (customer.subscription.created, invoice.payment_succeeded, etc.) / Stripe Webhookイベント（customer.subscription.created、invoice.payment_succeeded等）を処理
+  - Verify Stripe-Signature header using STRIPE_WEBHOOK_SECRET / STRIPE_WEBHOOK_SECRET による署名検証を実装
+  - Enforce idempotency by recording processed event.id / event.id を保存して多重処理を防止
+  - Allowlist only expected event types / 想定イベントのみ許可（アロウリスト）
   - Purpose: Process Stripe webhook notifications / 目的: Stripe Webhook通知を処理
   - Requirements: 7.2 / 要件: 7.2
   - Dependencies: Task 22 / 依存関係: タスク22
@@ -276,7 +290,8 @@
 - [ ] 32. Add webhook route / Webhookルートを追加
   - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
   - Add POST route for Stripe webhooks / Stripe Webhook用のPOSTルートを追加
-  - Exclude CSRF protection for webhook endpoint / WebhookエンドポイントからCSRF保護を除外
+  - Exclude CSRF protection for webhook endpoint (kept minimal scope) / CSRF除外（対象経路を最小限に）
+  - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
   - Purpose: Accept Stripe webhook notifications / 目的: Stripe Webhook通知を受け入れる
   - Requirements: 7.2 / 要件: 7.2
   - Dependencies: Task 31 / 依存関係: タスク31
@@ -308,6 +323,9 @@
   - File: app/Models/LessonSchedule.php (modify) / ファイル: app/Models/LessonSchedule.php (修正)
   - Add reservations relationship / 予約リレーションを追加
   - Add availability checking methods / 空き状況チェックメソッドを追加
+  - Enforce subscription validity and plan limits (per month/period) / サブスク有効性とプラン上限を強制
+  - Check capacity and waitlist policy / 定員とウェイトリスト方針を評価
+  - Provide atomic check-and-book API for concurrency / 競合対策の原子的APIを提供
   - Purpose: Enable reservation functionality on lesson schedules / 目的: レッスンスケジュールで予約機能を有効化
   - Requirements: 8.3, 8.4 / 要件: 8.3, 8.4
   - Dependencies: Task 34 / 依存関係: タスク34
@@ -400,6 +418,9 @@
 - [ ] 45. Create instructor profile feature tests / インストラクタープロフィール機能テストを作成
   - File: tests/Feature/InstructorProfileTest.php (new) / ファイル: tests/Feature/InstructorProfileTest.php (新規)
   - Test complete instructor profile workflow (create, edit, delete) / 完全なインストラクタープロフィールワークフロー（作成、編集、削除）をテスト
+  - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
+  - Tests: DST前後の1時間（繰上げ/繰下げ）ケース
+  - Tests: 同一リクエスト内での多重重複検知（N^2比較の最適化も検証）
   - Purpose: Ensure end-to-end instructor profile functionality / 目的: エンドツーエンドのインストラクタープロフィール機能を保証
   - Requirements: Instructor Profile Management / 要件: インストラクタープロフィール管理
   - Dependencies: Task 8 / 依存関係: タスク8
@@ -408,6 +429,9 @@
 - [ ] 46. Create subscription model tests / サブスクリプションモデルテストを作成
   - File: tests/Unit/Models/SubscriptionPlanTest.php (new) / ファイル: tests/Unit/Models/SubscriptionPlanTest.php (新規)
   - Test subscription plan validation and relationships / サブスクリプションプランのバリデーションとリレーションをテスト
+  - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
+  - Tests: DST前後の1時間（繰上げ/繰下げ）ケース
+  - Tests: 同一リクエスト内での多重重複検知（N^2比較の最適化も検証）
   - Purpose: Ensure subscription model reliability / 目的: サブスクリプションモデルの信頼性を保証
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
   - Dependencies: Task 26 / 依存関係: タスク26
@@ -416,6 +440,9 @@
 - [ ] 47. Create reservation model tests / 予約モデルテストを作成
   - File: tests/Unit/Models/ReservationTest.php (new) / ファイル: tests/Unit/Models/ReservationTest.php (新規)
   - Test reservation validation and relationships / 予約のバリデーションとリレーションをテスト
+  - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
+  - Tests: DST前後の1時間（繰上げ/繰下げ）ケース
+  - Tests: 同一リクエスト内での多重重複検知（N^2比較の最適化も検証）
   - Purpose: Ensure reservation model reliability / 目的: 予約モデルの信頼性を保証
   - Requirements: 8.1, 8.2 / 要件: 8.1, 8.2
   - Dependencies: Task 34 / 依存関係: タスク34
@@ -527,8 +554,16 @@ Execute in order: 50 → 51 → 52
   - **Stripe API変更**: 破壊的変更についてStripeドキュメントを監視
 - **Webhook security**: Implement signature validation and replay attack prevention
   - **Webhookセキュリティ**: 署名検証とリプレイ攻撃防止を実装
-- **Concurrent booking conflicts**: Use database transactions and optimistic locking
-  - **同時予約競合**: データベーストランザクションと楽観的ロックを使用
+- **Concurrent booking conflicts**:
+    - Use DB transactions with SELECT ... FOR UPDATE on the target schedule row(s)
+    - Add covering index on (lesson_id, start_datetime, end_datetime)
+    - Consider unique constraint to prevent exact-duplicate schedules
+    - Record idempotency keys for client retries
+  - **同時予約競合**:
+    - 対象スケジュール行にSELECT ... FOR UPDATEでDBトランザクション使用
+    - (lesson_id, start_datetime, end_datetime)のカバリングインデックス追加
+    - 完全重複スケジュール防止の一意性制約を検討
+    - クライアントリトライ用の冪等性キーを記録
 
 ### Business Risks
 ### ビジネスリスク
@@ -567,8 +602,8 @@ Execute in order: 50 → 51 → 52
   - [ ] コードがLaravelとプロジェクト規約に従う
 - [ ] Documentation is updated and accurate
   - [ ] ドキュメントが更新され正確
-- [ ] Performance meets requirements (500ms response time)
-  - [ ] パフォーマンスが要件を満たす (500ms応答時間)
+- [ ] Performance meets requirements (p95 < 500ms for booking/search endpoints under X users, Y schedules)
+  - [ ] パフォーマンスが要件を満たす (予約/検索エンドポイントでp95 < 500ms、Xユーザー、Yスケジュール下)
 - [ ] Security measures are implemented and tested
   - [ ] セキュリティ対策が実装されテスト済み
 
