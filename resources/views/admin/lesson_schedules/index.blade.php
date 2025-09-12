@@ -15,39 +15,39 @@
         <div class="mb-4 text-green-700">{{ session('status') }}</div>
     @endif
 
-    <form method="GET" class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
+    <form method="GET" action="{{ route('admin.lesson-schedules.index') }}" class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
         <div>
-            <label class="block text-xs mb-1">開始日</label>
-            <input type="date" name="date_from" value="{{ request('date_from') }}" class="border rounded px-2 py-1 w-full">
+            <label for="date_from" class="block text-xs mb-1">開始日</label>
+            <input id="date_from" type="date" name="date_from" value="{{ old('date_from', request('date_from')) }}" class="border rounded px-2 py-1 w-full">
         </div>
         <div>
-            <label class="block text-xs mb-1">終了日</label>
-            <input type="date" name="date_to" value="{{ request('date_to') }}" class="border rounded px-2 py-1 w-full">
+            <label for="date_to" class="block text-xs mb-1">終了日</label>
+            <input id="date_to" type="date" name="date_to" value="{{ old('date_to', request('date_to')) }}" class="border rounded px-2 py-1 w-full">
         </div>
         <div>
-            <label class="block text-xs mb-1">レッスン</label>
-            <select name="lesson_id" class="border rounded px-2 py-1 w-full">
+            <label for="lesson_id" class="block text-xs mb-1">レッスン</label>
+            <select id="lesson_id" name="lesson_id" class="border rounded px-2 py-1 w-full">
                 <option value="">すべて</option>
                 @foreach($lessons as $lesson)
-                    <option value="{{ $lesson->id }}" @selected((string)$lesson->id === request('lesson_id'))>{{ $lesson->name }}</option>
+                    <option value="{{ $lesson->id }}" @selected((string)$lesson->id === (string)old('lesson_id', request('lesson_id')))>{{ $lesson->name }}</option>
                 @endforeach
             </select>
         </div>
         <div>
-            <label class="block text-xs mb-1">インストラクター</label>
-            <select name="instructor_user_id" class="border rounded px-2 py-1 w-full">
+            <label for="instructor_user_id" class="block text-xs mb-1">インストラクター</label>
+            <select id="instructor_user_id" name="instructor_user_id" class="border rounded px-2 py-1 w-full">
                 <option value="">すべて</option>
                 @foreach($instructors as $inst)
-                    <option value="{{ $inst->id }}" @selected((string)$inst->id === request('instructor_user_id'))>{{ $inst->name }}</option>
+                    <option value="{{ $inst->id }}" @selected((string)$inst->id === (string)old('instructor_user_id', request('instructor_user_id')))>{{ $inst->name }}</option>
                 @endforeach
             </select>
         </div>
         <div>
-            <label class="block text-xs mb-1">有効</label>
-            <select name="is_active" class="border rounded px-2 py-1 w-full">
+            <label for="is_active" class="block text-xs mb-1">有効</label>
+            <select id="is_active" name="is_active" class="border rounded px-2 py-1 w-full">
                 <option value="">すべて</option>
-                <option value="1" @selected(request('is_active')==='1')>はい</option>
-                <option value="0" @selected(request('is_active')==='0')>いいえ</option>
+                <option value="1" @selected((string)old('is_active', request('is_active'))==='1')>はい</option>
+                <option value="0" @selected((string)old('is_active', request('is_active'))==='0')>いいえ</option>
             </select>
         </div>
         <div class="md:col-span-5 flex gap-2">
@@ -80,8 +80,8 @@
                         </td>
                         <td class="px-2 py-1">{{ $schedule->lesson?->store?->name ?? '-' }}</td>
                         <td class="px-2 py-1">{{ $schedule->lesson?->category?->name ?? '-' }}</td>
-                        <td class="px-2 py-1">{{ $schedule->formatted_start_time }} ({{ $schedule->start_datetime?->format('Y-m-d') }})</td>
-                        <td class="px-2 py-1">{{ $schedule->formatted_end_time }} ({{ $schedule->end_datetime?->format('Y-m-d') }})</td>
+                        <td class="px-2 py-1">{{ $schedule->formatted_start_time }} ({{ ($schedule->start_datetime?->format('Y-m-d')) ?? '-' }})</td>
+                        <td class="px-2 py-1">{{ $schedule->formatted_end_time }} ({{ ($schedule->end_datetime?->format('Y-m-d')) ?? '-' }})</td>
                         <td class="px-2 py-1">{{ $schedule->current_bookings }}</td>
                         <td class="px-2 py-1">{{ $schedule->is_active ? 'はい' : 'いいえ' }}</td>
                         <td class="px-2 py-1 space-x-2">
