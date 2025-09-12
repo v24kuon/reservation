@@ -429,7 +429,7 @@
 - [ ] 46. Create subscription model tests / サブスクリプションモデルテストを作成
   - File: tests/Unit/Models/SubscriptionPlanTest.php (new) / ファイル: tests/Unit/Models/SubscriptionPlanTest.php (新規)
   - Test subscription plan validation and relationships / サブスクリプションプランのバリデーションとリレーションをテスト
-  - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
+  - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複。
   - Tests: DST前後の1時間（繰上げ/繰下げ）ケース
   - Tests: 同一リクエスト内での多重重複検知（N^2比較の最適化も検証）
   - Purpose: Ensure subscription model reliability / 目的: サブスクリプションモデルの信頼性を保証
