@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">レッスンスケジュール一括作成</h2>
     </x-slot>
@@ -12,7 +12,7 @@
                 <select name="lesson_id" class="border rounded w-full p-2" required>
                     <option value="" disabled selected>選択してください</option>
                     @foreach ($lessons as $lesson)
-                        <option value="{{ $lesson->id }}" @selected(old('lesson_id') == $lesson->id)>{{ $lesson->name }} (ID:{{ $lesson->id }})</option>
+                        <option value="{{ $lesson->id }}" data-duration="{{ $lesson->duration }}" @selected(old('lesson_id') == $lesson->id)>{{ $lesson->name }} (ID:{{ $lesson->id }})</option>
                     @endforeach
                 </select>
                 @error('lesson_id') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
@@ -23,19 +23,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium">期間（開始）</label>
-                        <input type="date" id="rec-start-date" class="border rounded w-full p-2">
+                        <input type="date" id="rec-start-date" class="border rounded w-full p-2" placeholder="YYYY-MM-DD">
                     </div>
                     <div>
                         <label class="block text-sm font-medium">期間（終了）</label>
-                        <input type="date" id="rec-end-date" class="border rounded w-full p-2">
+                        <input type="date" id="rec-end-date" class="border rounded w-full p-2" placeholder="YYYY-MM-DD">
                     </div>
                     <div>
                         <label class="block text-sm font-medium">開始時刻</label>
-                        <input type="time" id="rec-start-time" class="border rounded w-full p-2">
+                        <input type="time" id="rec-start-time" class="border rounded w-full p-2" placeholder="HH:MM">
                     </div>
                     <div>
                         <label class="block text-sm font-medium">終了時刻</label>
-                        <input type="time" id="rec-end-time" class="border rounded w-full p-2">
+                        <input type="time" id="rec-end-time" class="border rounded w-full p-2" placeholder="HH:MM">
                     </div>
                 </div>
                 <div>
@@ -96,7 +96,7 @@
             <div class="flex gap-2">
                 <button type="button" id="add-row" class="px-4 py-2 border rounded">行を追加</button>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">一括作成</button>
-                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 border rounded">一覧へ戻る</a>
+                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
             </div>
         </form>
     </div>
@@ -111,6 +111,23 @@
             const recStartTime = document.getElementById('rec-start-time');
             const recEndTime = document.getElementById('rec-end-time');
             const recInterval = document.getElementById('rec-interval');
+            const lessonSelect = document.querySelector('select[name="lesson_id"]');
+
+            const getSelectedDuration = () => {
+                const opt = lessonSelect?.options[lessonSelect.selectedIndex];
+                const d = parseInt(opt?.dataset.duration || '0', 10);
+                return Number.isFinite(d) ? d : 0;
+            };
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const toDatetimeLocal = (date) => {
+                const y = date.getFullYear();
+                const m = pad(date.getMonth() + 1);
+                const d = pad(date.getDate());
+                const hh = pad(date.getHours());
+                const mm = pad(date.getMinutes());
+                return `${y}-${m}-${d}T${hh}:${mm}`;
+            };
 
             addBtn.addEventListener('click', () => {
                 const index = container.querySelectorAll('.item-row').length;
@@ -139,6 +156,20 @@
                     </div>
                 `;
                 container.appendChild(wrapper);
+
+                // start -> end 自動補完
+                const startEl = wrapper.querySelector(`input[name="items[${index}][start_datetime]"]`);
+                const endEl = wrapper.querySelector(`input[name="items[${index}][end_datetime]"]`);
+                const updateEnd = () => {
+                    const dur = getSelectedDuration();
+                    if (!dur || !startEl?.value) return;
+                    const dt = new Date(startEl.value);
+                    if (isNaN(dt.getTime())) return;
+                    dt.setMinutes(dt.getMinutes() + dur);
+                    endEl.value = toDatetimeLocal(dt);
+                };
+                startEl?.addEventListener('change', updateEnd);
+                startEl?.addEventListener('blur', updateEnd);
             });
 
             container.addEventListener('click', (e) => {
@@ -148,7 +179,26 @@
                 }
             });
 
+            // Auto-open native date/time pickers on focus (supported browsers)
+            const autoOpenPicker = (el) => {
+                if (!el || el.dataset.pickerBound === '1') { return; }
+                el.addEventListener('focus', () => {
+                    if (typeof el.showPicker === 'function') {
+                        try { el.showPicker(); } catch(_) {}
+                    }
+                });
+                el.dataset.pickerBound = '1';
+            };
 
+            [recStartDate, recEndDate, recStartTime, recEndTime].forEach(autoOpenPicker);
+
+            // Delegate for dynamically added inputs
+            container.addEventListener('focusin', (e) => {
+                const t = e.target;
+                if (t && (t.type === 'date' || t.type === 'time' || t.type === 'datetime-local')) {
+                    autoOpenPicker(t);
+                }
+            });
 
             recGenerateServerBtn.addEventListener('click', async () => {
                 const sDate = recStartDate.value;
@@ -199,11 +249,11 @@
                             <div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">
                                 <div>
                                     <label class=\"block text-sm font-medium\">開始日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.start_datetime)}\" required>
+                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.start_datetime)}\" step=\"300\" required>
                                 </div>
                                 <div>
                                     <label class=\"block text-sm font-medium\">終了日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.end_datetime)}\" required>
+                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.end_datetime)}\" step=\"300\" required>
                                 </div>
                             </div>
                             <div>
@@ -218,11 +268,63 @@
                             </div>
                         `;
                         container.appendChild(wrapper);
+
+                        // start -> end 自動補完（生成分にも適用）
+                        const startEl = wrapper.querySelector(`input[name=\"items[${index}][start_datetime]\"]`);
+                        const endEl = wrapper.querySelector(`input[name=\"items[${index}][end_datetime]\"]`);
+                        const updateEnd = () => {
+                            const dur = getSelectedDuration();
+                            if (!dur || !startEl?.value) return;
+                            const dt = new Date(startEl.value);
+                            if (isNaN(dt.getTime())) return;
+                            dt.setMinutes(dt.getMinutes() + dur);
+                            endEl.value = toDatetimeLocal(dt);
+                        };
+                        startEl?.addEventListener('change', updateEnd);
+                        startEl?.addEventListener('blur', updateEnd);
                     }
                 } catch (err) {
                     alert(err.message || '生成に失敗しました');
                 }
             });
+
+            // 既存の行にもイベントリスナーを設定
+            const setupRowListeners = (row) => {
+                const startInput = row.querySelector('input[name*="[start_datetime]"]');
+                const endInput = row.querySelector('input[name*="[end_datetime]"]');
+                if (startInput && endInput) {
+                    const updateEnd = () => {
+                        const dur = getSelectedDuration();
+                        if (!dur || !startInput.value) return;
+                        const dt = new Date(startInput.value);
+                        if (isNaN(dt.getTime())) return;
+                        dt.setMinutes(dt.getMinutes() + dur);
+                        endInput.value = toDatetimeLocal(dt);
+                    };
+                    startInput.addEventListener('change', updateEnd);
+                    startInput.addEventListener('blur', updateEnd);
+                }
+            };
+
+            // 既存の行すべてにイベントリスナーを設定
+            document.querySelectorAll('.item-row').forEach(setupRowListeners);
+
+            // 繰り返し生成セクション: 開始時刻から終了時刻を自動補完
+            const updateRecEndTime = () => {
+                const dur = getSelectedDuration();
+                if (!dur || !recStartTime?.value) return;
+                const parts = recStartTime.value.split(':');
+                if (parts.length < 2) return;
+                const hours = parseInt(parts[0], 10);
+                const minutes = parseInt(parts[1], 10);
+                if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return;
+                const total = hours * 60 + minutes + dur;
+                const endHours = Math.floor(total / 60) % 24;
+                const endMinutes = total % 60;
+                recEndTime.value = `${pad(endHours)}:${pad(endMinutes)}`;
+            };
+            recStartTime?.addEventListener('change', updateRecEndTime);
+            recStartTime?.addEventListener('blur', updateRecEndTime);
         });
     </script>
-</x-app-layout>
+</x-admin-layout>

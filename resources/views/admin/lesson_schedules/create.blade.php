@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">レッスンスケジュール作成</h2>
     </x-slot>
@@ -13,7 +13,7 @@
             <select name="lesson_id" class="border rounded w-full p-2" required>
                 <option value="" disabled selected>選択してください</option>
                 @foreach ($lessons as $lesson)
-                    <option value="{{ $lesson->id }}" @selected(old('lesson_id') == $lesson->id)>{{ $lesson->name }} (ID:{{ $lesson->id }})</option>
+                    <option value="{{ $lesson->id }}" data-duration="{{ $lesson->duration }}" @selected(old('lesson_id') == $lesson->id)>{{ $lesson->name }} (ID:{{ $lesson->id }})</option>
                 @endforeach
             </select>
             @error('lesson_id') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
@@ -48,8 +48,48 @@
 
         <div class="flex gap-2">
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
-            <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 border rounded">一覧へ戻る</a>
+            <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
         </div>
     </form>
     </div>
-</x-app-layout>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lessonSelect = document.querySelector('select[name="lesson_id"]');
+            const startInput = document.querySelector('input[name="start_datetime"]');
+            const endInput = document.querySelector('input[name="end_datetime"]');
+
+            const getSelectedDuration = () => {
+                const opt = lessonSelect?.options[lessonSelect.selectedIndex];
+                const d = parseInt(opt?.dataset.duration || '0', 10);
+                return Number.isFinite(d) ? d : 0;
+            };
+
+            const pad = (n) => String(n).padStart(2, '0');
+
+            const addMinutesToDatetimeLocal = (value, minutesToAdd) => {
+                if (!value || !minutesToAdd) return value;
+                const dt = new Date(value);
+                if (isNaN(dt.getTime())) return value;
+                dt.setMinutes(dt.getMinutes() + minutesToAdd);
+                const y = dt.getFullYear();
+                const m = pad(dt.getMonth() + 1);
+                const d = pad(dt.getDate());
+                const hh = pad(dt.getHours());
+                const mm = pad(dt.getMinutes());
+                return `${y}-${m}-${d}T${hh}:${mm}`;
+            };
+
+            const updateEndFromStart = () => {
+                const dur = getSelectedDuration();
+                if (!dur) return;
+                if (!startInput?.value) return;
+                endInput.value = addMinutesToDatetimeLocal(startInput.value, dur);
+            };
+
+            lessonSelect?.addEventListener('change', updateEndFromStart);
+            startInput?.addEventListener('change', updateEndFromStart);
+            startInput?.addEventListener('blur', updateEndFromStart);
+        });
+    </script>
+</x-admin-layout>

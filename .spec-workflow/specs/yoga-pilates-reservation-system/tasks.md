@@ -118,7 +118,7 @@
   - Dependencies: Task 12 / 依存関係: タスク12
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 14. Add schedule search and filtering / スケジュール検索・フィルタリング機能を追加
+- [x] 14. Add schedule search and filtering / スケジュール検索・フィルタリング機能を追加
   - File: app/Http/Controllers/Admin/LessonScheduleController.php (modify) / ファイル: app/Http/Controllers/Admin/LessonScheduleController.php (修正)
   - Add search by date, lesson, instructor / 日付、レッスン、インストラクターによる検索を追加
   - DB Indexes: (lesson_id, start_datetime), (instructor_id, start_datetime), start_datetime単独
@@ -131,14 +131,14 @@
 ### Admin UI Enhancement Tasks
 ### 管理者UI強化タスク
 
-- [ ] 15. Improve admin dashboard layout / 管理者ダッシュボードレイアウトを改善
+- [x] 15. Improve admin dashboard layout / 管理者ダッシュボードレイアウトを改善
   - File: resources/views/layouts/admin.blade.php (modify/improve) / ファイル: resources/views/layouts/admin.blade.php (修正/改善)
   - Purpose: Create consistent admin interface design / 目的: 一貫した管理者インターフェースデザインを作成
   - Requirements: UI improvements / 要件: UI改善
   - Dependencies: None / 依存関係: なし
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 16. Add reservation status visualization / 予約状況可視化を追加
+- [x] 16. Add reservation status visualization / 予約状況可視化を追加
   - File: resources/views/admin/dashboard.blade.php (modify) / ファイル: resources/views/admin/dashboard.blade.php (修正)
   - Display current reservation counts vs capacity / 現在の予約数とキャパシティを表示
   - Purpose: Provide admin with booking status overview / 目的: 管理者に予約状況の概要を提供
@@ -146,7 +146,7 @@
   - Dependencies: Task 15 / 依存関係: タスク15
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 17. Implement responsive admin design / レスポンシブ管理者デザインを実装
+- [x] 17. Implement responsive admin design / レスポンシブ管理者デザインを実装
   - File: resources/css/app.css (modify), admin views (modify) / ファイル: resources/css/app.css (修正), admin views (修正)
   - Purpose: Ensure admin interface works on different screen sizes / 目的: 管理者インターフェースが異なる画面サイズで動作することを保証
   - Requirements: Responsive design / 要件: レスポンシブデザイン

@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">通知テンプレート作成</h2>
     </x-slot>
@@ -63,7 +63,6 @@
                                     <button type="button"
                                             class="px-2 py-1 text-xs border rounded bg-white copy-chip"
                                             data-ph="{{ $ph }}"
-                                            data-copy="{{ '{{' . $ph . '}}' }}"
                                     >&#123;&#123;{{ $ph }}&#125;&#125;</button>
                                 @endforeach
                             </div>
@@ -84,7 +83,7 @@
 
             <div class="flex gap-2">
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
-                <a href="{{ route('admin.notification-templates.index') }}" class="px-4 py-2 rounded border">一覧へ戻る</a>
+                <a href="{{ route('admin.notification-templates.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
             </div>
         </form>
     </div>
@@ -94,7 +93,12 @@
                 if(navigator.clipboard){ navigator.clipboard.writeText(text); return; }
                 const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
             }
-            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy(btn.dataset.copy)));
+            function moustacheFor(ph){
+                const open = String.fromCharCode(123,123); // "{{"
+                const close = String.fromCharCode(125,125); // "}}"
+                return open + ph + close;
+            }
+            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy(moustacheFor(btn.dataset.ph))));
         })();
     </script>
-</x-app-layout>
+</x-admin-layout>

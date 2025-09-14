@@ -58,7 +58,7 @@ class LessonScheduleController extends Controller
 
     public function create(): View
     {
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name', 'duration']);
 
         return view('admin.lesson_schedules.create', compact('lessons'));
     }
@@ -80,7 +80,7 @@ class LessonScheduleController extends Controller
 
     public function edit(LessonSchedule $lesson_schedule): View
     {
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name', 'duration']);
 
         return view('admin.lesson_schedules.edit', [
             'schedule' => $lesson_schedule,
@@ -109,7 +109,7 @@ class LessonScheduleController extends Controller
 
     public function bulkCreate(): View
     {
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name', 'duration']);
 
         return view('admin.lesson_schedules.bulk-create', compact('lessons'));
     }

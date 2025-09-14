@@ -1,10 +1,10 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">スケジュール詳細</h2>
             <div class="space-x-2">
                 <a href="{{ route('admin.lesson-schedules.edit', $schedule) }}" class="bg-blue-600 text-white px-4 py-2 rounded">編集へ</a>
-                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 border rounded">一覧へ戻る</a>
+                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
             </div>
         </div>
     </x-slot>
@@ -21,4 +21,4 @@
             <p><strong>有効:</strong> {{ $schedule->is_active ? 'はい' : 'いいえ' }}</p>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>
