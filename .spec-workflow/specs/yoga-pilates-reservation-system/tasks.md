@@ -172,6 +172,7 @@
   - File: .env (modify), config/services.php (modify) / ファイル: .env (修正), config/services.php (修正)
   - Add STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRET / STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRETを追加
   - Configure CSRF exclusion for stripe/* routes in bootstrap/app.php / bootstrap/app.phpでstripe/*ルートのCSRF除外を設定
+  - Use `php artisan cashier:webhook` for API version consistency with Cashier / CashierとのAPIバージョン整合性のため `php artisan cashier:webhook` を使用
   - Purpose: Set up Stripe credentials and webhook endpoints / 目的: Stripe認証情報とWebhookエンドポイントを設定
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
   - Dependencies: Task 18 / 依存関係: タスク18
@@ -251,13 +252,13 @@
 ### Webhook Processing Tasks
 ### Webhook処理タスク
 
-- [ ] 28. Create webhook controller / Webhookコントローラーを作成
-  - File: app/Http/Controllers/WebhookController.php (new) / ファイル: app/Http/Controllers/WebhookController.php (新規)
-  - Handle Stripe webhook events (customer.subscription.created, invoice.payment_succeeded, etc.) / Stripe Webhookイベント（customer.subscription.created、invoice.payment_succeeded等）を処理
-  - Verify Stripe-Signature header using STRIPE_WEBHOOK_SECRET（.env に必ず設定）/ STRIPE_WEBHOOK_SECRET（.env に必ず設定）による署名検証を実装
+- [ ] 28. Create webhook event listeners / Webhookイベントリスナーを作成
+  - File: app/Listeners/ (new listener classes) / ファイル: app/Listeners/ (新規リスナークラス)
+  - Handle Stripe webhook events via Cashier events (customer.subscription.created, invoice.payment_succeeded, etc.) / Cashierイベント経由でStripe Webhookイベント（customer.subscription.created、invoice.payment_succeeded等）を処理
+  - Use Cashier's default /stripe/webhook route (no custom controller to avoid conflicts) / Cashierの既定ルート /stripe/webhook を使用（衝突回避のためカスタムコントローラーは作成しない）
   - Enforce idempotency by recording processed event.id / event.id を保存して多重処理を防止
   - Allowlist only expected event types / 想定イベントのみ許可（アロウリスト）
-  - Purpose: Process Stripe webhook notifications / 目的: Stripe Webhook通知を処理
+  - Purpose: Process Stripe webhook notifications via event listeners / 目的: イベントリスナー経由でStripe Webhook通知を処理
   - Requirements: 7.2 / 要件: 7.2
   - Dependencies: Task 19 / 依存関係: タスク19
   - Estimated time: 30 minutes / 推定時間: 30分
@@ -272,11 +273,11 @@
   - Estimated time: 5 minutes / 推定時間: 5分
 
 - [ ] 30. Implement webhook event handlers / Webhookイベントハンドラーを実装
-  - File: app/Http/Controllers/WebhookController.php (modify) / ファイル: app/Http/Controllers/WebhookController.php (修正)
-  - Handle subscription status changes / サブスクリプションステータス変更を処理
+  - File: app/Listeners/ (implement listener logic) / ファイル: app/Listeners/ (リスナーロジック実装)
+  - Handle subscription status changes via event listeners / イベントリスナー経由でサブスクリプションステータス変更を処理
   - Update user subscription records / ユーザーサブスクリプションレコードを更新
   - Send notifications for subscription events / サブスクリプションイベントの通知を送信
-  - Purpose: Process subscription lifecycle events / 目的: サブスクリプションライフサイクルイベントを処理
+  - Purpose: Process subscription lifecycle events via listeners / 目的: リスナー経由でサブスクリプションライフサイクルイベントを処理
   - Requirements: 7.2, 10.2 / 要件: 7.2, 10.2
   - Dependencies: Task 28 / 依存関係: タスク28
   - Estimated time: 40 minutes / 推定時間: 40分

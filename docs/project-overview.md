@@ -500,7 +500,7 @@ class ReservationRequest extends FormRequest
 ## 開発環境
 
 ### 開発環境
-- **Laravel Head**: 開発環境として使用
+- **Laravel Herd**: 開発環境として使用
 - **GitHub**: バージョン管理・コード共有
 - **PHP**: 8.2+
 - **Laravel**: 12.x
