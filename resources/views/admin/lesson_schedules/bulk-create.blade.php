@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">レッスンスケジュール一括作成</h2>
     </x-slot>
@@ -12,7 +12,7 @@
                 <select name="lesson_id" class="border rounded w-full p-2" required>
                     <option value="" disabled selected>選択してください</option>
                     @foreach ($lessons as $lesson)
-                        <option value="{{ $lesson->id }}" @selected(old('lesson_id') == $lesson->id)>{{ $lesson->name }} (ID:{{ $lesson->id }})</option>
+                        <option value="{{ $lesson->id }}" data-duration="{{ $lesson->duration }}" @selected(old('lesson_id') == $lesson->id)>{{ $lesson->name }} (ID:{{ $lesson->id }})</option>
                     @endforeach
                 </select>
                 @error('lesson_id') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
@@ -23,19 +23,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium">期間（開始）</label>
-                        <input type="date" id="rec-start-date" class="border rounded w-full p-2">
+                        <input type="date" id="rec-start-date" class="border rounded w-full p-2" placeholder="YYYY-MM-DD">
                     </div>
                     <div>
                         <label class="block text-sm font-medium">期間（終了）</label>
-                        <input type="date" id="rec-end-date" class="border rounded w-full p-2">
+                        <input type="date" id="rec-end-date" class="border rounded w-full p-2" placeholder="YYYY-MM-DD">
                     </div>
                     <div>
                         <label class="block text-sm font-medium">開始時刻</label>
-                        <input type="time" id="rec-start-time" class="border rounded w-full p-2">
+                        <input type="time" id="rec-start-time" class="border rounded w-full p-2" placeholder="HH:MM">
                     </div>
                     <div>
                         <label class="block text-sm font-medium">終了時刻</label>
-                        <input type="time" id="rec-end-time" class="border rounded w-full p-2">
+                        <input type="time" id="rec-end-time" class="border rounded w-full p-2" placeholder="HH:MM">
                     </div>
                 </div>
                 <div>
@@ -95,8 +95,8 @@
 
             <div class="flex gap-2">
                 <button type="button" id="add-row" class="px-4 py-2 border rounded">行を追加</button>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">一括作成</button>
-                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 border rounded">一覧へ戻る</a>
+                <button type="submit" class="bg-primary text-primary-foreground px-4 py-2 rounded">一括作成</button>
+                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-muted text-foreground rounded">一覧へ戻る</a>
             </div>
         </form>
     </div>
@@ -111,9 +111,69 @@
             const recStartTime = document.getElementById('rec-start-time');
             const recEndTime = document.getElementById('rec-end-time');
             const recInterval = document.getElementById('rec-interval');
+            const lessonSelect = document.querySelector('select[name="lesson_id"]');
+
+            // 既存行の最大 index を検出し、次に使う index を単調増加で採番
+            let nextIndex = (() => {
+                const names = Array.from(container.querySelectorAll('input[name*="[start_datetime]"], input[name*="[end_datetime]"]'))
+                    .map(el => el.name);
+                const idxs = names.map(n => {
+                    const m = n.match(/items\[(\d+)\]/);
+                    return m ? Number(m[1]) : NaN;
+                }).filter(Number.isFinite);
+                return idxs.length ? Math.max(...idxs) + 1 : 0;
+            })();
+
+            const getSelectedDuration = () => {
+                const opt = lessonSelect?.options[lessonSelect.selectedIndex];
+                const d = parseInt(opt?.dataset.duration || '0', 10);
+                return Number.isFinite(d) ? d : 0;
+            };
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const toDatetimeLocal = (date) => {
+                const y = date.getFullYear();
+                const m = pad(date.getMonth() + 1);
+                const d = pad(date.getDate());
+                const hh = pad(date.getHours());
+                const mm = pad(date.getMinutes());
+                return `${y}-${m}-${d}T${hh}:${mm}`;
+            };
+
+            // 共通の終了時刻計算関数（datetime-local を手動パースしてブラウザ差を回避）
+            const fillEndFromStart = (startValue) => {
+                const dur = getSelectedDuration();
+                if (!dur || !startValue) return null;
+                const m = startValue.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+                if (!m) return null;
+                const [, y, mo, d, hh, mm, ss] = m;
+                const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss || 0));
+                dt.setMinutes(dt.getMinutes() + dur);
+                return toDatetimeLocal(dt);
+            };
+
+            // 全行の終了時刻を再計算
+            const recalcAllEnds = () => {
+                const dur = getSelectedDuration();
+                if (!dur) return;
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const s = row.querySelector('input[name*="[start_datetime]"]');
+                    const e = row.querySelector('input[name*="[end_datetime]"]');
+                    if (s?.value && e) {
+                        e.min = s.value;
+                        const v = fillEndFromStart(s.value);
+                        if (v && (!e.value || e.dataset.autofill === '1')) {
+                            e.value = v;
+                            e.dataset.autofill = '1';
+                        }
+                    }
+                });
+                // 繰り返しセクション
+                updateRecEndTime();
+            };
 
             addBtn.addEventListener('click', () => {
-                const index = container.querySelectorAll('.item-row').length;
+                const index = nextIndex++;
                 const wrapper = document.createElement('div');
                 wrapper.className = 'border rounded p-4 space-y-3 item-row';
                 wrapper.innerHTML = `
@@ -139,6 +199,22 @@
                     </div>
                 `;
                 container.appendChild(wrapper);
+
+                // start -> end 自動補完
+                const startEl = wrapper.querySelector(`input[name="items[${index}][start_datetime]"]`);
+                const endEl = wrapper.querySelector(`input[name="items[${index}][end_datetime]"]`);
+                const updateEnd = () => {
+                    const v = fillEndFromStart(startEl?.value);
+                    endEl.min = startEl?.value || '';
+                    if (v && (!endEl.value || endEl.dataset.autofill === '1')) {
+                        endEl.value = v;
+                        endEl.dataset.autofill = '1';
+                    }
+                };
+                startEl?.addEventListener('change', updateEnd);
+                startEl?.addEventListener('input', updateEnd);
+                startEl?.addEventListener('blur', updateEnd);
+                endEl?.addEventListener('input', () => { endEl.dataset.autofill = ''; });
             });
 
             container.addEventListener('click', (e) => {
@@ -148,9 +224,32 @@
                 }
             });
 
+            // Auto-open native date/time pickers on focus (supported browsers)
+            const autoOpenPicker = (el) => {
+                if (!el || el.dataset.pickerBound === '1') { return; }
+                el.addEventListener('focus', () => {
+                    if (typeof el.showPicker === 'function') {
+                        try { el.showPicker(); } catch(_) {}
+                    }
+                });
+                el.dataset.pickerBound = '1';
+            };
 
+            [recStartDate, recEndDate, recStartTime, recEndTime].forEach(autoOpenPicker);
+
+            // Delegate for dynamically added inputs
+            container.addEventListener('focusin', (e) => {
+                const t = e.target;
+                if (t && (t.type === 'date' || t.type === 'time' || t.type === 'datetime-local')) {
+                    autoOpenPicker(t);
+                }
+            });
 
             recGenerateServerBtn.addEventListener('click', async () => {
+                if (recGenerateServerBtn.disabled) return;
+                recGenerateServerBtn.disabled = true;
+                const oldLabel = recGenerateServerBtn.textContent;
+                recGenerateServerBtn.textContent = '生成中...';
                 const sDate = recStartDate.value;
                 const eDate = recEndDate.value;
                 const startTime = recStartTime.value;
@@ -161,6 +260,8 @@
 
                 if (!sDate || !eDate || !startTime || !endTime || weekdays.length === 0) {
                     alert('期間、曜日、開始・終了時刻をすべて指定してください。');
+                    recGenerateServerBtn.disabled = false;
+                    recGenerateServerBtn.textContent = oldLabel;
                     return;
                 }
 
@@ -190,39 +291,122 @@
                     const data = await res.json();
                     const items = Array.isArray(data.items) ? data.items : [];
                     for (const item of items) {
-                        const index = container.querySelectorAll('.item-row').length;
+                        const index = nextIndex++;
                         const wrapper = document.createElement('div');
                         wrapper.className = 'border rounded p-4 space-y-3 item-row';
-                        // Convert Y-m-d H:i:s -> datetime-local
-                        const toLocal = (s) => s.replace(' ', 'T').slice(0, 16);
+                        // Robustly convert API payload to datetime-local (TZ-aware when possible)
+                        const toLocal = (s) => {
+                            const isoLike = s.includes('T') ? s : s.replace(' ', 'T');
+                            // タイムゾーン付き（Z/±HH:MM）は Date に委譲
+                            if (/[+-]\d{2}:\d{2}|Z$/.test(isoLike)) {
+                                const d = new Date(isoLike);
+                                if (!Number.isNaN(d.getTime())) return toDatetimeLocal(d);
+                            }
+                            // タイムゾーンなしはローカルとして手動パース
+                            const m = isoLike.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+                            if (!m) return isoLike.slice(0, 16);
+                            const [, y, mo, d, hh, mm, ss] = m;
+                            const local = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss || 0));
+                            return toDatetimeLocal(local);
+                        };
                         wrapper.innerHTML = `
                             <div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">
                                 <div>
-                                    <label class=\"block text-sm font-medium\">開始日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.start_datetime)}\" required>
+                                    <label class=\"block text-sm font-medium\">開始日時<\/label>
+                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" required>
                                 </div>
                                 <div>
-                                    <label class=\"block text-sm font-medium\">終了日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.end_datetime)}\" required>
+                                    <label class=\"block text-sm font-medium\">終了日時<\/label>
+                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" required>
                                 </div>
                             </div>
                             <div>
                                 <label class=\"inline-flex items-center\">
                                     <input type=\"hidden\" name=\"items[${index}][is_active]\" value=\"0\">
                                     <input type=\"checkbox\" name=\"items[${index}][is_active]\" value=\"1\" checked>
-                                    <span class=\"ml-2\">有効</span>
+                                    <span class=\"ml-2\">有効<\/span>
                                 </label>
                             </div>
                             <div class=\"flex justify-end\">
-                                <button type=\"button\" class=\"px-3 py-1 border rounded text-red-700 remove-row\">行を削除</button>
+                                <button type=\"button\" class=\"px-3 py-1 border rounded text-red-700 remove-row\">行を削除<\/button>
                             </div>
                         `;
                         container.appendChild(wrapper);
+
+                        // start -> end 自動補完（生成分にも適用）
+                        const startEl = wrapper.querySelector(`input[name=\"items[${index}][start_datetime]\"]`);
+                        const endEl = wrapper.querySelector(`input[name=\"items[${index}][end_datetime]\"]`);
+                        // 安全に値を流し込む（属性ではなくプロパティに代入）
+                        if (startEl) startEl.value = toLocal(item.start_datetime);
+                        if (endEl) {
+                            endEl.value = toLocal(item.end_datetime);
+                            endEl.min = startEl?.value || '';
+                            endEl.dataset.autofill = '1';
+                        }
+                        const updateEnd = () => {
+                            const v = fillEndFromStart(startEl?.value);
+                            if (v && (!endEl.value || endEl.dataset.autofill === '1')) {
+                                endEl.value = v;
+                                endEl.dataset.autofill = '1';
+                            }
+                        };
+                        startEl?.addEventListener('change', updateEnd);
+                        startEl?.addEventListener('input', updateEnd);
+                        startEl?.addEventListener('blur', updateEnd);
+                        endEl?.addEventListener('input', () => { endEl.dataset.autofill = ''; });
                     }
                 } catch (err) {
                     alert(err.message || '生成に失敗しました');
+                } finally {
+                    recGenerateServerBtn.disabled = false;
+                    recGenerateServerBtn.textContent = oldLabel;
                 }
             });
+
+            // 既存の行にもイベントリスナーを設定
+            const setupRowListeners = (row) => {
+                const startInput = row.querySelector('input[name*="[start_datetime]"]');
+                const endInput = row.querySelector('input[name*="[end_datetime]"]');
+                if (startInput && endInput) {
+                    const updateEnd = () => {
+                        const v = fillEndFromStart(startInput.value);
+                        if (v && (!endInput.value || endInput.dataset.autofill === '1')) {
+                            endInput.value = v;
+                            endInput.dataset.autofill = '1';
+                        }
+                    };
+                    startInput.addEventListener('change', updateEnd);
+                    startInput.addEventListener('input', updateEnd);
+                    startInput.addEventListener('blur', updateEnd);
+                    endInput.addEventListener('input', () => { endInput.dataset.autofill = ''; });
+                }
+            };
+
+            // 既存の行すべてにイベントリスナーを設定
+            document.querySelectorAll('.item-row').forEach(setupRowListeners);
+
+            // 繰り返し生成セクション: 開始時刻から終了時刻を自動補完
+            const updateRecEndTime = () => {
+                const dur = getSelectedDuration();
+                if (!dur || !recStartTime?.value) return;
+                const parts = recStartTime.value.split(':');
+                if (parts.length < 2) return;
+                const hours = parseInt(parts[0], 10);
+                const minutes = parseInt(parts[1], 10);
+                if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return;
+                const total = hours * 60 + minutes + dur;
+                const endHours = Math.floor(total / 60) % 24;
+                const endMinutes = total % 60;
+                recEndTime.value = `${pad(endHours)}:${pad(endMinutes)}`;
+            };
+            recStartTime?.addEventListener('change', updateRecEndTime);
+            recStartTime?.addEventListener('input', updateRecEndTime);
+            recStartTime?.addEventListener('blur', updateRecEndTime);
+
+            // レッスン変更時に全行の終了時刻を再計算
+            lessonSelect?.addEventListener('change', recalcAllEnds);
+            // 初期実行（選択済みレッスンや既存行がある場合の安定化）
+            recalcAllEnds();
         });
     </script>
-</x-app-layout>
+</x-admin-layout>

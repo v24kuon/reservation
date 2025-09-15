@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             レッスン詳細
@@ -18,12 +18,12 @@
                     <p><strong>予約期限:</strong> {{ $lesson->booking_deadline_hours }} 時間前</p>
                     <p><strong>キャンセル期限:</strong> {{ $lesson->cancel_deadline_hours }} 時間前</p>
                     <p><strong>有効:</strong> {{ $lesson->is_active ? '有効' : '無効' }}</p>
-                    <div class="pt-4 space-x-2">
-                        <a href="{{ route('admin.lessons.edit', $lesson) }}" class="px-4 py-2 bg-indigo-600 text-white rounded">編集へ</a>
-                        <a href="{{ route('admin.lessons.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
+                    <div class="pt-4 flex space-x-2">
+                        <x-primary-button as="a" href="{{ route('admin.lessons.edit', $lesson) }}">編集</x-primary-button>
+                        <x-secondary-button href="{{ route('admin.lessons.index') }}">戻る</x-secondary-button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

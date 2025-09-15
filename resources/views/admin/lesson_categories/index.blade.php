@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             レッスンカテゴリ一覧
@@ -10,7 +10,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="mb-4">
-                        <a href="{{ route('admin.lesson-categories.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded">新規作成</a>
+                        <x-primary-button as="a" href="{{ route('admin.lesson-categories.create') }}">新規作成</x-primary-button>
                     </div>
 
                     <table class="min-w-full divide-y divide-gray-200">
@@ -56,4 +56,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

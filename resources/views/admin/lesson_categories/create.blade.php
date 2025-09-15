@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             レッスンカテゴリ作成
@@ -48,14 +48,12 @@
                         </div>
 
                         <div class="pt-4 flex space-x-2">
-                            <button class="px-4 py-2 bg-indigo-600 text-white rounded" type="submit">保存</button>
-                            <a href="{{ route('admin.lesson-categories.index') }}" class="px-4 py-2 bg-gray-200 rounded">戻る</a>
+                            <x-primary-button type="submit">保存</x-primary-button>
+                            <x-secondary-button href="{{ route('admin.lesson-categories.index') }}">戻る</x-secondary-button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
-
-
+</x-admin-layout>

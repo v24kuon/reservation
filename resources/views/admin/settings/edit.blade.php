@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">システム設定</h2>
     </x-slot>
@@ -29,11 +29,9 @@
             </div>
 
             <div class="flex gap-2">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
-                <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded border">ダッシュボードへ戻る</a>
+                <x-primary-button type="submit">保存</x-primary-button>
+                <x-secondary-button href="{{ route('dashboard') }}">戻る</x-secondary-button>
             </div>
         </form>
     </div>
-</x-app-layout>
-
-
+</x-admin-layout>

@@ -22,7 +22,7 @@ class UpdateLessonScheduleRequest extends FormRequest
             'lesson_id' => ['sometimes', 'integer', Rule::exists('lessons', 'id')],
             'start_datetime' => [
                 'sometimes',
-                'date_format:Y-m-d H:i',
+                'date_format:Y-m-d\TH:i',
                 'after_or_equal:now',
             ],
             'end_datetime' => [
@@ -46,7 +46,7 @@ class UpdateLessonScheduleRequest extends FormRequest
                     $lesson = $this->input('lesson_id')
                         ? \App\Models\Lesson::find($this->input('lesson_id'))
                         : optional($this->route('lesson_schedule'))->lesson;
-                    if ($lesson && $value > $lesson->capacity) {
+                    if ($lesson && $lesson->capacity !== null && $value > $lesson->capacity) {
                         $fail('現在予約数は定員を超えられません。');
                     }
                 },
@@ -60,6 +60,26 @@ class UpdateLessonScheduleRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
         ]);
+
+        // Server-side end time recalculation when start/lesson changes
+        $lessonId = $this->input('lesson_id') ?? optional($this->route('lesson_schedule'))->lesson_id;
+        $start = $this->input('start_datetime') ?? optional($this->route('lesson_schedule'))->start_datetime;
+        if ($lessonId && $start) {
+            $lesson = \App\Models\Lesson::find($lessonId);
+            if ($lesson && is_numeric($lesson->duration)) {
+                try {
+                    $startAt = $start instanceof \Carbon\CarbonInterface
+                        ? \Illuminate\Support\Carbon::instance($start)
+                        : \Illuminate\Support\Carbon::parse(str_replace('T', ' ', (string) $start), config('app.timezone'));
+                    $endAt = $startAt->copy()->addMinutes((int) $lesson->duration);
+                    $this->merge([
+                        'end_datetime' => $endAt->toDateTimeString(),
+                    ]);
+                } catch (\Throwable $e) {
+                    // Invalid start_datetime will be handled by validation rules
+                }
+            }
+        }
     }
 
     public function attributes(): array

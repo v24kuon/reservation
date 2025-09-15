@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             インストラクター編集
@@ -53,7 +53,7 @@
 
                             <div class="flex items-center gap-3">
                                 <x-primary-button>プロフィールを保存</x-primary-button>
-                                <a href="{{ route('admin.instructors.index') }}" class="text-gray-600">戻る</a>
+                                <x-secondary-button href="{{ route('admin.instructors.index') }}">戻る</x-secondary-button>
                             </div>
                         </div>
                     </form>
@@ -61,4 +61,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

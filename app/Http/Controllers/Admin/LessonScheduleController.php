@@ -5,16 +5,44 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BulkStoreLessonSchedulesRequest;
 use App\Http\Requests\Admin\GenerateRecurringLessonSchedulesRequest;
+use App\Http\Requests\Admin\IndexLessonSchedulesRequest;
 use App\Http\Requests\StoreLessonScheduleRequest;
 use App\Http\Requests\UpdateLessonScheduleRequest;
 use App\Models\Lesson;
 use App\Models\LessonSchedule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\Admin\IndexLessonSchedulesRequest;
 
 class LessonScheduleController extends Controller
 {
+    /**
+     * Detects unique constraint violations for the (lesson_id, start_datetime) pair across drivers.
+     */
+    private static function isScheduleUniqueViolation(\Illuminate\Database\QueryException $e): bool
+    {
+        $sqlState = (string) ($e->errorInfo[0] ?? '');
+        $driverCode = (string) ($e->errorInfo[1] ?? ''); // MySQL: 1062, SQLite: 19
+        $msg = (string) ($e->errorInfo[2] ?? '');
+
+        $hasIndexName = str_contains($msg, 'lesson_schedules_lesson_start_unique')
+            || (str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'));
+
+        // MySQL
+        if ($sqlState === '23000' && $driverCode === '1062' && $hasIndexName) {
+            return true;
+        }
+        // SQLite
+        if ($sqlState === '23000' && $driverCode === '19' && str_contains($msg, 'UNIQUE constraint failed') && $hasIndexName) {
+            return true;
+        }
+        // PostgreSQL (unique_violation)
+        if ($sqlState === '23505' && $hasIndexName) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function index(IndexLessonSchedulesRequest $request): View
     {
         $query = LessonSchedule::query()
@@ -22,18 +50,25 @@ class LessonScheduleController extends Controller
 
         $validated = $request->validated();
 
-        if (!empty($validated['date_from'])) {
-            $from = \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay();
-            $query->where('start_datetime', '>=', $from);
+        $from = ! empty($validated['date_from'])
+            ? \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay()
+            : null;
+        $to = ! empty($validated['date_to'])
+            ? \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay()
+            : null;
+        if ($from && $to) {
+            $query->overlapping($from, $to);
+        } elseif ($from) {
+            // from に少しでもかかるもの
+            $query->where('end_datetime', '>', $from);
+        } elseif ($to) {
+            // to に少しでもかかるもの
+            $query->where('start_datetime', '<', $to);
         }
-        if (!empty($validated['date_to'])) {
-            $to = \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay();
-            $query->where('end_datetime', '<=', $to);
-        }
-        if (!empty($validated['lesson_id'])) {
+        if (! empty($validated['lesson_id'])) {
             $query->where('lesson_id', $validated['lesson_id']);
         }
-        if (!empty($validated['instructor_user_id'])) {
+        if (! empty($validated['instructor_user_id'])) {
             $query->whereHas('lesson', function ($q) use ($validated) {
                 $q->where('instructor_user_id', $validated['instructor_user_id']);
             });
@@ -58,7 +93,7 @@ class LessonScheduleController extends Controller
 
     public function create(): View
     {
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name', 'duration']);
 
         return view('admin.lesson_schedules.create', compact('lessons'));
     }
@@ -66,7 +101,22 @@ class LessonScheduleController extends Controller
     public function store(StoreLessonScheduleRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        LessonSchedule::query()->create($data);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+                \App\Models\Lesson::query()
+                    ->whereKey($data['lesson_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                LessonSchedule::query()->create($data);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (self::isScheduleUniqueViolation($e)) {
+                return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを作成しました');
     }
@@ -80,7 +130,7 @@ class LessonScheduleController extends Controller
 
     public function edit(LessonSchedule $lesson_schedule): View
     {
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name', 'duration']);
 
         return view('admin.lesson_schedules.edit', [
             'schedule' => $lesson_schedule,
@@ -91,7 +141,22 @@ class LessonScheduleController extends Controller
     public function update(UpdateLessonScheduleRequest $request, LessonSchedule $lesson_schedule): RedirectResponse
     {
         $data = $request->validated();
-        $lesson_schedule->update($data);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($lesson_schedule, $data) {
+                \App\Models\Lesson::query()
+                    ->whereKey($data['lesson_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $lesson_schedule->update($data);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (self::isScheduleUniqueViolation($e)) {
+                return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを更新しました');
     }
@@ -100,7 +165,7 @@ class LessonScheduleController extends Controller
     {
         if ($lesson_schedule->reservations()->exists()) {
             return redirect()->route('admin.lesson-schedules.index')
-                ->withErrors('予約が存在するため削除できません');
+                ->withErrors(['error' => '予約が存在するため削除できません']);
         }
         $lesson_schedule->delete();
 
@@ -109,7 +174,7 @@ class LessonScheduleController extends Controller
 
     public function bulkCreate(): View
     {
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name', 'duration']);
 
         return view('admin.lesson_schedules.bulk-create', compact('lessons'));
     }
@@ -134,7 +199,24 @@ class LessonScheduleController extends Controller
             ];
         }
 
-        LessonSchedule::query()->insert($payloads);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($lessonId, $payloads) {
+                \App\Models\Lesson::query()
+                    ->whereKey($lessonId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                // insert in chunks to avoid size limits
+                foreach (array_chunk($payloads, 500) as $chunk) {
+                    LessonSchedule::query()->insert($chunk);
+                }
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (self::isScheduleUniqueViolation($e)) {
+                return back()->withErrors('一部または全てのスケジュールが重複しています。対象の時間帯を見直してください。')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを一括作成しました');
     }
@@ -146,14 +228,19 @@ class LessonScheduleController extends Controller
         $endDate = \Illuminate\Support\Carbon::parse($validated['end_date'])->startOfDay();
         $startTime = $validated['start_time'];
         $endTime = $validated['end_time'];
-        $intervalWeeks = (int) ($validated['interval_weeks'] ?? 1);
+        $intervalWeeks = max(1, (int) ($validated['interval_weeks'] ?? 1));
         $weekdays = (array) $validated['weekdays']; // 0 (Sun) ... 6 (Sat)
 
+        // Early validation: endTime must be after startTime
+        $startProbe = $startDate->copy()->setTimeFromTimeString($startTime);
+        $endProbe = $startDate->copy()->setTimeFromTimeString($endTime);
+        if ($endProbe->lte($startProbe)) {
+            return response()->json(['message' => '終了時刻は開始時刻より後である必要があります。'], 422);
+        }
+
         $items = [];
+        $limit = 1000;
         foreach ($weekdays as $weekday) {
-            if (count($items) > 1000) {
-                return response()->json(['message' => '生成件数が多すぎます（>1000）。期間や曜日を見直してください。'], 422);
-            }
             $cursor = $startDate->copy();
             // advance to first matching weekday
             while ($cursor->dayOfWeek !== (int) $weekday) {
@@ -165,12 +252,20 @@ class LessonScheduleController extends Controller
 
             // collect dates by interval weeks
             for ($date = $cursor->copy(); $date->lte($endDate); $date->addWeeks($intervalWeeks)) {
-                $start = \Illuminate\Support\Carbon::parse($date->format('Y-m-d').' '.$startTime);
-                $end = \Illuminate\Support\Carbon::parse($date->format('Y-m-d').' '.$endTime);
+                $start = $date->copy()->setTimeFromTimeString($startTime);
+                $end = $date->copy()->setTimeFromTimeString($endTime);
+                // Guard against invalid intervals (no overnight support here)
+                if ($end->lte($start)) {
+                    return response()->json(['message' => '終了時刻は開始時刻より後である必要があります。'], 422);
+                }
                 $items[] = [
-                    'start_datetime' => $start->format('Y-m-d H:i:s'),
-                    'end_datetime' => $end->format('Y-m-d H:i:s'),
+                    // Return ISO-8601 with offset to prevent TZ drift on clients
+                    'start_datetime' => $start->toIso8601String(),
+                    'end_datetime' => $end->toIso8601String(),
                 ];
+                if (count($items) > $limit) {
+                    return response()->json(['message' => "生成件数が多すぎます（上限: {$limit}件）。期間や曜日を見直してください。"], 422);
+                }
             }
         }
 

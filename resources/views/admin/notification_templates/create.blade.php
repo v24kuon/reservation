@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">通知テンプレート作成</h2>
     </x-slot>
@@ -8,15 +8,15 @@
             @csrf
 
             <div>
-                <label class="block text-sm">名称</label>
-                <input type="text" name="name" value="{{ old('name') }}" class="border rounded w-full p-2">
+                <label for="name" class="block text-sm">名称</label>
+                <input id="name" type="text" name="name" value="{{ old('name') }}" class="border rounded w-full p-2" required maxlength="255" autocomplete="off" aria-invalid="@error('name') true @else false @enderror">
                 @error('name') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
-                <label class="block text-sm">種別</label>
-                <select name="type" class="border rounded w-full p-2">
-                    <option value="">-- 選択してください --</option>
+                <label for="type" class="block text-sm">種別</label>
+                <select id="type" name="type" class="border rounded w-full p-2" required aria-invalid="@error('type') true @else false @enderror">
+                    <option value="" disabled @selected(!old('type'))>-- 選択してください --</option>
                     <option value="reservation_confirmation" @selected(old('type')==='reservation_confirmation')>予約確認</option>
                     <option value="reminder" @selected(old('type')==='reminder')>リマインダー</option>
                     <option value="cancellation" @selected(old('type')==='cancellation')>キャンセル</option>
@@ -26,20 +26,20 @@
             </div>
 
             <div>
-                <label class="block text-sm">件名</label>
-                <input type="text" name="subject" value="{{ old('subject') }}" class="border rounded w-full p-2">
+                <label for="subject" class="block text-sm">件名</label>
+                <input id="subject" type="text" name="subject" value="{{ old('subject') }}" class="border rounded w-full p-2" required maxlength="255" autocomplete="off" aria-invalid="@error('subject') true @else false @enderror">
                 @error('subject') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
-                <label class="block text-sm">本文（テキスト）</label>
-                <textarea name="body_text" rows="6" class="border rounded w-full p-2" placeholder="例: @{{user_name}} 様、@{{lesson_name}} のご予約を受け付けました。日時: @{{datetime}}">{{ old('body_text') }}</textarea>
-                @error('body_text') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+                <label for="body_text" class="block text-sm">本文（テキスト）</label>
+                <textarea id="body_text" name="body_text" rows="6" class="border rounded w-full p-2" placeholder="例: @{{user_name}} 様、@{{lesson_name}} のご予約を受け付けました。日時: @{{datetime}}" required aria-invalid="@error('body_text') true @else false @enderror" aria-describedby="vars-help body_text_error">{{ old('body_text') }}</textarea>
+                @error('body_text') <div id="body_text_error" class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label class="block text-sm">利用できる変数（システム設定の許可リスト）</label>
-                <p class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;user_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
+                <p id="vars-help" class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;user_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
             </div>
 
             @php
@@ -63,7 +63,6 @@
                                     <button type="button"
                                             class="px-2 py-1 text-xs border rounded bg-white copy-chip"
                                             data-ph="{{ $ph }}"
-                                            data-copy="{{ '{{' . $ph . '}}' }}"
                                     >&#123;&#123;{{ $ph }}&#125;&#125;</button>
                                 @endforeach
                             </div>
@@ -83,18 +82,16 @@
             </div>
 
             <div class="flex gap-2">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
-                <a href="{{ route('admin.notification-templates.index') }}" class="px-4 py-2 rounded border">一覧へ戻る</a>
+                <x-primary-button type="submit">保存</x-primary-button>
+                <x-secondary-button as="a" href="{{ route('admin.notification-templates.index') }}">戻る</x-secondary-button>
             </div>
         </form>
     </div>
-    <script>
-        (function() {
-            function copy(text){
-                if(navigator.clipboard){ navigator.clipboard.writeText(text); return; }
-                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-            }
-            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy(btn.dataset.copy)));
-        })();
-    </script>
-</x-app-layout>
+
+    <!-- コピー成功フィードバック用のARIA live region -->
+    <div id="copy-feedback" role="status" aria-atomic="true" class="sr-only"></div>
+
+    @push('scripts')
+      @include('admin.notification_templates._copy-script')
+    @endpush
+</x-admin-layout>
