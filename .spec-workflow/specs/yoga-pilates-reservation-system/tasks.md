@@ -153,32 +153,6 @@
   - Dependencies: Task 15 / 依存関係: タスク15
   - Estimated time: 20 minutes / 推定時間: 20分
 
-### Security Enhancement Tasks
-### セキュリティ強化タスク
-
-- [ ] 18. Implement comprehensive input validation / 包括的な入力バリデーションを実装
-  - File: app/Http/Requests/ (review and enhance all) / ファイル: app/Http/Requests/ (すべてをレビュー・強化)
-  - Purpose: Strengthen data validation across all forms / 目的: すべてのフォームでデータバリデーションを強化
-  - Requirements: Security requirements / 要件: セキュリティ要件
-  - Dependencies: None / 依存関係: なし
-  - Estimated time: 30 minutes / 推定時間: 30分
-
-- [ ] 19. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
-  - File: app/Http/Kernel.php (modify) / ファイル: app/Http/Kernel.php (修正)
-  - Apply throttle:login to auth, custom throttle to reservation create/cancel / 認証にloginスロットル、予約作成/取消に専用スロットル
-  - Exclude Stripe webhook route from throttling / Webhookはスロットル除外
-  - Purpose: Prevent abuse of authentication and booking endpoints / 目的: 認証と予約エンドポイントの悪用を防ぐ
-  - Requirements: Security requirements / 要件: セキュリティ要件
-  - Dependencies: None / 依存関係: なし
-  - Estimated time: 15 minutes / 推定時間: 15分
-
-- [ ] 20. Implement CSRF protection verification / CSRF保護検証を実装
-  - File: resources/views/ (review all forms) / ファイル: resources/views/ (すべてのフォームをレビュー)
-  - Verify admin blade forms include @csrf and method spoofing as needed / 管理画面フォームで@csrfとHTTPメソッド疑似化を確認
-  - Purpose: Ensure all forms have proper CSRF tokens / 目的: すべてのフォームに適切なCSRFトークンがあることを保証
-  - Requirements: Security requirements / 要件: セキュリティ要件
-  - Dependencies: None / 依存関係: なし
-  - Estimated time: 10 minutes / 推定時間: 10分
 
 ## Phase 2: Subscription System Implementation
 ## フェーズ2: サブスクリプションシステム実装
@@ -186,7 +160,7 @@
 ### Laravel Cashier Setup Tasks
 ### Laravel Cashierセットアップタスク
 
-- [ ] 21. Install Laravel Cashier and configure Stripe / Laravel CashierをインストールしStripeを設定
+- [x] 18. Install Laravel Cashier and configure Stripe / Laravel CashierをインストールしStripeを設定
   - File: composer.json (modify) / ファイル: composer.json (修正)
   - Command: `composer require laravel/cashier` / コマンド: `composer require laravel/cashier`
   - Purpose: Install Stripe payment processing library / 目的: Stripe決済処理ライブラリをインストール
@@ -194,123 +168,124 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 22. Configure Stripe API keys and webhooks / Stripe APIキーとWebhookを設定
+- [ ] 19. Configure Stripe API keys and webhooks / Stripe APIキーとWebhookを設定
   - File: .env (modify), config/services.php (modify) / ファイル: .env (修正), config/services.php (修正)
   - Add STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRET / STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRETを追加
+  - Configure CSRF exclusion for stripe/* routes in bootstrap/app.php / bootstrap/app.phpでstripe/*ルートのCSRF除外を設定
+  - Use `php artisan cashier:webhook` for API version consistency with Cashier / CashierとのAPIバージョン整合性のため `php artisan cashier:webhook` を使用
   - Purpose: Set up Stripe credentials and webhook endpoints / 目的: Stripe認証情報とWebhookエンドポイントを設定
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
-  - Dependencies: Task 21 / 依存関係: タスク21
+  - Dependencies: Task 18 / 依存関係: タスク18
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 23. Create Cashier migrations for subscription tables / サブスクリプションテーブル用のCashierマイグレーションを作成
+- [ ] 20. Create Cashier migrations for subscription tables / サブスクリプションテーブル用のCashierマイグレーションを作成
   - File: database/migrations/ (new files via artisan) / ファイル: database/migrations/ (artisan経由で新規ファイル)
   - Command: `php artisan vendor:publish --tag=cashier-migrations` / コマンド: `php artisan vendor:publish --tag=cashier-migrations`
   - Purpose: Create necessary database tables for subscriptions / 目的: サブスクリプション用の必要なデータベーステーブルを作成
   - Requirements: 7.1 / 要件: 7.1
-  - Dependencies: Task 21 / 依存関係: タスク21
+  - Dependencies: Task 18 / 依存関係: タスク18
   - Estimated time: 5 minutes / 推定時間: 5分
 
-- [ ] 24. Run Cashier migrations / Cashierマイグレーションを実行
+- [ ] 21. Run Cashier migrations / Cashierマイグレーションを実行
   - Command: `php artisan migrate` / コマンド: `php artisan migrate`
   - Purpose: Create subscription-related database tables / 目的: サブスクリプション関連のデータベーステーブルを作成
   - Requirements: 7.1 / 要件: 7.1
-  - Dependencies: Task 23 / 依存関係: タスク23
+  - Dependencies: Task 20 / 依存関係: タスク20
   - Estimated time: 2 minutes / 推定時間: 2分
 
 ### Stripe Product and Price Management Tasks
 ### Stripeプロダクト・価格管理タスク
 
-- [ ] 25. Create Stripe products and prices via Stripe Dashboard / Stripeダッシュボード経由でStripeプロダクトと価格を作成
+- [ ] 22. Create Stripe products and prices via Stripe Dashboard / Stripeダッシュボード経由でStripeプロダクトと価格を作成
   - External: Stripe Dashboard (stripe.com) / 外部: Stripe Dashboard (stripe.com)
   - Create products for Group Lessons and Personal Lessons / グループレッスンと個人レッスン用のプロダクトを作成
   - Create prices for each subscription tier / 各サブスクリプションティア用の価格を作成
   - Purpose: Set up Stripe products matching our subscription plans / 目的: サブスクリプションプランに一致するStripeプロダクトを設定
   - Requirements: 6.1 / 要件: 6.1
-  - Dependencies: Tasks 21-22 / 依存関係: タスク21-22
+  - Dependencies: Tasks 19-20 / 依存関係: タスク19-20
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 26. Update SubscriptionPlan model for Stripe integration / Stripe統合用にSubscriptionPlanモデルを更新
+- [ ] 23. Update SubscriptionPlan model for Stripe integration / Stripe統合用にSubscriptionPlanモデルを更新
   - File: app/Models/SubscriptionPlan.php (modify) / ファイル: app/Models/SubscriptionPlan.php (修正)
   - UserモデルにBillableトレイトを付与 / User::class に Billable を追加
   - SubscriptionPlan は Stripe の product/price のメタ情報保持のみ / プラン定義は product_id, price_id 等を保持
   - Purpose: 課金主体（ユーザー）でCashierを動かし、プランは参照に専念 / 目的: ユーザーを課金主体としてCashierを利用
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
-  - Dependencies: Task 25 / 依存関係: タスク25
+  - Dependencies: Task 22 / 依存関係: タスク22
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 27. Create SubscriptionPlan seeder with Stripe data / StripeデータでSubscriptionPlanシーダーを作成
+- [ ] 24. Create SubscriptionPlan seeder with Stripe data / StripeデータでSubscriptionPlanシーダーを作成
   - File: database/seeders/SubscriptionPlanSeeder.php (new) / ファイル: database/seeders/SubscriptionPlanSeeder.php (新規)
   - Populate subscription plans with Stripe product/price IDs / Stripeプロダクト/価格IDでサブスクリプションプランを投入
   - Purpose: Seed database with subscription plan data / 目的: サブスクリプションプランデータでデータベースをシード
   - Requirements: 6.1 / 要件: 6.1
-  - Dependencies: Tasks 25, 26 / 依存関係: タスク25, 26
+  - Dependencies: Tasks 22, 23 / 依存関係: タスク22, 23
   - Estimated time: 20 minutes / 推定時間: 20分
 
 ### Stripe Checkout Integration Tasks
 ### Stripe Checkout統合タスク
 
-- [ ] 28. Create checkout session controller / チェックアウトセッションコントローラーを作成
+- [ ] 25. Create checkout session controller / チェックアウトセッションコントローラーを作成
   - File: app/Http/Controllers/SubscriptionController.php (new) / ファイル: app/Http/Controllers/SubscriptionController.php (新規)
   - Method: createCheckoutSession($planId) / メソッド: createCheckoutSession($planId)
   - Purpose: Handle Stripe checkout session creation / 目的: Stripeチェックアウトセッション作成を処理
   - Requirements: 7.1 / 要件: 7.1
-  - Dependencies: Tasks 25, 26 / 依存関係: タスク25, 26
+  - Dependencies: Tasks 22, 23 / 依存関係: タスク22, 23
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 29. Add subscription routes / サブスクリプションルートを追加
+- [ ] 26. Add subscription routes / サブスクリプションルートを追加
   - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
   - Add routes for subscription checkout and success / サブスクリプションチェックアウトと成功用のルートを追加
   - Purpose: Define URL routing for subscription features / 目的: サブスクリプション機能のURLルーティングを定義
   - Requirements: 7.1 / 要件: 7.1
-  - Dependencies: Task 28 / 依存関係: タスク28
+  - Dependencies: Task 25 / 依存関係: タスク25
   - Estimated time: 10 minutes / 推定時間: 10分
 
-- [ ] 30. Create checkout success page / チェックアウト成功ページを作成
+- [ ] 27. Create checkout success page / チェックアウト成功ページを作成
   - File: resources/views/subscription/success.blade.php (new) / ファイル: resources/views/subscription/success.blade.php (新規)
   - Display subscription confirmation and next steps / サブスクリプション確認と次のステップを表示
   - Purpose: Provide user feedback after successful subscription / 目的: サブスクリプション成功後のユーザーフィードバックを提供
   - Requirements: 7.1 / 要件: 7.1
-  - Dependencies: Task 29 / 依存関係: タスク29
+  - Dependencies: Task 26 / 依存関係: タスク26
   - Estimated time: 15 minutes / 推定時間: 15分
 
 ### Webhook Processing Tasks
 ### Webhook処理タスク
 
-- [ ] 31. Create webhook controller / Webhookコントローラーを作成
-  - File: app/Http/Controllers/WebhookController.php (new) / ファイル: app/Http/Controllers/WebhookController.php (新規)
-  - Handle Stripe webhook events (customer.subscription.created, invoice.payment_succeeded, etc.) / Stripe Webhookイベント（customer.subscription.created、invoice.payment_succeeded等）を処理
-  - Verify Stripe-Signature header using STRIPE_WEBHOOK_SECRET / STRIPE_WEBHOOK_SECRET による署名検証を実装
+- [ ] 28. Create webhook event listeners / Webhookイベントリスナーを作成
+  - File: app/Listeners/ (new listener classes) / ファイル: app/Listeners/ (新規リスナークラス)
+  - Handle Stripe webhook events via Cashier events (customer.subscription.created, invoice.payment_succeeded, etc.) / Cashierイベント経由でStripe Webhookイベント（customer.subscription.created、invoice.payment_succeeded等）を処理
+  - Use Cashier's default /stripe/webhook route (no custom controller to avoid conflicts) / Cashierの既定ルート /stripe/webhook を使用（衝突回避のためカスタムコントローラーは作成しない）
   - Enforce idempotency by recording processed event.id / event.id を保存して多重処理を防止
   - Allowlist only expected event types / 想定イベントのみ許可（アロウリスト）
-  - Purpose: Process Stripe webhook notifications / 目的: Stripe Webhook通知を処理
+  - Purpose: Process Stripe webhook notifications via event listeners / 目的: イベントリスナー経由でStripe Webhook通知を処理
   - Requirements: 7.2 / 要件: 7.2
-  - Dependencies: Task 22 / 依存関係: タスク22
+  - Dependencies: Task 19 / 依存関係: タスク19
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 32. Add webhook route / Webhookルートを追加
-  - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
-  - Add POST route for Stripe webhooks / Stripe Webhook用のPOSTルートを追加
-  - Exclude CSRF protection for webhook endpoint (kept minimal scope) / CSRF除外（対象経路を最小限に）
+- [ ] 29. Configure webhook CSRF exclusion / Webhook CSRF除外設定
+  - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
+  - Exclude CSRF for 'stripe/*' only (use default Cashier route `/stripe/webhook`) / 'stripe/*' のみCSRF除外設定（既定のCashierルート `/stripe/webhook` を利用）
   - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
-  - Purpose: Accept Stripe webhook notifications / 目的: Stripe Webhook通知を受け入れる
+  - Purpose: Accept Stripe webhook notifications via default Cashier route / 目的: 既定のCashierルート経由でStripe Webhook通知を受け入れる
   - Requirements: 7.2 / 要件: 7.2
-  - Dependencies: Task 31 / 依存関係: タスク31
+  - Dependencies: Task 28 / 依存関係: タスク28
   - Estimated time: 5 minutes / 推定時間: 5分
 
-- [ ] 33. Implement webhook event handlers / Webhookイベントハンドラーを実装
-  - File: app/Http/Controllers/WebhookController.php (modify) / ファイル: app/Http/Controllers/WebhookController.php (修正)
-  - Handle subscription status changes / サブスクリプションステータス変更を処理
+- [ ] 30. Implement webhook event handlers / Webhookイベントハンドラーを実装
+  - File: app/Listeners/ (implement listener logic) / ファイル: app/Listeners/ (リスナーロジック実装)
+  - Handle subscription status changes via event listeners / イベントリスナー経由でサブスクリプションステータス変更を処理
   - Update user subscription records / ユーザーサブスクリプションレコードを更新
   - Send notifications for subscription events / サブスクリプションイベントの通知を送信
-  - Purpose: Process subscription lifecycle events / 目的: サブスクリプションライフサイクルイベントを処理
+  - Purpose: Process subscription lifecycle events via listeners / 目的: リスナー経由でサブスクリプションライフサイクルイベントを処理
   - Requirements: 7.2, 10.2 / 要件: 7.2, 10.2
-  - Dependencies: Task 31 / 依存関係: タスク31
+  - Dependencies: Task 28 / 依存関係: タスク28
   - Estimated time: 40 minutes / 推定時間: 40分
 
 ### Reservation System Implementation Tasks
 ### 予約システム実装タスク
 
-- [ ] 34. Create Reservation model and migration / Reservationモデルとマイグレーションを作成
+- [ ] 31. Create Reservation model and migration / Reservationモデルとマイグレーションを作成
   - File: app/Models/Reservation.php (new) / ファイル: app/Models/Reservation.php (新規)
   - File: database/migrations/create_reservations_table.php (new) / ファイル: database/migrations/create_reservations_table.php (新規)
   - Define relationships and business logic methods / リレーションとビジネスロジックメソッドを定義
@@ -319,7 +294,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 35. Extend LessonSchedule model / LessonScheduleモデルを拡張
+- [ ] 32. Extend LessonSchedule model / LessonScheduleモデルを拡張
   - File: app/Models/LessonSchedule.php (modify) / ファイル: app/Models/LessonSchedule.php (修正)
   - Add reservations relationship / 予約リレーションを追加
   - Add availability checking methods / 空き状況チェックメソッドを追加
@@ -328,59 +303,59 @@
   - Provide atomic check-and-book API for concurrency / 競合対策の原子的APIを提供
   - Purpose: Enable reservation functionality on lesson schedules / 目的: レッスンスケジュールで予約機能を有効化
   - Requirements: 8.3, 8.4 / 要件: 8.3, 8.4
-  - Dependencies: Task 34 / 依存関係: タスク34
+  - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 36. Create reservation controller / 予約コントローラーを作成
+- [ ] 33. Create reservation controller / 予約コントローラーを作成
   - File: app/Http/Controllers/Admin/ReservationController.php (new) / ファイル: app/Http/Controllers/Admin/ReservationController.php (新規)
   - Implement CRUD operations for reservation management / 予約管理用のCRUD操作を実装
   - Add filtering and search functionality / フィルタリングと検索機能を追加
   - Purpose: Admin interface for reservation management / 目的: 予約管理用の管理者インターフェース
   - Requirements: 8.5 / 要件: 8.5
-  - Dependencies: Task 34 / 依存関係: タスク34
+  - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 37. Add reservation routes / 予約ルートを追加
+- [ ] 34. Add reservation routes / 予約ルートを追加
   - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
   - Add admin routes for reservation management / 予約管理用の管理者ルートを追加
   - Purpose: Define URL routing for reservation features / 目的: 予約機能のURLルーティングを定義
   - Requirements: 8.5 / 要件: 8.5
-  - Dependencies: Task 36 / 依存関係: タスク36
+  - Dependencies: Task 33 / 依存関係: タスク33
   - Estimated time: 10 minutes / 推定時間: 10分
 
 ### Livewire Component Development Tasks
 ### Livewireコンポーネント開発タスク
 
-- [ ] 38. Create reservation booking Livewire component / 予約Livewireコンポーネントを作成
+- [ ] 35. Create reservation booking Livewire component / 予約Livewireコンポーネントを作成
   - File: app/Livewire/ReservationBooking.php (new) / ファイル: app/Livewire/ReservationBooking.php (新規)
   - Display available lessons and handle booking / 利用可能なレッスンを表示し予約を処理
   - Purpose: User interface for lesson reservation / 目的: レッスン予約用のユーザーインターフェース
   - Requirements: 8.1, 8.2 / 要件: 8.1, 8.2
-  - Dependencies: Tasks 34, 35 / 依存関係: タスク34, 35
+  - Dependencies: Tasks 31, 32 / 依存関係: タスク31, 32
   - Estimated time: 45 minutes / 推定時間: 45分
 
-- [ ] 39. Create reservation cancellation component / 予約キャンセルコンポーネントを作成
+- [ ] 36. Create reservation cancellation component / 予約キャンセルコンポーネントを作成
   - File: app/Livewire/ReservationCancellation.php (new) / ファイル: app/Livewire/ReservationCancellation.php (新規)
   - Handle reservation cancellation logic / 予約キャンセルロジックを処理
   - Check cancellation deadlines and permissions / キャンセル期限と権限をチェック
   - Purpose: User interface for reservation cancellation / 目的: 予約キャンセル用のユーザーインターフェース
   - Requirements: 8.4 / 要件: 8.4
-  - Dependencies: Task 38 / 依存関係: タスク38
+  - Dependencies: Task 35 / 依存関係: タスク35
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 40. Create reservation history component / 予約履歴コンポーネントを作成
+- [ ] 37. Create reservation history component / 予約履歴コンポーネントを作成
   - File: app/Livewire/ReservationHistory.php (new) / ファイル: app/Livewire/ReservationHistory.php (新規)
   - Display user's reservation history / ユーザーの予約履歴を表示
   - Show upcoming and past reservations / 今後の予約と過去の予約を表示
   - Purpose: User interface for reservation history / 目的: 予約履歴用のユーザーインターフェース
   - Requirements: 8.5 / 要件: 8.5
-  - Dependencies: Task 38 / 依存関係: タスク38
+  - Dependencies: Task 35 / 依存関係: タスク35
   - Estimated time: 20 minutes / 推定時間: 20分
 
 ### Notification System Implementation Tasks
 ### 通知システム実装タスク
 
-- [ ] 41. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
+- [ ] 38. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
   - File: app/Models/NotificationTemplate.php (modify) / ファイル: app/Models/NotificationTemplate.php (修正)
   - Add template type constants and validation / テンプレートタイプ定数とバリデーションを追加
   - Purpose: Support different notification types / 目的: 異なる通知タイプをサポート
@@ -388,21 +363,48 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 42. Create notification service / 通知サービスを作成
+- [ ] 39. Create notification service / 通知サービスを作成
   - File: app/Services/NotificationService.php (new) / ファイル: app/Services/NotificationService.php (新規)
   - Implement email sending with template substitution / テンプレート置換でメール送信を実装
   - Purpose: Centralized notification handling / 目的: 集中化された通知処理
   - Requirements: 10.3, 10.4 / 要件: 10.3, 10.4
-  - Dependencies: Task 41 / 依存関係: タスク41
+  - Dependencies: Task 38 / 依存関係: タスク38
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 43. Implement notification templates / 通知テンプレートを実装
+- [ ] 40. Implement notification templates / 通知テンプレートを実装
   - File: database/seeders/NotificationTemplateSeeder.php (new) / ファイル: database/seeders/NotificationTemplateSeeder.php (新規)
   - Create templates for reservation confirmation, reminders, cancellations / 予約確認、リマインダー、キャンセル用のテンプレートを作成
   - Purpose: Populate notification templates / 目的: 通知テンプレートを投入
   - Requirements: 10.1 / 要件: 10.1
-  - Dependencies: Task 41 / 依存関係: タスク41
+  - Dependencies: Task 38 / 依存関係: タスク38
   - Estimated time: 25 minutes / 推定時間: 25分
+
+### Security Enhancement Tasks (Phase 2 Final)
+### セキュリティ強化タスク (フェーズ2最終)
+
+- [ ] 41. Implement comprehensive input validation / 包括的な入力バリデーションを実装
+  - File: app/Http/Requests/ (review and enhance all) / ファイル: app/Http/Requests/ (すべてをレビュー・強化)
+  - Purpose: Strengthen data validation across all forms / 目的: すべてのフォームでデータバリデーションを強化
+  - Requirements: Security requirements / 要件: セキュリティ要件
+  - Dependencies: None / 依存関係: なし
+  - Estimated time: 30 minutes / 推定時間: 30分
+
+- [ ] 42. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
+  - File: app/Http/Kernel.php (modify) / ファイル: app/Http/Kernel.php (修正)
+  - Apply throttle:login to auth, custom throttle to reservation create/cancel / 認証にloginスロットル、予約作成/取消に専用スロットル
+  - Exclude Stripe webhook route from throttling / Webhookはスロットル除外
+  - Purpose: Prevent abuse of authentication and booking endpoints / 目的: 認証と予約エンドポイントの悪用を防ぐ
+  - Requirements: Security requirements / 要件: セキュリティ要件
+  - Dependencies: None / 依存関係: なし
+  - Estimated time: 15 minutes / 推定時間: 15分
+
+- [ ] 43. Implement CSRF protection verification / CSRF保護検証を実装
+  - File: resources/views/ (review all forms) / ファイル: resources/views/ (すべてのフォームをレビュー)
+  - Verify admin blade forms include @csrf and method spoofing as needed / 管理画面フォームで@csrfとHTTPメソッド疑似化を確認
+  - Purpose: Ensure all forms have proper CSRF tokens / 目的: すべてのフォームに適切なCSRFトークンがあることを保証
+  - Requirements: Security requirements / 要件: セキュリティ要件
+  - Dependencies: None / 依存関係: なし
+  - Estimated time: 10 minutes / 推定時間: 10分
 
 ### Testing Implementation Tasks
 ### テスト実装タスク
@@ -434,7 +436,7 @@
   - Tests: 同一リクエスト内での多重重複検知（N^2比較の最適化も検証）
   - Purpose: Ensure subscription model reliability / 目的: サブスクリプションモデルの信頼性を保証
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
-  - Dependencies: Task 26 / 依存関係: タスク26
+  - Dependencies: Task 23 / 依存関係: タスク23
   - Estimated time: 20 minutes / 推定時間: 20分
 
 - [ ] 47. Create reservation model tests / 予約モデルテストを作成
@@ -445,7 +447,7 @@
   - Tests: 同一リクエスト内での多重重複検知（N^2比較の最適化も検証）
   - Purpose: Ensure reservation model reliability / 目的: 予約モデルの信頼性を保証
   - Requirements: 8.1, 8.2 / 要件: 8.1, 8.2
-  - Dependencies: Task 34 / 依存関係: タスク34
+  - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 20 minutes / 推定時間: 20分
 
 - [ ] 48. Create webhook controller tests / Webhookコントローラーテストを作成
@@ -453,7 +455,7 @@
   - Test Stripe webhook processing / Stripe Webhook処理をテスト
   - Purpose: Ensure webhook reliability / 目的: Webhookの信頼性を保証
   - Requirements: 7.2 / 要件: 7.2
-  - Dependencies: Task 31 / 依存関係: タスク31
+  - Dependencies: Task 28 / 依存関係: タスク28
   - Estimated time: 25 minutes / 推定時間: 25分
 
 - [ ] 49. Create reservation feature tests / 予約機能テストを作成
@@ -461,7 +463,7 @@
   - Test complete reservation workflow / 完全な予約ワークフローをテスト
   - Purpose: Ensure end-to-end reservation functionality / 目的: エンドツーエンドの予約機能を保証
   - Requirements: 8.1-8.5 / 要件: 8.1-8.5
-  - Dependencies: Tasks 34, 38 / 依存関係: タスク34, 38
+  - Dependencies: Tasks 31, 35 / 依存関係: タスク31, 35
   - Estimated time: 30 minutes / 推定時間: 30分
 
 ### Final Integration and Cleanup Tasks
@@ -495,43 +497,48 @@
 ## Task Dependencies and Execution Order
 ## タスク依存関係と実行順序
 
-### Phase 1A: Complete Foundation Setup (Tasks 1-20)
-### フェーズ1A: 基盤完成セットアップ (タスク1-20)
-Execute in order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20
-順次実行: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20
+### Phase 1A: Complete Foundation Setup (Tasks 1-17)
+### フェーズ1A: 基盤完成セットアップ (タスク1-17)
+Execute in order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
+順次実行: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
 
-### Phase 1B: Stripe Setup (Tasks 21-24)
-### フェーズ1B: Stripeセットアップ (タスク21-24)
-Execute in order: 21 → 22 → 23 → 24
-順次実行: 21 → 22 → 23 → 24
+### Phase 1B: Stripe Setup (Tasks 18-21)
+### フェーズ1B: Stripeセットアップ (タスク18-21)
+Execute in order: 18 → 19 → 20 → 21
+順次実行: 18 → 19 → 20 → 21
 
-### Phase 1C: Stripe Product and Price Management (Tasks 25-27)
-### フェーズ1C: Stripeプロダクト・価格管理 (タスク25-27)
+### Phase 1C: Stripe Product and Price Management (Tasks 22-24)
+### フェーズ1C: Stripeプロダクト・価格管理 (タスク22-24)
+Execute in order: 22 → 23 → 24
+順次実行: 22 → 23 → 24
+
+### Phase 1D: Checkout Integration (Tasks 25-27)
+### フェーズ1D: Checkout統合 (タスク25-27)
 Execute in order: 25 → 26 → 27
 順次実行: 25 → 26 → 27
 
-### Phase 1D: Checkout Integration (Tasks 28-30)
-### フェーズ1D: Checkout統合 (タスク28-30)
+### Phase 1E: Webhook Processing (Tasks 28-30)
+### フェーズ1E: Webhook処理 (タスク28-30)
 Execute in order: 28 → 29 → 30
 順次実行: 28 → 29 → 30
 
-### Phase 1E: Webhook Processing (Tasks 31-33)
-### フェーズ1E: Webhook処理 (タスク31-33)
-Execute in order: 31 → 32 → 33
-順次実行: 31 → 32 → 33
+### Phase 2A: Reservation Core (Tasks 31-34)
+### フェーズ2A: 予約コア (タスク31-34)
+Execute in order: 31 → 32 → 33 → 34
+順次実行: 31 → 32 → 33 → 34
 
-### Phase 2A: Reservation Core (Tasks 34-37)
-### フェーズ2A: 予約コア (タスク34-37)
-Execute in order: 34 → 35 → 36 → 37
-順次実行: 34 → 35 → 36 → 37
+### Phase 2B: Livewire Components (Tasks 35-37)
+### フェーズ2B: Livewireコンポーネント (タスク35-37)
+Execute in order: 35 → 36 → 37
+順次実行: 35 → 36 → 37
 
-### Phase 2B: Livewire Components (Tasks 38-40)
-### フェーズ2B: Livewireコンポーネント (タスク38-40)
+### Phase 2C: Notifications (Tasks 38-40)
+### フェーズ2C: 通知 (タスク38-40)
 Execute in order: 38 → 39 → 40
 順次実行: 38 → 39 → 40
 
-### Phase 2C: Notifications (Tasks 41-43)
-### フェーズ2C: 通知 (タスク41-43)
+### Phase 2D: Security Enhancement (Tasks 41-43)
+### フェーズ2D: セキュリティ強化 (タスク41-43)
 Execute in order: 41 → 42 → 43
 順次実行: 41 → 42 → 43
 

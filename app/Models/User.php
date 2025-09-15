@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 
 /**
  * @property string $role
@@ -16,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use Billable, HasFactory, Notifiable;
 
     public const ROLE_USER = 'user';
 
@@ -85,9 +86,10 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user subscriptions for this user.
+     * Get the app-specific (non-Cashier) subscriptions for this user.
+     * Note: Named 'userSubscriptions' to avoid conflict with Cashier's Billable::subscriptions().
      */
-    public function subscriptions(): HasMany
+    public function userSubscriptions(): HasMany
     {
         return $this->hasMany(UserSubscription::class);
     }
@@ -141,6 +143,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function activeSubscriptions()
     {
-        return $this->subscriptions()->active()->paid();
+        // Use app-specific subscription scopes
+        return $this->userSubscriptions()->active()->paid();
     }
 }
