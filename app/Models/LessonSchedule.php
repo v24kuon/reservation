@@ -118,9 +118,9 @@ class LessonSchedule extends Model
      * Returns schedules with start_datetime < $end and end_datetime > $start (i.e. any record that
      * intersects the provided interval).
      *
-     * @param  Builder<self> $query
-     * @param  \DateTimeInterface $start Start of the interval (inclusive).
-     * @param  \DateTimeInterface $end   End of the interval (exclusive).
+     * @param  Builder<self>  $query
+     * @param  \DateTimeInterface  $start  Start of the interval (inclusive).
+     * @param  \DateTimeInterface  $end  End of the interval (exclusive).
      * @return Builder<self>
      */
     public function scopeOverlapping(Builder $query, \DateTimeInterface $start, \DateTimeInterface $end): Builder
@@ -133,25 +133,29 @@ class LessonSchedule extends Model
     /**
      * Determine whether any schedule for the given lesson overlaps the half-open interval [start, end).
      *
-     * Accepts DateTimeInterface or a date/time string. Strings are parsed with Carbon and, when the
-     * timezone offset is omitted, interpreted using the application timezone configured via
-     * config('app.timezone'). Supplying ISO‑8601 strings with explicit timezone is recommended.
+     * Accepts DateTimeInterface or a date/time string. Strings are parsed with Carbon and normalized
+     * to the application timezone (config('app.timezone')); when the timezone offset is omitted,
+     * that timezone is assumed. Supplying ISO‑8601 strings with explicit timezone is recommended.
      * Returns true if any existing LessonSchedule for the given lesson_id intersects the interval
      * (i.e. start_datetime < $end AND end_datetime > $start).
      *
      * @param  int  $lessonId  ID of the lesson to check.
      * @param  \DateTimeInterface|string  $start  Interval start (ISO‑8601 推奨。TZ 省略時は config('app.timezone') として解釈)。
-     * @param  \DateTimeInterface|string  $end    Interval end   (ISO‑8601 推奨。TZ 省略時は config('app.timezone') として解釈)。
+     * @param  \DateTimeInterface|string  $end  Interval end   (ISO‑8601 推奨。TZ 省略時は config('app.timezone') として解釈)。
      * @return bool True if an overlapping schedule exists, false otherwise.
      */
     public static function hasOverlap(int $lessonId, \DateTimeInterface|string $start, \DateTimeInterface|string $end): bool
     {
         $startAt = $start instanceof \DateTimeInterface
             ? Carbon::instance($start)
-            : Carbon::parse((string) $start, config('app.timezone'));
+            : Carbon::parse((string) $start);
         $endAt = $end instanceof \DateTimeInterface
             ? Carbon::instance($end)
-            : Carbon::parse((string) $end, config('app.timezone'));
+            : Carbon::parse((string) $end);
+        // Normalize to application timezone for consistent comparisons
+        $tz = config('app.timezone');
+        $startAt = $startAt->tz($tz);
+        $endAt = $endAt->tz($tz);
 
         if ($endAt <= $startAt) {
             return false;

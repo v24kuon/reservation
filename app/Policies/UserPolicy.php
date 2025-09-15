@@ -6,15 +6,15 @@ use App\Models\User;
 
 class UserPolicy
 {
+    private const GUARDED_ABILITIES = ['delete', 'forceDelete'];
+
     /**
      * Admin は全権限を許可
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function before(User $user, string $ability): ?bool
     {
         // For destructive actions, defer to dedicated guards below
-        if (in_array($ability, ['delete', 'forceDelete', 'restore'], true)) {
+        if (in_array($ability, self::GUARDED_ABILITIES, true)) {
             return null;
         }
         if ($user->hasRole(User::ROLE_ADMIN)) {
@@ -88,7 +88,7 @@ class UserPolicy
 
         // 最後の管理者削除禁止
         if ($target->hasRole(User::ROLE_ADMIN)) {
-            $adminCount = \App\Models\User::query()->where('role', User::ROLE_ADMIN)->count();
+            $adminCount = User::query()->where('role', User::ROLE_ADMIN)->count();
             if ($adminCount <= 1) {
                 return false;
             }

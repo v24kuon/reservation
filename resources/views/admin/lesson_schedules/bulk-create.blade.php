@@ -159,9 +159,12 @@
                 document.querySelectorAll('.item-row').forEach(row => {
                     const s = row.querySelector('input[name*="[start_datetime]"]');
                     const e = row.querySelector('input[name*="[end_datetime]"]');
-                    if (s?.value) {
+                    if (s?.value && e) {
                         const v = fillEndFromStart(s.value);
-                        if (v) e.value = v;
+                        if (v && (!e.value || e.dataset.autofill === '1')) {
+                            e.value = v;
+                            e.dataset.autofill = '1';
+                        }
                     }
                 });
                 // 繰り返しセクション
@@ -201,14 +204,15 @@
                 const endEl = wrapper.querySelector(`input[name="items[${index}][end_datetime]"]`);
                 const updateEnd = () => {
                     const v = fillEndFromStart(startEl?.value);
-                    if (v) {
-                      endEl.value = v;
-                      endEl.dataset.autofill = '1';
+                    if (v && (!endEl.value || endEl.dataset.autofill === '1')) {
+                        endEl.value = v;
+                        endEl.dataset.autofill = '1';
                     }
                 };
                 startEl?.addEventListener('change', updateEnd);
                 startEl?.addEventListener('input', updateEnd);
                 startEl?.addEventListener('blur', updateEnd);
+                endEl?.addEventListener('input', () => { endEl.dataset.autofill = ''; });
             });
 
             container.addEventListener('click', (e) => {
@@ -240,6 +244,10 @@
             });
 
             recGenerateServerBtn.addEventListener('click', async () => {
+                if (recGenerateServerBtn.disabled) return;
+                recGenerateServerBtn.disabled = true;
+                const oldLabel = recGenerateServerBtn.textContent;
+                recGenerateServerBtn.textContent = '生成中...';
                 const sDate = recStartDate.value;
                 const eDate = recEndDate.value;
                 const startTime = recStartTime.value;
@@ -250,6 +258,8 @@
 
                 if (!sDate || !eDate || !startTime || !endTime || weekdays.length === 0) {
                     alert('期間、曜日、開始・終了時刻をすべて指定してください。');
+                    recGenerateServerBtn.disabled = false;
+                    recGenerateServerBtn.textContent = oldLabel;
                     return;
                 }
 
@@ -300,23 +310,23 @@
                         wrapper.innerHTML = `
                             <div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">
                                 <div>
-                                    <label class=\"block text-sm font-medium\">開始日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.start_datetime)}\" required>
+                                    <label class=\"block text-sm font-medium\">開始日時<\/label>
+                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" required>
                                 </div>
                                 <div>
-                                    <label class=\"block text-sm font-medium\">終了日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.end_datetime)}\" required>
+                                    <label class=\"block text-sm font-medium\">終了日時<\/label>
+                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" required>
                                 </div>
                             </div>
                             <div>
                                 <label class=\"inline-flex items-center\">
                                     <input type=\"hidden\" name=\"items[${index}][is_active]\" value=\"0\">
                                     <input type=\"checkbox\" name=\"items[${index}][is_active]\" value=\"1\" checked>
-                                    <span class=\"ml-2\">有効</span>
+                                    <span class=\"ml-2\">有効<\/span>
                                 </label>
                             </div>
                             <div class=\"flex justify-end\">
-                                <button type=\"button\" class=\"px-3 py-1 border rounded text-red-700 remove-row\">行を削除</button>
+                                <button type=\"button\" class=\"px-3 py-1 border rounded text-red-700 remove-row\">行を削除<\/button>
                             </div>
                         `;
                         container.appendChild(wrapper);
@@ -324,19 +334,29 @@
                         // start -> end 自動補完（生成分にも適用）
                         const startEl = wrapper.querySelector(`input[name=\"items[${index}][start_datetime]\"]`);
                         const endEl = wrapper.querySelector(`input[name=\"items[${index}][end_datetime]\"]`);
+                        // 安全に値を流し込む（属性ではなくプロパティに代入）
+                        if (startEl) startEl.value = toLocal(item.start_datetime);
+                        if (endEl) {
+                            endEl.value = toLocal(item.end_datetime);
+                            endEl.dataset.autofill = '1';
+                        }
                         const updateEnd = () => {
                             const v = fillEndFromStart(startEl?.value);
-                            if (v) {
-                              endEl.value = v;
-                              endEl.dataset.autofill = '1';
+                            if (v && (!endEl.value || endEl.dataset.autofill === '1')) {
+                                endEl.value = v;
+                                endEl.dataset.autofill = '1';
                             }
                         };
                         startEl?.addEventListener('change', updateEnd);
                         startEl?.addEventListener('input', updateEnd);
                         startEl?.addEventListener('blur', updateEnd);
+                        endEl?.addEventListener('input', () => { endEl.dataset.autofill = ''; });
                     }
                 } catch (err) {
                     alert(err.message || '生成に失敗しました');
+                } finally {
+                    recGenerateServerBtn.disabled = false;
+                    recGenerateServerBtn.textContent = oldLabel;
                 }
             });
 
@@ -355,6 +375,7 @@
                     startInput.addEventListener('change', updateEnd);
                     startInput.addEventListener('input', updateEnd);
                     startInput.addEventListener('blur', updateEnd);
+                    endInput.addEventListener('input', () => { endInput.dataset.autofill = ''; });
                 }
             };
 

@@ -11,6 +11,12 @@
         }
         $attrs = $attrs->merge(['rel' => implode(' ', $rels)]);
     }
+    $isDisabled = $attrs->has('disabled');
+    if ($as === 'a' && $isDisabled) {
+        // <a> は :disabled が効かないため、ARIA と見た目を直付けで無効化
+        $attrs = $attrs->merge(['aria-disabled' => 'true', 'tabindex' => '-1']);
+        $class .= ' opacity-50 pointer-events-none';
+    }
 @endphp
 
 @if ($as === 'a' && $attrs->has('href'))

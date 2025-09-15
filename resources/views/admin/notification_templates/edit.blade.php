@@ -91,39 +91,5 @@
     <!-- コピー成功フィードバック用のARIA live region -->
     <div id="copy-feedback" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
-    <script>
-        (function() {
-            function legacyCopy(text){
-                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
-                ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-            }
-            function copy(text){
-                const feedback = document.getElementById('copy-feedback');
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        feedback.textContent = 'クリップボードにコピーしました: ' + text;
-                        setTimeout(() => feedback.textContent = '', 3000);
-                    }).catch(() => {
-                        legacyCopy(text);
-                        feedback.textContent = 'クリップボードにコピーしました: ' + text;
-                        setTimeout(() => feedback.textContent = '', 3000);
-                    });
-                    return;
-                }
-                legacyCopy(text);
-                feedback.textContent = 'クリップボードにコピーしました: ' + text;
-                setTimeout(() => feedback.textContent = '', 3000);
-            }
-            function moustacheFor(ph){
-                const open = String.fromCharCode(123,123); // "{{"
-                const close = String.fromCharCode(125,125); // "}}"
-                return open + ph + close;
-            }
-            document.addEventListener('click', (e) => {
-                const btn = e.target.closest('.copy-chip');
-                if (!btn) return;
-                copy(moustacheFor(btn.dataset.ph));
-            });
-        })();
-    </script>
+    @include('admin.notification_templates._copy-script')
 </x-admin-layout>

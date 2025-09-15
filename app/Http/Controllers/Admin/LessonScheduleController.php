@@ -22,13 +22,20 @@ class LessonScheduleController extends Controller
 
         $validated = $request->validated();
 
-        if (! empty($validated['date_from'])) {
-            $from = \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay();
-            $query->where('start_datetime', '>=', $from);
-        }
-        if (! empty($validated['date_to'])) {
-            $to = \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay();
-            $query->where('end_datetime', '<=', $to);
+        $from = ! empty($validated['date_from'])
+            ? \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay()
+            : null;
+        $to = ! empty($validated['date_to'])
+            ? \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay()
+            : null;
+        if ($from && $to) {
+            $query->overlapping($from, $to);
+        } elseif ($from) {
+            // from に少しでもかかるもの
+            $query->where('end_datetime', '>', $from);
+        } elseif ($to) {
+            // to に少しでもかかるもの
+            $query->where('start_datetime', '<', $to);
         }
         if (! empty($validated['lesson_id'])) {
             $query->where('lesson_id', $validated['lesson_id']);
@@ -69,14 +76,21 @@ class LessonScheduleController extends Controller
 
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
-                // Optional: lock the parent lesson row to serialize concurrent inserts for same lesson
-                \App\Models\Lesson::query()->where('id', $data['lesson_id'])->lockForUpdate()->first();
+                \App\Models\Lesson::query()
+                    ->whereKey($data['lesson_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 LessonSchedule::query()->create($data);
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            // 23000 is SQLSTATE for integrity constraint violation across many drivers
-            if ((string) ($e->errorInfo[0] ?? '') === '23000') {
+            $sqlState = (string) ($e->errorInfo[0] ?? '');
+            $msg = (string) ($e->errorInfo[2] ?? '');
+            $isUniqueViolation = $sqlState === '23000' && (
+                str_contains($msg, 'lesson_schedules_lesson_start_unique') ||
+                (str_contains($msg, 'UNIQUE constraint failed') && str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'))
+            );
+            if ($isUniqueViolation) {
                 return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
             }
             throw $e;
@@ -108,12 +122,21 @@ class LessonScheduleController extends Controller
 
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($lesson_schedule, $data) {
-                \App\Models\Lesson::query()->where('id', $data['lesson_id'])->lockForUpdate()->first();
+                \App\Models\Lesson::query()
+                    ->whereKey($data['lesson_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 $lesson_schedule->update($data);
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            if ((string) ($e->errorInfo[0] ?? '') === '23000') {
+            $sqlState = (string) ($e->errorInfo[0] ?? '');
+            $msg = (string) ($e->errorInfo[2] ?? '');
+            $isUniqueViolation = $sqlState === '23000' && (
+                str_contains($msg, 'lesson_schedules_lesson_start_unique') ||
+                (str_contains($msg, 'UNIQUE constraint failed') && str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'))
+            );
+            if ($isUniqueViolation) {
                 return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
             }
             throw $e;
@@ -162,7 +185,10 @@ class LessonScheduleController extends Controller
 
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($lessonId, $payloads) {
-                \App\Models\Lesson::query()->where('id', $lessonId)->lockForUpdate()->first();
+                \App\Models\Lesson::query()
+                    ->whereKey($lessonId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 // insert in chunks to avoid size limits
                 foreach (array_chunk($payloads, 500) as $chunk) {
@@ -170,7 +196,12 @@ class LessonScheduleController extends Controller
                 }
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            if ((string) ($e->errorInfo[0] ?? '') === '23000') {
+            $sqlState = (string) ($e->errorInfo[0] ?? '');
+            $msg = (string) ($e->errorInfo[2] ?? '');
+            if ($sqlState === '23000' && (
+                str_contains($msg, 'lesson_schedules_lesson_start_unique') ||
+                (str_contains($msg, 'UNIQUE constraint failed') && str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'))
+            )) {
                 return back()->withErrors('一部または全てのスケジュールが重複しています。対象の時間帯を見直してください。')->withInput();
             }
             throw $e;

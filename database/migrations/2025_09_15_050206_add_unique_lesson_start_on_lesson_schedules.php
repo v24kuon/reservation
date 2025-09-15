@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,22 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Preflight: abort if duplicates exist to prevent unique index creation failure
+        $duplicateExists = DB::table('lesson_schedules')
+            ->select('lesson_id', 'start_datetime', DB::raw('COUNT(*) as c'))
+            ->groupBy('lesson_id', 'start_datetime')
+            ->havingRaw('COUNT(*) > 1')
+            ->limit(1)
+            ->exists();
+
+        if ($duplicateExists) {
+            throw new \RuntimeException(
+                "Duplicate lesson_schedules entries detected. Resolve them before running this migration.\n".
+                "Example to list duplicates:\n".
+                'SELECT lesson_id, start_datetime, COUNT(*) AS c FROM lesson_schedules GROUP BY lesson_id, start_datetime HAVING COUNT(*) > 1;'
+            );
+        }
+
         $connection = Schema::getConnection();
         if ($connection->getDriverName() === 'sqlite') {
             // SQLite: drop non-unique index if exists, then create unique index safely

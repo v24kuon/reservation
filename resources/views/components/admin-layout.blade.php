@@ -127,5 +127,6 @@
                 document.addEventListener('livewire:navigated', applyToAll);
             })();
         </script>
+        @stack('scripts')
     </body>
 </html>
