@@ -286,6 +286,9 @@ system_settings (システム設定) ✅
 
 ### Phase 2: 月謝システム
 - [x] Laravel Cashierインストール・設定
+  - [ ] Cashierマイグレーション公開: `php artisan vendor:publish --tag="cashier-migrations"`
+  - [ ] マイグレーション実行: `php artisan migrate`
+  - [ ] Stripeキー設定: `.env(.example)` に `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` を追加
 - [ ] Stripe Products & Prices設定
 - [ ] Stripe Checkout統合
 - [ ] Webhook設定・自動同期
@@ -309,7 +312,7 @@ system_settings (システム設定) ✅
 ### Phase 3.5: セキュリティ強化
 - [ ] 包括的な入力バリデーション実装
 - [ ] 重要なエンドポイントへのレート制限追加
-- [ ] CSRF保護検証実装（Webhook用CSRF除外設定含む）
+- [ ] CSRF保護検証実装（Webhook用CSRF除外設定は /stripe/webhook のみ）
 
 ### Phase 4: ユーザー向けUI基盤構築
 - [ ] ユーザー画面UI（モバイルファースト）

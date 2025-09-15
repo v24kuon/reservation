@@ -168,7 +168,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 19. Configure Stripe API keys and webhooks / Stripe APIキーとWebhookを設定
+- [x] 19. Configure Stripe API keys and webhooks / Stripe APIキーとWebhookを設定
   - File: .env (modify), config/services.php (modify) / ファイル: .env (修正), config/services.php (修正)
   - Add STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRET / STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRETを追加
   - Configure CSRF exclusion for stripe/* routes in bootstrap/app.php / bootstrap/app.phpでstripe/*ルートのCSRF除外を設定
