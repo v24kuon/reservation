@@ -66,7 +66,21 @@ class LessonScheduleController extends Controller
     public function store(StoreLessonScheduleRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        LessonSchedule::query()->create($data);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+                // Optional: lock the parent lesson row to serialize concurrent inserts for same lesson
+                \App\Models\Lesson::query()->where('id', $data['lesson_id'])->lockForUpdate()->first();
+
+                LessonSchedule::query()->create($data);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // 23000 is SQLSTATE for integrity constraint violation across many drivers
+            if ((string) ($e->errorInfo[0] ?? '') === '23000') {
+                return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを作成しました');
     }
@@ -91,7 +105,19 @@ class LessonScheduleController extends Controller
     public function update(UpdateLessonScheduleRequest $request, LessonSchedule $lesson_schedule): RedirectResponse
     {
         $data = $request->validated();
-        $lesson_schedule->update($data);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($lesson_schedule, $data) {
+                \App\Models\Lesson::query()->where('id', $data['lesson_id'])->lockForUpdate()->first();
+
+                $lesson_schedule->update($data);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ((string) ($e->errorInfo[0] ?? '') === '23000') {
+                return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを更新しました');
     }
@@ -100,7 +126,7 @@ class LessonScheduleController extends Controller
     {
         if ($lesson_schedule->reservations()->exists()) {
             return redirect()->route('admin.lesson-schedules.index')
-                ->withErrors('予約が存在するため削除できません');
+                ->withErrors(['error' => '予約が存在するため削除できません']);
         }
         $lesson_schedule->delete();
 
@@ -134,7 +160,21 @@ class LessonScheduleController extends Controller
             ];
         }
 
-        LessonSchedule::query()->insert($payloads);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($lessonId, $payloads) {
+                \App\Models\Lesson::query()->where('id', $lessonId)->lockForUpdate()->first();
+
+                // insert in chunks to avoid size limits
+                foreach (array_chunk($payloads, 500) as $chunk) {
+                    LessonSchedule::query()->insert($chunk);
+                }
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ((string) ($e->errorInfo[0] ?? '') === '23000') {
+                return back()->withErrors('一部または全てのスケジュールが重複しています。対象の時間帯を見直してください。')->withInput();
+            }
+            throw $e;
+        }
 
         return redirect()->route('admin.lesson-schedules.index')->with('status', 'スケジュールを一括作成しました');
     }
@@ -146,7 +186,7 @@ class LessonScheduleController extends Controller
         $endDate = \Illuminate\Support\Carbon::parse($validated['end_date'])->startOfDay();
         $startTime = $validated['start_time'];
         $endTime = $validated['end_time'];
-        $intervalWeeks = (int) ($validated['interval_weeks'] ?? 1);
+        $intervalWeeks = max(1, (int) ($validated['interval_weeks'] ?? 1));
         $weekdays = (array) $validated['weekdays']; // 0 (Sun) ... 6 (Sat)
 
         $items = [];
@@ -174,8 +214,8 @@ class LessonScheduleController extends Controller
                     'start_datetime' => $start->toIso8601String(),
                     'end_datetime' => $end->toIso8601String(),
                 ];
-                if (count($items) > $limit) {
-                    return response()->json(['message' => "生成件数が多すぎます（>{$limit}）。期間や曜日を見直してください。"], 422);
+                if (count($items) >= $limit) {
+                    return response()->json(['message' => "生成件数が多すぎます（上限: {$limit}件）。期間や曜日を見直してください。"], 422);
                 }
             }
         }

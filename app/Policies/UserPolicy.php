@@ -14,7 +14,7 @@ class UserPolicy
     public function before(User $user, string $ability): ?bool
     {
         // For destructive actions, defer to dedicated guards below
-        if (in_array($ability, ['delete', 'forceDelete'], true)) {
+        if (in_array($ability, ['delete', 'forceDelete', 'restore'], true)) {
             return null;
         }
         if ($user->hasRole(User::ROLE_ADMIN)) {
@@ -62,42 +62,32 @@ class UserPolicy
 
     /**
      * Determine whether the user can delete the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function delete(User $user, User $model): bool
     {
-        // 自己削除禁止
-        if ($user->id === $model->id) {
-            return false;
-        }
-
-        // 最後の管理者削除禁止
-        if ($model->hasRole(User::ROLE_ADMIN)) {
-            $adminCount = \App\Models\User::query()->where('role', User::ROLE_ADMIN)->count();
-            if ($adminCount <= 1) {
-                return false;
-            }
-        }
-
-        // 管理者のみが削除可能
-        return $user->hasRole(User::ROLE_ADMIN);
+        return $this->canDeleteUser($user, $model);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function forceDelete(User $user, User $model): bool
     {
+        return $this->canDeleteUser($user, $model);
+    }
+
+    /**
+     * Shared guard used by delete and forceDelete.
+     */
+    protected function canDeleteUser(User $actor, User $target): bool
+    {
         // 自己削除禁止
-        if ($user->id === $model->id) {
+        if ($actor->id === $target->id) {
             return false;
         }
 
         // 最後の管理者削除禁止
-        if ($model->hasRole(User::ROLE_ADMIN)) {
+        if ($target->hasRole(User::ROLE_ADMIN)) {
             $adminCount = \App\Models\User::query()->where('role', User::ROLE_ADMIN)->count();
             if ($adminCount <= 1) {
                 return false;
@@ -105,6 +95,6 @@ class UserPolicy
         }
 
         // 管理者のみが削除可能
-        return $user->hasRole(User::ROLE_ADMIN);
+        return $actor->hasRole(User::ROLE_ADMIN);
     }
 }

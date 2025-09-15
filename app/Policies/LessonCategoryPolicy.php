@@ -14,6 +14,10 @@ class LessonCategoryPolicy
      */
     public function before(User $user, string $ability): ?bool
     {
+        // 破壊的操作は各メソッドで個別判定
+        if (in_array($ability, ['delete', 'forceDelete'], true)) {
+            return null;
+        }
         if ($user->hasRole(User::ROLE_ADMIN)) {
             return true;
         }
@@ -23,6 +27,8 @@ class LessonCategoryPolicy
 
     /**
      * Determine whether the user can update the model.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function update(User $user, LessonCategory $lessonCategory): bool
     {

@@ -9,14 +9,14 @@
             @method('PATCH')
 
             <div>
-                <label class="block text-sm">名称</label>
-                <input type="text" name="name" value="{{ old('name', $template->name) }}" class="border rounded w-full p-2">
+                <label for="name" class="block text-sm">名称</label>
+                <input id="name" type="text" name="name" value="{{ old('name', $template->name) }}" class="border rounded w-full p-2">
                 @error('name') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
-                <label class="block text-sm">種別</label>
-                <select name="type" class="border rounded w-full p-2">
+                <label for="type" class="block text-sm">種別</label>
+                <select id="type" name="type" class="border rounded w-full p-2">
                     <option value="reservation_confirmation" @selected(old('type', $template->type)==='reservation_confirmation')>予約確認</option>
                     <option value="reminder" @selected(old('type', $template->type)==='reminder')>リマインダー</option>
                     <option value="cancellation" @selected(old('type', $template->type)==='cancellation')>キャンセル</option>
@@ -26,14 +26,14 @@
             </div>
 
             <div>
-                <label class="block text-sm">件名</label>
-                <input type="text" name="subject" value="{{ old('subject', $template->subject) }}" class="border rounded w-full p-2">
+                <label for="subject" class="block text-sm">件名</label>
+                <input id="subject" type="text" name="subject" value="{{ old('subject', $template->subject) }}" class="border rounded w-full p-2">
                 @error('subject') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
-                <label class="block text-sm">本文（テキスト）</label>
-                <textarea name="body_text" rows="6" class="border rounded w-full p-2">{{ old('body_text', $template->body_text) }}</textarea>
+                <label for="body_text" class="block text-sm">本文（テキスト）</label>
+                <textarea id="body_text" name="body_text" rows="6" class="border rounded w-full p-2">{{ old('body_text', $template->body_text) }}</textarea>
                 @error('body_text') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
@@ -89,7 +89,7 @@
     </div>
 
     <!-- コピー成功フィードバック用のARIA live region -->
-    <div id="copy-feedback" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    <div id="copy-feedback" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     <script>
         (function() {
@@ -119,7 +119,11 @@
                 const close = String.fromCharCode(125,125); // "}}"
                 return open + ph + close;
             }
-            document.querySelectorAll('.copy-chip').forEach(btn => btn.addEventListener('click', () => copy(moustacheFor(btn.dataset.ph))));
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.copy-chip');
+                if (!btn) return;
+                copy(moustacheFor(btn.dataset.ph));
+            });
         })();
     </script>
 </x-admin-layout>

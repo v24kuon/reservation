@@ -21,7 +21,7 @@ class StoreLessonScheduleRequest extends FormRequest
             'lesson_id' => ['required', 'integer', Rule::exists('lessons', 'id')],
             'start_datetime' => [
                 'required',
-                'date',
+                'date_format:Y-m-d\TH:i',
                 'after_or_equal:now',
             ],
             'end_datetime' => [
@@ -34,7 +34,7 @@ class StoreLessonScheduleRequest extends FormRequest
                 function (string $attribute, $value, \Closure $fail) {
                     $lessonId = $this->input('lesson_id');
                     $lesson = $lessonId ? \App\Models\Lesson::find($lessonId) : null;
-                    if ($lesson && $value > $lesson->capacity) {
+                    if ($lesson && $lesson->capacity !== null && $value > $lesson->capacity) {
                         $fail('現在予約数は定員を超えられません。');
                     }
                 },
@@ -55,12 +55,17 @@ class StoreLessonScheduleRequest extends FormRequest
         if ($lessonId && $start) {
             $lesson = \App\Models\Lesson::find($lessonId);
             if ($lesson && is_numeric($lesson->duration)) {
-                $startAt = \Illuminate\Support\Carbon::parse(str_replace('T', ' ', $start));
-                $endAt = $startAt->copy()->addMinutes((int) $lesson->duration);
-                // Override client-provided end_datetime
-                $this->merge([
-                    'end_datetime' => $endAt->format('Y-m-d H:i:s'),
-                ]);
+                try {
+                    $normalized = str_replace('T', ' ', (string) $start);
+                    $startAt = \Illuminate\Support\Carbon::parse($normalized, config('app.timezone'));
+                    $endAt = $startAt->copy()->addMinutes((int) $lesson->duration);
+                    // Override client-provided end_datetime
+                    $this->merge([
+                        'end_datetime' => $endAt->toDateTimeString(), // Y-m-d H:i:s
+                    ]);
+                } catch (\Throwable $e) {
+                    // Invalid start_datetime will be handled by validation rules
+                }
             }
         }
     }

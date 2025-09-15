@@ -140,12 +140,14 @@
                 return `${y}-${m}-${d}T${hh}:${mm}`;
             };
 
-            // 共通の終了時刻計算関数
+            // 共通の終了時刻計算関数（datetime-local を手動パースしてブラウザ差を回避）
             const fillEndFromStart = (startValue) => {
                 const dur = getSelectedDuration();
                 if (!dur || !startValue) return null;
-                const dt = new Date(startValue);
-                if (Number.isNaN(dt.getTime())) return null;
+                const m = startValue.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+                if (!m) return null;
+                const [, y, mo, d, hh, mm, ss] = m;
+                const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss || 0));
                 dt.setMinutes(dt.getMinutes() + dur);
                 return toDatetimeLocal(dt);
             };
@@ -199,7 +201,10 @@
                 const endEl = wrapper.querySelector(`input[name="items[${index}][end_datetime]"]`);
                 const updateEnd = () => {
                     const v = fillEndFromStart(startEl?.value);
-                    if (v) endEl.value = v;
+                    if (v) {
+                      endEl.value = v;
+                      endEl.dataset.autofill = '1';
+                    }
                 };
                 startEl?.addEventListener('change', updateEnd);
                 startEl?.addEventListener('input', updateEnd);
@@ -280,9 +285,15 @@
                         // Robustly convert API payload to datetime-local (TZ-aware when possible)
                         const toLocal = (s) => {
                             const isoLike = s.includes('T') ? s : s.replace(' ', 'T');
+                            // タイムゾーン付き（Z/±HH:MM）は Date に委譲
+                            if (/[+-]\d{2}:\d{2}|Z$/.test(isoLike)) {
+                                const d = new Date(isoLike);
+                                if (!Number.isNaN(d.getTime())) return toDatetimeLocal(d);
+                            }
+                            // タイムゾーンなしはローカルとして手動パース
                             const m = isoLike.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
                             if (!m) return isoLike.slice(0, 16);
-                            const [_, y, mo, d, hh, mm, ss] = m;
+                            const [, y, mo, d, hh, mm, ss] = m;
                             const local = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss || 0));
                             return toDatetimeLocal(local);
                         };
@@ -315,7 +326,10 @@
                         const endEl = wrapper.querySelector(`input[name=\"items[${index}][end_datetime]\"]`);
                         const updateEnd = () => {
                             const v = fillEndFromStart(startEl?.value);
-                            if (v) endEl.value = v;
+                            if (v) {
+                              endEl.value = v;
+                              endEl.dataset.autofill = '1';
+                            }
                         };
                         startEl?.addEventListener('change', updateEnd);
                         startEl?.addEventListener('input', updateEnd);
@@ -333,7 +347,10 @@
                 if (startInput && endInput) {
                     const updateEnd = () => {
                         const v = fillEndFromStart(startInput.value);
-                        if (v) endInput.value = v;
+                        if (v && (!endInput.value || endInput.dataset.autofill === '1')) {
+                            endInput.value = v;
+                            endInput.dataset.autofill = '1';
+                        }
                     };
                     startInput.addEventListener('change', updateEnd);
                     startInput.addEventListener('input', updateEnd);
