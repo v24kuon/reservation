@@ -9,14 +9,14 @@
 
             <div>
                 <label for="name" class="block text-sm">名称</label>
-                <input id="name" type="text" name="name" value="{{ old('name') }}" class="border rounded w-full p-2" required aria-invalid="@error('name') true @else false @enderror">
+                <input id="name" type="text" name="name" value="{{ old('name') }}" class="border rounded w-full p-2" required maxlength="255" autocomplete="off" aria-invalid="@error('name') true @else false @enderror">
                 @error('name') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label for="type" class="block text-sm">種別</label>
                 <select id="type" name="type" class="border rounded w-full p-2" required aria-invalid="@error('type') true @else false @enderror">
-                    <option value="">-- 選択してください --</option>
+                    <option value="" disabled @selected(!old('type'))>-- 選択してください --</option>
                     <option value="reservation_confirmation" @selected(old('type')==='reservation_confirmation')>予約確認</option>
                     <option value="reminder" @selected(old('type')==='reminder')>リマインダー</option>
                     <option value="cancellation" @selected(old('type')==='cancellation')>キャンセル</option>
@@ -27,19 +27,19 @@
 
             <div>
                 <label for="subject" class="block text-sm">件名</label>
-                <input id="subject" type="text" name="subject" value="{{ old('subject') }}" class="border rounded w-full p-2" required aria-invalid="@error('subject') true @else false @enderror">
+                <input id="subject" type="text" name="subject" value="{{ old('subject') }}" class="border rounded w-full p-2" required maxlength="255" autocomplete="off" aria-invalid="@error('subject') true @else false @enderror">
                 @error('subject') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label for="body_text" class="block text-sm">本文（テキスト）</label>
-                <textarea id="body_text" name="body_text" rows="6" class="border rounded w-full p-2" placeholder="例: @{{user_name}} 様、@{{lesson_name}} のご予約を受け付けました。日時: @{{datetime}}" required aria-invalid="@error('body_text') true @else false @enderror">{{ old('body_text') }}</textarea>
-                @error('body_text') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+                <textarea id="body_text" name="body_text" rows="6" class="border rounded w-full p-2" placeholder="例: @{{user_name}} 様、@{{lesson_name}} のご予約を受け付けました。日時: @{{datetime}}" required aria-invalid="@error('body_text') true @else false @enderror" aria-describedby="vars-help body_text_error">{{ old('body_text') }}</textarea>
+                @error('body_text') <div id="body_text_error" class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label class="block text-sm">利用できる変数（システム設定の許可リスト）</label>
-                <p class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;user_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
+                <p id="vars-help" class="text-xs text-gray-600 mt-1">本文中では &#123;&#123;user_name&#125;&#125; のように記述します（下のチップをクリックでコピー）。</p>
             </div>
 
             @php
@@ -89,7 +89,9 @@
     </div>
 
     <!-- コピー成功フィードバック用のARIA live region -->
-    <div id="copy-feedback" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    <div id="copy-feedback" role="status" aria-atomic="true" class="sr-only"></div>
 
-    @include('admin.notification_templates._copy-script')
+    @push('scripts')
+      @include('admin.notification_templates._copy-script')
+    @endpush
 </x-admin-layout>
