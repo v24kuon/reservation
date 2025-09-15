@@ -86,9 +86,10 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user subscriptions for this user.
+     * Get the app-specific (non-Cashier) subscriptions for this user.
+     * Note: Named 'userSubscriptions' to avoid conflict with Cashier's Billable::subscriptions().
      */
-    public function subscriptions(): HasMany
+    public function userSubscriptions(): HasMany
     {
         return $this->hasMany(UserSubscription::class);
     }
@@ -142,6 +143,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function activeSubscriptions()
     {
-        return $this->subscriptions()->active()->paid();
+        // Use app-specific subscription scopes
+        return $this->userSubscriptions()->active()->paid();
     }
 }

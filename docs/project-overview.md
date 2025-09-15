@@ -42,7 +42,7 @@
 - 管理画面入力バリデーション：`stripe_product_id`は`/^prod_/`、`stripe_price_id`は`/^price_/`にマッチ必須
 
 ### 開発ツール
-- **Laravel Head**: 開発環境として使用
+- **Laravel Herd**: 開発環境として使用
 - **Laravel Boost**: ^1.0
 - **Laravel Pint**: ^1.24
 - **Laravel Sail**: ^1.41
@@ -285,7 +285,7 @@ system_settings (システム設定) ✅
   - [x] ダッシュボードでの予約状況可視化（定員に対する予約数の表示改善）
 
 ### Phase 2: 月謝システム
-- [ ] Laravel Cashierインストール・設定
+- [x] Laravel Cashierインストール・設定
 - [ ] Stripe Products & Prices設定
 - [ ] Stripe Checkout統合
 - [ ] Webhook設定・自動同期
@@ -309,7 +309,7 @@ system_settings (システム設定) ✅
 ### Phase 3.5: セキュリティ強化
 - [ ] 包括的な入力バリデーション実装
 - [ ] 重要なエンドポイントへのレート制限追加
-- [ ] CSRF保護検証実装
+- [ ] CSRF保護検証実装（Webhook用CSRF除外設定含む）
 
 ### Phase 4: ユーザー向けUI基盤構築
 - [ ] ユーザー画面UI（モバイルファースト）

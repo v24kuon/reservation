@@ -160,7 +160,7 @@
 ### Laravel Cashier Setup Tasks
 ### Laravel Cashierセットアップタスク
 
-- [ ] 18. Install Laravel Cashier and configure Stripe / Laravel CashierをインストールしStripeを設定
+- [x] 18. Install Laravel Cashier and configure Stripe / Laravel CashierをインストールしStripeを設定
   - File: composer.json (modify) / ファイル: composer.json (修正)
   - Command: `composer require laravel/cashier` / コマンド: `composer require laravel/cashier`
   - Purpose: Install Stripe payment processing library / 目的: Stripe決済処理ライブラリをインストール
@@ -171,6 +171,7 @@
 - [ ] 19. Configure Stripe API keys and webhooks / Stripe APIキーとWebhookを設定
   - File: .env (modify), config/services.php (modify) / ファイル: .env (修正), config/services.php (修正)
   - Add STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRET / STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRETを追加
+  - Configure CSRF exclusion for stripe/* routes in bootstrap/app.php / bootstrap/app.phpでstripe/*ルートのCSRF除外を設定
   - Purpose: Set up Stripe credentials and webhook endpoints / 目的: Stripe認証情報とWebhookエンドポイントを設定
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
   - Dependencies: Task 18 / 依存関係: タスク18
@@ -253,7 +254,7 @@
 - [ ] 28. Create webhook controller / Webhookコントローラーを作成
   - File: app/Http/Controllers/WebhookController.php (new) / ファイル: app/Http/Controllers/WebhookController.php (新規)
   - Handle Stripe webhook events (customer.subscription.created, invoice.payment_succeeded, etc.) / Stripe Webhookイベント（customer.subscription.created、invoice.payment_succeeded等）を処理
-  - Verify Stripe-Signature header using STRIPE_WEBHOOK_SECRET / STRIPE_WEBHOOK_SECRET による署名検証を実装
+  - Verify Stripe-Signature header using STRIPE_WEBHOOK_SECRET（.env に必ず設定）/ STRIPE_WEBHOOK_SECRET（.env に必ず設定）による署名検証を実装
   - Enforce idempotency by recording processed event.id / event.id を保存して多重処理を防止
   - Allowlist only expected event types / 想定イベントのみ許可（アロウリスト）
   - Purpose: Process Stripe webhook notifications / 目的: Stripe Webhook通知を処理
@@ -261,12 +262,11 @@
   - Dependencies: Task 19 / 依存関係: タスク19
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 29. Add webhook route / Webhookルートを追加
-  - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
-  - Add POST route for Stripe webhooks / Stripe Webhook用のPOSTルートを追加
-  - Exclude CSRF protection for webhook endpoint (kept minimal scope) / CSRF除外（対象経路を最小限に）
+- [ ] 29. Configure webhook CSRF exclusion / Webhook CSRF除外設定
+  - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
+  - Exclude CSRF for 'stripe/*' only (use default Cashier route `/stripe/webhook`) / 'stripe/*' のみCSRF除外設定（既定のCashierルート `/stripe/webhook` を利用）
   - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
-  - Purpose: Accept Stripe webhook notifications / 目的: Stripe Webhook通知を受け入れる
+  - Purpose: Accept Stripe webhook notifications via default Cashier route / 目的: 既定のCashierルート経由でStripe Webhook通知を受け入れる
   - Requirements: 7.2 / 要件: 7.2
   - Dependencies: Task 28 / 依存関係: タスク28
   - Estimated time: 5 minutes / 推定時間: 5分
