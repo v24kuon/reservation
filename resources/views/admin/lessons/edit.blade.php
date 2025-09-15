@@ -85,7 +85,7 @@
 
                         <div class="pt-4 flex space-x-2">
                             <x-primary-button type="submit">更新</x-primary-button>
-                            <x-secondary-button href="{{ route('admin.lessons.index') }}">戻る</x-secondary-button>
+                            <x-secondary-button as="a" href="{{ route('admin.lessons.index') }}">戻る</x-secondary-button>
                         </div>
                     </form>
                 </div>

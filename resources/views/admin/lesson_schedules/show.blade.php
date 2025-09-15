@@ -17,7 +17,7 @@
             <p><strong>有効:</strong> {{ $schedule->is_active ? 'はい' : 'いいえ' }}</p>
                     <div class="pt-4 flex space-x-2">
                         <x-primary-button as="a" href="{{ route('admin.lesson-schedules.edit', $schedule) }}">編集</x-primary-button>
-                        <x-secondary-button href="{{ route('admin.lesson-schedules.index') }}">戻る</x-secondary-button>
+                        <x-secondary-button as="a" href="{{ route('admin.lesson-schedules.index') }}">戻る</x-secondary-button>
                     </div>
                 </div>
             </div>

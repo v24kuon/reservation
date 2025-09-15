@@ -60,6 +60,22 @@ class UpdateLessonScheduleRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
         ]);
+
+        // Server-side end time recalculation when start/lesson changes
+        $lessonId = $this->input('lesson_id') ?? optional($this->route('lesson_schedule'))->lesson_id;
+        $start = $this->input('start_datetime') ?? optional($this->route('lesson_schedule'))->start_datetime;
+        if ($lessonId && $start) {
+            $lesson = \App\Models\Lesson::find($lessonId);
+            if ($lesson && is_numeric($lesson->duration)) {
+                $startAt = $start instanceof \Carbon\CarbonInterface
+                    ? $start
+                    : \Illuminate\Support\Carbon::parse(str_replace('T', ' ', (string) $start));
+                $endAt = $startAt->copy()->addMinutes((int) $lesson->duration);
+                $this->merge([
+                    'end_datetime' => $endAt->format('Y-m-d H:i:s'),
+                ]);
+            }
+        }
     }
 
     public function attributes(): array

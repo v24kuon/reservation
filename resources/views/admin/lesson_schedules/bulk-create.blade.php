@@ -202,6 +202,7 @@
                     if (v) endEl.value = v;
                 };
                 startEl?.addEventListener('change', updateEnd);
+                startEl?.addEventListener('input', updateEnd);
                 startEl?.addEventListener('blur', updateEnd);
             });
 
@@ -279,8 +280,11 @@
                         // Robustly convert API payload to datetime-local (TZ-aware when possible)
                         const toLocal = (s) => {
                             const isoLike = s.includes('T') ? s : s.replace(' ', 'T');
-                            const d = new Date(isoLike);
-                            return Number.isNaN(d.getTime()) ? isoLike.slice(0, 16) : toDatetimeLocal(d);
+                            const m = isoLike.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+                            if (!m) return isoLike.slice(0, 16);
+                            const [_, y, mo, d, hh, mm, ss] = m;
+                            const local = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), Number(ss || 0));
+                            return toDatetimeLocal(local);
                         };
                         wrapper.innerHTML = `
                             <div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">
@@ -314,6 +318,7 @@
                             if (v) endEl.value = v;
                         };
                         startEl?.addEventListener('change', updateEnd);
+                        startEl?.addEventListener('input', updateEnd);
                         startEl?.addEventListener('blur', updateEnd);
                     }
                 } catch (err) {
@@ -331,6 +336,7 @@
                         if (v) endInput.value = v;
                     };
                     startInput.addEventListener('change', updateEnd);
+                    startInput.addEventListener('input', updateEnd);
                     startInput.addEventListener('blur', updateEnd);
                 }
             };
@@ -353,10 +359,13 @@
                 recEndTime.value = `${pad(endHours)}:${pad(endMinutes)}`;
             };
             recStartTime?.addEventListener('change', updateRecEndTime);
+            recStartTime?.addEventListener('input', updateRecEndTime);
             recStartTime?.addEventListener('blur', updateRecEndTime);
 
             // レッスン変更時に全行の終了時刻を再計算
             lessonSelect?.addEventListener('change', recalcAllEnds);
+            // 初期実行（選択済みレッスンや既存行がある場合の安定化）
+            recalcAllEnds();
         });
     </script>
 </x-admin-layout>

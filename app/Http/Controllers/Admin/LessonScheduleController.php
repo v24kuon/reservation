@@ -163,8 +163,12 @@ class LessonScheduleController extends Controller
 
             // collect dates by interval weeks
             for ($date = $cursor->copy(); $date->lte($endDate); $date->addWeeks($intervalWeeks)) {
-                $start = \Illuminate\Support\Carbon::parse($date->format('Y-m-d').' '.$startTime);
-                $end = \Illuminate\Support\Carbon::parse($date->format('Y-m-d').' '.$endTime);
+                $start = $date->copy()->setTimeFromTimeString($startTime);
+                $end = $date->copy()->setTimeFromTimeString($endTime);
+                // Guard against invalid intervals (no overnight support here)
+                if ($end->lte($start)) {
+                    return response()->json(['message' => '終了時刻は開始時刻より後である必要があります。'], 422);
+                }
                 $items[] = [
                     // Return ISO-8601 with offset to prevent TZ drift on clients
                     'start_datetime' => $start->toIso8601String(),

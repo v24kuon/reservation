@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 class LessonSchedule extends Model
@@ -118,10 +118,8 @@ class LessonSchedule extends Model
      * Returns schedules with start_datetime < $end and end_datetime > $start (i.e. any record that
      * intersects the provided interval).
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \DateTimeInterface $start Start of the interval (inclusive).
-     * @param \DateTimeInterface $end End of the interval (exclusive).
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param  \DateTimeInterface  $start  Start of the interval (inclusive).
+     * @param  \DateTimeInterface  $end  End of the interval (exclusive).
      */
     public function scopeOverlapping(Builder $query, \DateTimeInterface $start, \DateTimeInterface $end): Builder
     {
@@ -136,9 +134,9 @@ class LessonSchedule extends Model
      * Accepts DateTimeInterface or a date/time string (strings are parsed with Carbon). Returns true if any
      * existing LessonSchedule for the given lesson_id intersects the interval (i.e. start_datetime < $end AND end_datetime > $start).
      *
-     * @param int $lessonId ID of the lesson to check.
-     * @param \DateTimeInterface|string $start Interval start.
-     * @param \DateTimeInterface|string $end Interval end.
+     * @param  int  $lessonId  ID of the lesson to check.
+     * @param  \DateTimeInterface|string  $start  Interval start.
+     * @param  \DateTimeInterface|string  $end  Interval end.
      * @return bool True if an overlapping schedule exists, false otherwise.
      */
     public static function hasOverlap(int $lessonId, \DateTimeInterface|string $start, \DateTimeInterface|string $end): bool

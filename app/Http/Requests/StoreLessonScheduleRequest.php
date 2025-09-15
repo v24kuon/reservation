@@ -48,6 +48,21 @@ class StoreLessonScheduleRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
         ]);
+
+        // Server-side end time recalculation for integrity
+        $lessonId = $this->input('lesson_id');
+        $start = $this->input('start_datetime');
+        if ($lessonId && $start) {
+            $lesson = \App\Models\Lesson::find($lessonId);
+            if ($lesson && is_numeric($lesson->duration)) {
+                $startAt = \Illuminate\Support\Carbon::parse(str_replace('T', ' ', $start));
+                $endAt = $startAt->copy()->addMinutes((int) $lesson->duration);
+                // Override client-provided end_datetime
+                $this->merge([
+                    'end_datetime' => $endAt->format('Y-m-d H:i:s'),
+                ]);
+            }
+        }
     }
 
     public function attributes(): array

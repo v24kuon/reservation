@@ -13,14 +13,15 @@ return new class extends Migration
     public function up(): void
     {
         // SQLite は重複インデックス作成でエラーになるため、IF NOT EXISTS で安全に作成
-        if (DB::getDriverName() === 'sqlite') {
-            DB::statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_is_active_index" ON "lesson_schedules" ("is_active")');
-            DB::statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_lesson_start_index" ON "lesson_schedules" ("lesson_id","start_datetime")');
-            DB::statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_lesson_active_index" ON "lesson_schedules" ("lesson_id","is_active")');
-            DB::statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_start_datetime_index" ON "lesson_schedules" ("start_datetime")');
+        $connection = Schema::getConnection();
+        if ($connection->getDriverName() === 'sqlite') {
+            $connection->statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_is_active_index" ON "lesson_schedules" ("is_active")');
+            $connection->statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_lesson_start_index" ON "lesson_schedules" ("lesson_id","start_datetime")');
+            $connection->statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_lesson_active_index" ON "lesson_schedules" ("lesson_id","is_active")');
+            $connection->statement('CREATE INDEX IF NOT EXISTS "lesson_schedules_start_datetime_index" ON "lesson_schedules" ("start_datetime")');
 
-            DB::statement('CREATE INDEX IF NOT EXISTS "lessons_instructor_index" ON "lessons" ("instructor_user_id")');
-            DB::statement('CREATE INDEX IF NOT EXISTS "lessons_is_active_index" ON "lessons" ("is_active")');
+            $connection->statement('CREATE INDEX IF NOT EXISTS "lessons_instructor_index" ON "lessons" ("instructor_user_id")');
+            $connection->statement('CREATE INDEX IF NOT EXISTS "lessons_is_active_index" ON "lessons" ("is_active")');
 
             return;
         }
@@ -44,14 +45,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
-            DB::statement('DROP INDEX IF EXISTS "lesson_schedules_is_active_index"');
-            DB::statement('DROP INDEX IF EXISTS "lesson_schedules_lesson_start_index"');
-            DB::statement('DROP INDEX IF EXISTS "lesson_schedules_lesson_active_index"');
-            DB::statement('DROP INDEX IF EXISTS "lesson_schedules_start_datetime_index"');
+        $connection = Schema::getConnection();
+        if ($connection->getDriverName() === 'sqlite') {
+            $connection->statement('DROP INDEX IF EXISTS "lesson_schedules_is_active_index"');
+            $connection->statement('DROP INDEX IF EXISTS "lesson_schedules_lesson_start_index"');
+            $connection->statement('DROP INDEX IF EXISTS "lesson_schedules_lesson_active_index"');
+            $connection->statement('DROP INDEX IF EXISTS "lesson_schedules_start_datetime_index"');
 
-            DB::statement('DROP INDEX IF EXISTS "lessons_instructor_index"');
-            DB::statement('DROP INDEX IF EXISTS "lessons_is_active_index"');
+            $connection->statement('DROP INDEX IF EXISTS "lessons_instructor_index"');
+            $connection->statement('DROP INDEX IF EXISTS "lessons_is_active_index"');
 
             return;
         }

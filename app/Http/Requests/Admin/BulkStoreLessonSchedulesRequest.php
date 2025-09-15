@@ -31,7 +31,7 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
     }
 
     /**
-     * Normalize and normalize request items before validation.
+     * Normalize request items before validation.
      *
      * Iterates over the `items` input (if an array) and:
      * - Ensures `is_active` is a boolean when a recognizable value is provided, defaulting to `true` if omitted.

@@ -9,8 +9,10 @@ class NotificationTemplatePolicy
 {
     /**
      * Admin は全権限を許可
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function before(User $user): ?bool
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->hasRole(User::ROLE_ADMIN)) {
             return true;
@@ -21,6 +23,8 @@ class NotificationTemplatePolicy
 
     /**
      * Determine whether the user can view any models.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function viewAny(User $user): bool
     {
@@ -39,6 +43,8 @@ class NotificationTemplatePolicy
 
     /**
      * Determine whether the user can create models.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function create(User $user): bool
     {

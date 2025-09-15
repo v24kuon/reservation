@@ -34,7 +34,7 @@
                                         <a class="text-indigo-600 dark:text-indigo-400" href="{{ route('admin.notification-templates.show', $template) }}">{{ $template->name }}</a>
                                     </td>
                                     <td class="px-4 py-2">{{ $template->type }}</td>
-                                    <td class="px-4 py-2 max-w-[40ch] truncate">{{ $template->subject }}</td>
+                                    <td class="px-4 py-2 max-w-[40ch] truncate" title="{{ $template->subject }}">{{ $template->subject }}</td>
                                     <td class="px-4 py-2">{{ $template->is_active ? 'はい' : 'いいえ' }}</td>
                                     <td class="px-4 py-2 space-x-2">
                                         @can('update', $template)

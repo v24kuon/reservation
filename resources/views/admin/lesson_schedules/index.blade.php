@@ -60,15 +60,15 @@
                         <table class="min-w-full">
                             <thead>
                                 <tr class="text-left">
-                                    <th class="px-2 py-1">ID</th>
-                                    <th class="px-2 py-1">レッスン</th>
-                                    <th class="px-2 py-1">店舗</th>
-                                    <th class="px-2 py-1">カテゴリ</th>
-                                    <th class="px-2 py-1">開始</th>
-                                    <th class="px-2 py-1">終了</th>
-                                    <th class="px-2 py-1">予約数</th>
-                                    <th class="px-2 py-1">有効</th>
-                                    <th class="px-2 py-1">操作</th>
+                                    <th scope="col" class="px-2 py-1">ID</th>
+                                    <th scope="col" class="px-2 py-1">レッスン</th>
+                                    <th scope="col" class="px-2 py-1">店舗</th>
+                                    <th scope="col" class="px-2 py-1">カテゴリ</th>
+                                    <th scope="col" class="px-2 py-1">開始</th>
+                                    <th scope="col" class="px-2 py-1">終了</th>
+                                    <th scope="col" class="px-2 py-1">予約数</th>
+                                    <th scope="col" class="px-2 py-1">有効</th>
+                                    <th scope="col" class="px-2 py-1">操作</th>
                                 </tr>
                             </thead>
                             <tbody>

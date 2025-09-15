@@ -83,10 +83,14 @@
 
             <div class="flex gap-2">
                 <x-primary-button type="submit">保存</x-primary-button>
-                <x-secondary-button href="{{ route('admin.notification-templates.index') }}">戻る</x-secondary-button>
+                <x-secondary-button as="a" href="{{ route('admin.notification-templates.index') }}">戻る</x-secondary-button>
             </div>
         </form>
     </div>
+
+    <!-- コピー成功フィードバック用のARIA live region -->
+    <div id="copy-feedback" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
     <script>
         (function() {
             function legacyCopy(text){
@@ -94,11 +98,21 @@
                 ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
             }
             function copy(text){
+                const feedback = document.getElementById('copy-feedback');
                 if (navigator.clipboard) {
-                    navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+                    navigator.clipboard.writeText(text).then(() => {
+                        feedback.textContent = 'クリップボードにコピーしました: ' + text;
+                        setTimeout(() => feedback.textContent = '', 3000);
+                    }).catch(() => {
+                        legacyCopy(text);
+                        feedback.textContent = 'クリップボードにコピーしました: ' + text;
+                        setTimeout(() => feedback.textContent = '', 3000);
+                    });
                     return;
                 }
                 legacyCopy(text);
+                feedback.textContent = 'クリップボードにコピーしました: ' + text;
+                setTimeout(() => feedback.textContent = '', 3000);
             }
             function moustacheFor(ph){
                 const open = String.fromCharCode(123,123); // "{{"

@@ -16,8 +16,10 @@
                     <p><strong>状態:</strong> {{ $category->is_active ? '有効' : '無効' }}</p>
 
                     <div class="pt-4 flex space-x-2">
+                        @can('update', $category)
                         <x-primary-button as="a" href="{{ route('admin.lesson-categories.edit', $category) }}">編集</x-primary-button>
-                        <x-secondary-button href="{{ route('admin.lesson-categories.index') }}">戻る</x-secondary-button>
+                        @endcan
+                        <x-secondary-button as="a" href="{{ route('admin.lesson-categories.index') }}">戻る</x-secondary-button>
                     </div>
                 </div>
             </div>

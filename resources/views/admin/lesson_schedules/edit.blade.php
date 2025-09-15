@@ -58,6 +58,8 @@
             const lessonSelect = document.querySelector('select[name="lesson_id"]');
             const startInput = document.querySelector('input[name="start_datetime"]');
             const endInput = document.querySelector('input[name="end_datetime"]');
+            let endEditedManually = false;
+            endInput?.addEventListener('input', () => { endEditedManually = true; });
 
             const getSelectedDuration = () => {
                 const opt = lessonSelect?.options[lessonSelect.selectedIndex];
@@ -76,6 +78,7 @@
             };
 
             const updateEndFromStart = () => {
+                if (endEditedManually) return; // ユーザー手入力を尊重
                 const dur = getSelectedDuration();
                 if (!dur) return;
                 if (!startInput?.value) return;
@@ -89,8 +92,10 @@
             startInput?.addEventListener('change', updateEndFromStart);
             startInput?.addEventListener('blur', updateEndFromStart);
 
-            // 初期表示時にも反映（編集時に開始が埋まっているケース）
-            updateEndFromStart();
+            // 初期表示時は endInput が未入力のときのみ自動反映
+            if (!endInput?.value) {
+                updateEndFromStart();
+            }
         });
     </script>
 </x-admin-layout>

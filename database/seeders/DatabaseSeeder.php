@@ -15,10 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // 管理者ユーザーの作成（既存でない場合のみ）
+        User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => bcrypt('admin'),
+                'role' => 'admin',
+            ]
+        );
 
         // 固定ルートカテゴリの投入
         $this->call(LessonCategorySeeder::class);

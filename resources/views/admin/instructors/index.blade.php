@@ -16,11 +16,11 @@
                         <table class="min-w-full">
                             <thead>
                                 <tr class="text-left">
-                                    <th class="px-2 py-1">ID</th>
-                                    <th class="px-2 py-1">氏名</th>
-                                    <th class="px-2 py-1">メール</th>
-                                    <th class="px-2 py-1">作成日</th>
-                                    <th class="px-2 py-1">操作</th>
+                                    <th scope="col" class="px-2 py-1">ID</th>
+                                    <th scope="col" class="px-2 py-1">氏名</th>
+                                    <th scope="col" class="px-2 py-1">メール</th>
+                                    <th scope="col" class="px-2 py-1">作成日</th>
+                                    <th scope="col" class="px-2 py-1">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
