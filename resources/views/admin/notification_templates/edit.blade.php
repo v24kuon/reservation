@@ -10,13 +10,13 @@
 
             <div>
                 <label for="name" class="block text-sm">名称</label>
-                <input id="name" type="text" name="name" value="{{ old('name', $template->name) }}" class="border rounded w-full p-2">
+                <input id="name" type="text" name="name" value="{{ old('name', $template->name) }}" class="border rounded w-full p-2" aria-invalid="@error('name') true @else false @enderror">
                 @error('name') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label for="type" class="block text-sm">種別</label>
-                <select id="type" name="type" class="border rounded w-full p-2">
+                <select id="type" name="type" class="border rounded w-full p-2" aria-invalid="@error('type') true @else false @enderror">
                     <option value="reservation_confirmation" @selected(old('type', $template->type)==='reservation_confirmation')>予約確認</option>
                     <option value="reminder" @selected(old('type', $template->type)==='reminder')>リマインダー</option>
                     <option value="cancellation" @selected(old('type', $template->type)==='cancellation')>キャンセル</option>
@@ -27,13 +27,13 @@
 
             <div>
                 <label for="subject" class="block text-sm">件名</label>
-                <input id="subject" type="text" name="subject" value="{{ old('subject', $template->subject) }}" class="border rounded w-full p-2">
+                <input id="subject" type="text" name="subject" value="{{ old('subject', $template->subject) }}" class="border rounded w-full p-2" aria-invalid="@error('subject') true @else false @enderror">
                 @error('subject') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label for="body_text" class="block text-sm">本文（テキスト）</label>
-                <textarea id="body_text" name="body_text" rows="6" class="border rounded w-full p-2">{{ old('body_text', $template->body_text) }}</textarea>
+                <textarea id="body_text" name="body_text" rows="6" class="border rounded w-full p-2" aria-invalid="@error('body_text') true @else false @enderror">{{ old('body_text', $template->body_text) }}</textarea>
                 @error('body_text') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
             </div>
 

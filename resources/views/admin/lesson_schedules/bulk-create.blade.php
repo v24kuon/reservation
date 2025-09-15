@@ -160,6 +160,7 @@
                     const s = row.querySelector('input[name*="[start_datetime]"]');
                     const e = row.querySelector('input[name*="[end_datetime]"]');
                     if (s?.value && e) {
+                        e.min = s.value;
                         const v = fillEndFromStart(s.value);
                         if (v && (!e.value || e.dataset.autofill === '1')) {
                             e.value = v;
@@ -204,6 +205,7 @@
                 const endEl = wrapper.querySelector(`input[name="items[${index}][end_datetime]"]`);
                 const updateEnd = () => {
                     const v = fillEndFromStart(startEl?.value);
+                    endEl.min = startEl?.value || '';
                     if (v && (!endEl.value || endEl.dataset.autofill === '1')) {
                         endEl.value = v;
                         endEl.dataset.autofill = '1';
@@ -338,6 +340,7 @@
                         if (startEl) startEl.value = toLocal(item.start_datetime);
                         if (endEl) {
                             endEl.value = toLocal(item.end_datetime);
+                            endEl.min = startEl?.value || '';
                             endEl.dataset.autofill = '1';
                         }
                         const updateEnd = () => {

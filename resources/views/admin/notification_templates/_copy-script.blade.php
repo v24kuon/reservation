@@ -34,7 +34,9 @@
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.copy-chip');
         if (!btn) return;
-        copy(moustacheFor(btn.dataset.ph));
+        const ph = btn.dataset.ph;
+        if (!ph) return;
+        copy(moustacheFor(ph));
     });
 })();
 </script>

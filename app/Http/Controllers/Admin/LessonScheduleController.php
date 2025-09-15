@@ -15,6 +15,34 @@ use Illuminate\Http\RedirectResponse;
 
 class LessonScheduleController extends Controller
 {
+    /**
+     * Detects unique constraint violations for the (lesson_id, start_datetime) pair across drivers.
+     */
+    private static function isScheduleUniqueViolation(\Illuminate\Database\QueryException $e): bool
+    {
+        $sqlState = (string) ($e->errorInfo[0] ?? '');
+        $driverCode = (string) ($e->errorInfo[1] ?? ''); // MySQL: 1062, SQLite: 19
+        $msg = (string) ($e->errorInfo[2] ?? '');
+
+        $hasIndexName = str_contains($msg, 'lesson_schedules_lesson_start_unique')
+            || (str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'));
+
+        // MySQL
+        if ($sqlState === '23000' && $driverCode === '1062' && $hasIndexName) {
+            return true;
+        }
+        // SQLite
+        if ($sqlState === '23000' && $driverCode === '19' && str_contains($msg, 'UNIQUE constraint failed') && $hasIndexName) {
+            return true;
+        }
+        // PostgreSQL (unique_violation)
+        if ($sqlState === '23505' && $hasIndexName) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function index(IndexLessonSchedulesRequest $request): View
     {
         $query = LessonSchedule::query()
@@ -84,13 +112,7 @@ class LessonScheduleController extends Controller
                 LessonSchedule::query()->create($data);
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            $sqlState = (string) ($e->errorInfo[0] ?? '');
-            $msg = (string) ($e->errorInfo[2] ?? '');
-            $isUniqueViolation = $sqlState === '23000' && (
-                str_contains($msg, 'lesson_schedules_lesson_start_unique') ||
-                (str_contains($msg, 'UNIQUE constraint failed') && str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'))
-            );
-            if ($isUniqueViolation) {
+            if (self::isScheduleUniqueViolation($e)) {
                 return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
             }
             throw $e;
@@ -130,13 +152,7 @@ class LessonScheduleController extends Controller
                 $lesson_schedule->update($data);
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            $sqlState = (string) ($e->errorInfo[0] ?? '');
-            $msg = (string) ($e->errorInfo[2] ?? '');
-            $isUniqueViolation = $sqlState === '23000' && (
-                str_contains($msg, 'lesson_schedules_lesson_start_unique') ||
-                (str_contains($msg, 'UNIQUE constraint failed') && str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'))
-            );
-            if ($isUniqueViolation) {
+            if (self::isScheduleUniqueViolation($e)) {
                 return back()->withErrors('同一レッスンの同時刻スケジュールが既に存在します。')->withInput();
             }
             throw $e;
@@ -196,12 +212,7 @@ class LessonScheduleController extends Controller
                 }
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            $sqlState = (string) ($e->errorInfo[0] ?? '');
-            $msg = (string) ($e->errorInfo[2] ?? '');
-            if ($sqlState === '23000' && (
-                str_contains($msg, 'lesson_schedules_lesson_start_unique') ||
-                (str_contains($msg, 'UNIQUE constraint failed') && str_contains($msg, 'lesson_schedules') && str_contains($msg, 'lesson_id') && str_contains($msg, 'start_datetime'))
-            )) {
+            if (self::isScheduleUniqueViolation($e)) {
                 return back()->withErrors('一部または全てのスケジュールが重複しています。対象の時間帯を見直してください。')->withInput();
             }
             throw $e;
@@ -219,6 +230,13 @@ class LessonScheduleController extends Controller
         $endTime = $validated['end_time'];
         $intervalWeeks = max(1, (int) ($validated['interval_weeks'] ?? 1));
         $weekdays = (array) $validated['weekdays']; // 0 (Sun) ... 6 (Sat)
+
+        // Early validation: endTime must be after startTime
+        $startProbe = $startDate->copy()->setTimeFromTimeString($startTime);
+        $endProbe = $startDate->copy()->setTimeFromTimeString($endTime);
+        if ($endProbe->lte($startProbe)) {
+            return response()->json(['message' => '終了時刻は開始時刻より後である必要があります。'], 422);
+        }
 
         $items = [];
         $limit = 1000;
@@ -245,7 +263,7 @@ class LessonScheduleController extends Controller
                     'start_datetime' => $start->toIso8601String(),
                     'end_datetime' => $end->toIso8601String(),
                 ];
-                if (count($items) >= $limit) {
+                if (count($items) > $limit) {
                     return response()->json(['message' => "生成件数が多すぎます（上限: {$limit}件）。期間や曜日を見直してください。"], 422);
                 }
             }

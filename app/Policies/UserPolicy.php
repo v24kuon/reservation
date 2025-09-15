@@ -9,7 +9,7 @@ class UserPolicy
     private const GUARDED_ABILITIES = ['delete', 'forceDelete'];
 
     /**
-     * Admin は全権限を許可
+     * Admin は（delete/forceDelete を除き）全権限を許可
      */
     public function before(User $user, string $ability): ?bool
     {
@@ -88,8 +88,11 @@ class UserPolicy
 
         // 最後の管理者削除禁止
         if ($target->hasRole(User::ROLE_ADMIN)) {
-            $adminCount = User::query()->where('role', User::ROLE_ADMIN)->count();
-            if ($adminCount <= 1) {
+            $otherAdminExists = User::query()
+                ->where('role', User::ROLE_ADMIN)
+                ->whereKeyNot($target->getKey())
+                ->exists();
+            if (! $otherAdminExists) {
                 return false;
             }
         }
