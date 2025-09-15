@@ -286,9 +286,9 @@ system_settings (システム設定) ✅
 
 ### Phase 2: 月謝システム
 - [x] Laravel Cashierインストール・設定
-  - [ ] Cashierマイグレーション公開: `php artisan vendor:publish --tag="cashier-migrations"`
-  - [ ] マイグレーション実行: `php artisan migrate`
-  - [ ] Stripeキー設定: `.env(.example)` に `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` を追加
+  - [x] Cashierマイグレーション公開: `php artisan vendor:publish --tag="cashier-migrations"`
+  - [x] マイグレーション実行: `php artisan migrate`
+  - [x] Stripeキー設定: `.env(.example)` に `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` を追加
 - [ ] Stripe Products & Prices設定
 - [ ] Stripe Checkout統合
 - [ ] Webhook設定・自動同期

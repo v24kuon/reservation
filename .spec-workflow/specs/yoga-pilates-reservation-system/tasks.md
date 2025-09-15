@@ -171,14 +171,14 @@
 - [x] 19. Configure Stripe API keys and webhooks / Stripe APIキーとWebhookを設定
   - File: .env (modify), config/services.php (modify) / ファイル: .env (修正), config/services.php (修正)
   - Add STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRET / STRIPE_KEY, STRIPE_SECRET, STRIPE_WEBHOOK_SECRETを追加
-  - Configure CSRF exclusion for stripe/* routes in bootstrap/app.php / bootstrap/app.phpでstripe/*ルートのCSRF除外を設定
+  - Configure CSRF exclusion for only '/stripe/webhook' in bootstrap/app.php / bootstrap/app.phpで'/stripe/webhook'のみCSRF除外を設定
   - Use `php artisan cashier:webhook` for API version consistency with Cashier / CashierとのAPIバージョン整合性のため `php artisan cashier:webhook` を使用
   - Purpose: Set up Stripe credentials and webhook endpoints / 目的: Stripe認証情報とWebhookエンドポイントを設定
   - Requirements: 6.1, 7.1 / 要件: 6.1, 7.1
   - Dependencies: Task 18 / 依存関係: タスク18
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 20. Create Cashier migrations for subscription tables / サブスクリプションテーブル用のCashierマイグレーションを作成
+- [x] 20. Create Cashier migrations for subscription tables / サブスクリプションテーブル用のCashierマイグレーションを作成
   - File: database/migrations/ (new files via artisan) / ファイル: database/migrations/ (artisan経由で新規ファイル)
   - Command: `php artisan vendor:publish --tag=cashier-migrations` / コマンド: `php artisan vendor:publish --tag=cashier-migrations`
   - Purpose: Create necessary database tables for subscriptions / 目的: サブスクリプション用の必要なデータベーステーブルを作成
@@ -186,7 +186,7 @@
   - Dependencies: Task 18 / 依存関係: タスク18
   - Estimated time: 5 minutes / 推定時間: 5分
 
-- [ ] 21. Run Cashier migrations / Cashierマイグレーションを実行
+- [x] 21. Run Cashier migrations / Cashierマイグレーションを実行
   - Command: `php artisan migrate` / コマンド: `php artisan migrate`
   - Purpose: Create subscription-related database tables / 目的: サブスクリプション関連のデータベーステーブルを作成
   - Requirements: 7.1 / 要件: 7.1
