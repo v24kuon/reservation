@@ -132,7 +132,7 @@
 ### 管理者UI強化タスク
 
 - [x] 15. Improve admin dashboard layout / 管理者ダッシュボードレイアウトを改善
-  - File: resources/views/layouts/admin.blade.php (modify/improve) / ファイル: resources/views/layouts/admin.blade.php (修正/改善)
+  - File: resources/views/components/admin-layout.blade.php (modify/improve) / ファイル: resources/views/components/admin-layout.blade.php (修正/改善)
   - Purpose: Create consistent admin interface design / 目的: 一貫した管理者インターフェースデザインを作成
   - Requirements: UI improvements / 要件: UI改善
   - Dependencies: None / 依存関係: なし

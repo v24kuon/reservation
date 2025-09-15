@@ -55,6 +55,18 @@
         color: rgb(var(--muted));
     }
 
+    .bg-primary {
+        background-color: rgb(var(--primary));
+    }
+
+    .bg-muted {
+        background-color: rgb(var(--muted));
+    }
+
+    .text-primary-foreground {
+        color: rgb(var(--primary-foreground));
+    }
+
     .border-token {
         border-color: rgb(var(--border));
     }

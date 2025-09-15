@@ -54,6 +54,17 @@ class InstructorController extends Controller
         ]);
     }
 
+    public function show(User $instructor): View
+    {
+        abort_unless($instructor->role === 'instructor', 404);
+        $profile = $instructor->instructorProfile ?: new InstructorProfile(['user_id' => $instructor->id]);
+
+        return view('admin.instructors.show', [
+            'instructor' => $instructor,
+            'profile' => $profile,
+        ]);
+    }
+
     public function update(InstructorUpdateRequest $request, User $instructor): RedirectResponse
     {
         abort_unless($instructor->role === 'instructor', 404);

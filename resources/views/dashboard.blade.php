@@ -50,8 +50,12 @@
                                                     $cap = max(1, (int) $day['capacity']);
                                                     $pct = min(100, (int) round(($day['booked'] / $cap) * 100));
                                                 @endphp
-                                                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded">
-                                                    <div class="h-3 bg-indigo-500 rounded" style="width: {{ $pct }}%"></div>
+                                                <div class="h-3 bg-muted dark:bg-gray-700 rounded" aria-hidden="true">
+                                                    <div class="h-3 bg-indigo-500 rounded"
+                                                         role="progressbar"
+                                                         aria-valuenow="{{ $pct }}" aria-valuemin="0" aria-valuemax="100"
+                                                         aria-label="{{ $day['label'] }}の稼働率 {{ $pct }}%"
+                                                         style="width: {{ $pct }}%"></div>
                                                 </div>
                                             </td>
                                         </tr>

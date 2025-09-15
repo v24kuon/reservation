@@ -53,7 +53,7 @@
 
                             <div class="flex items-center gap-3">
                                 <x-primary-button>プロフィールを保存</x-primary-button>
-                                <a href="{{ route('admin.instructors.index') }}" class="px-4 py-2 bg-gray-200 rounded">戻る</a>
+                                <x-secondary-button href="{{ route('admin.instructors.index') }}">戻る</x-secondary-button>
                             </div>
                         </div>
                     </form>

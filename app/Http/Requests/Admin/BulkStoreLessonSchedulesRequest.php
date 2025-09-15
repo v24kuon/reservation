@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Contracts\Validation\Validator as ValidatorContract;
-use Illuminate\Support\Carbon;
 use App\Models\LessonSchedule;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 class BulkStoreLessonSchedulesRequest extends FormRequest
 {
@@ -23,8 +23,9 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
         return [
             'lesson_id' => ['required', 'integer', Rule::exists('lessons', 'id')],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.start_datetime' => ['required', 'date_format:Y-m-d H:i:s', 'after_or_equal:now'],
-            'items.*.end_datetime' => ['required', 'date_format:Y-m-d H:i:s', 'after:start_datetime'],
+            // Accept ISO-8601 with offset or normalized server format
+            'items.*.start_datetime' => ['required', 'date', 'after_or_equal:now'],
+            'items.*.end_datetime' => ['required', 'date', 'after:items.*.start_datetime'],
             'items.*.is_active' => ['sometimes', 'boolean'],
         ];
     }
@@ -38,8 +39,6 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
      * Invalid or unparsable values are left unchanged so standard validation rules can report errors.
      *
      * The transformed `items` array is merged back into the request input.
-     *
-     * @return void
      */
     protected function prepareForValidation(): void
     {
@@ -56,17 +55,17 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
                     } else {
                         $items[$idx]['is_active'] = true; // default when not provided
                     }
-                    // Normalize datetime-local (YYYY-MM-DDTHH:MM) or other formats to Y-m-d H:i:s
+                    // Normalize incoming datetimes (ISO-8601 with offset or datetime-local) to server format
                     if (! empty($row['start_datetime'])) {
                         try {
-                            $items[$idx]['start_datetime'] = \Illuminate\Support\Carbon::parse(str_replace('T', ' ', (string) $row['start_datetime']))->format('Y-m-d H:i:s');
+                            $items[$idx]['start_datetime'] = Carbon::parse((string) $row['start_datetime'])->format('Y-m-d H:i:s');
                         } catch (\Throwable $e) {
                             // keep original; validation will catch invalid date
                         }
                     }
                     if (! empty($row['end_datetime'])) {
                         try {
-                            $items[$idx]['end_datetime'] = \Illuminate\Support\Carbon::parse(str_replace('T', ' ', (string) $row['end_datetime']))->format('Y-m-d H:i:s');
+                            $items[$idx]['end_datetime'] = Carbon::parse((string) $row['end_datetime'])->format('Y-m-d H:i:s');
                         } catch (\Throwable $e) {
                             // keep original; validation will catch invalid date
                         }
@@ -95,7 +94,7 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
     {
         $validator->after(function (ValidatorContract $v) {
             $data = $this->all();
-            if (!isset($data['lesson_id']) || !isset($data['items']) || !is_array($data['items'])) {
+            if (! isset($data['lesson_id']) || ! isset($data['items']) || ! is_array($data['items'])) {
                 return;
             }
 
@@ -106,10 +105,14 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
             $count = count($items);
             for ($i = 0; $i < $count; $i++) {
                 $a = $items[$i] ?? null;
-                if (!is_array($a)) { continue; }
+                if (! is_array($a)) {
+                    continue;
+                }
                 $aStart = $a['start_datetime'] ?? null;
                 $aEnd = $a['end_datetime'] ?? null;
-                if (empty($aStart) || empty($aEnd)) { continue; }
+                if (empty($aStart) || empty($aEnd)) {
+                    continue;
+                }
                 try {
                     $aStartAt = Carbon::parse($aStart);
                     $aEndAt = Carbon::parse($aEnd);
@@ -120,10 +123,14 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
                 // In-payload overlap
                 for ($j = $i + 1; $j < $count; $j++) {
                     $b = $items[$j] ?? null;
-                    if (!is_array($b)) { continue; }
+                    if (! is_array($b)) {
+                        continue;
+                    }
                     $bStart = $b['start_datetime'] ?? null;
                     $bEnd = $b['end_datetime'] ?? null;
-                    if (empty($bStart) || empty($bEnd)) { continue; }
+                    if (empty($bStart) || empty($bEnd)) {
+                        continue;
+                    }
                     try {
                         $bStartAt = Carbon::parse($bStart);
                         $bEndAt = Carbon::parse($bEnd);

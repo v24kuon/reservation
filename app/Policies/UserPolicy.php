@@ -2,10 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\NotificationTemplate;
 use App\Models\User;
 
-class NotificationTemplatePolicy
+class UserPolicy
 {
     /**
      * Admin は全権限を許可
@@ -16,11 +15,13 @@ class NotificationTemplatePolicy
             return true;
         }
 
-        return null; // 他のメソッドへフォールバック
+        return null; // 他メソッドへフォールバック
     }
 
     /**
      * Determine whether the user can view any models.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function viewAny(User $user): bool
     {
@@ -32,13 +33,15 @@ class NotificationTemplatePolicy
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function view(User $user, NotificationTemplate $notificationTemplate): bool
+    public function view(User $user, User $model): bool
     {
         return false;
     }
 
     /**
      * Determine whether the user can create models.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function create(User $user): bool
     {
@@ -50,7 +53,7 @@ class NotificationTemplatePolicy
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function update(User $user, NotificationTemplate $notificationTemplate): bool
+    public function update(User $user, User $model): bool
     {
         return false;
     }
@@ -60,7 +63,7 @@ class NotificationTemplatePolicy
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function delete(User $user, NotificationTemplate $notificationTemplate): bool
+    public function delete(User $user, User $model): bool
     {
         return false;
     }
@@ -70,7 +73,7 @@ class NotificationTemplatePolicy
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function restore(User $user, NotificationTemplate $notificationTemplate): bool
+    public function restore(User $user, User $model): bool
     {
         return false;
     }
@@ -80,7 +83,7 @@ class NotificationTemplatePolicy
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function forceDelete(User $user, NotificationTemplate $notificationTemplate): bool
+    public function forceDelete(User $user, User $model): bool
     {
         return false;
     }

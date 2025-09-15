@@ -8,11 +8,11 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="mb-4">
-                        <a href="{{ route('admin.notification-templates.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded">新規作成</a>
+                        <x-primary-button as="a" href="{{ route('admin.notification-templates.create') }}">新規作成</x-primary-button>
                     </div>
 
                     @if (session('status'))
-                        <div class="mb-4 text-green-700">{{ session('status') }}</div>
+                        <div class="mb-4 text-green-700" role="status" aria-live="polite">{{ session('status') }}</div>
                     @endif
 
                     <table class="min-w-full divide-y divide-gray-200">
@@ -27,11 +27,11 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
-                            @foreach($templates as $template)
+                            @forelse($templates as $template)
                                 <tr>
                                     <td class="px-4 py-2">{{ $template->id }}</td>
                                     <td class="px-4 py-2">
-                                        <a class="text-indigo-600" href="{{ route('admin.notification-templates.show', $template) }}">{{ $template->name }}</a>
+                                        <a class="text-indigo-600 dark:text-indigo-400" href="{{ route('admin.notification-templates.show', $template) }}">{{ $template->name }}</a>
                                     </td>
                                     <td class="px-4 py-2">{{ $template->type }}</td>
                                     <td class="px-4 py-2 max-w-[40ch] truncate">{{ $template->subject }}</td>
@@ -49,7 +49,11 @@
                                         @endcan
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-4 py-6 text-center text-gray-500">データがありません</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
 

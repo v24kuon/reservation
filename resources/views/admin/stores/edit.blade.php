@@ -62,8 +62,8 @@
                         </div>
 
                         <div class="pt-4 flex space-x-2">
-                            <button class="px-4 py-2 bg-indigo-600 text-white rounded" type="submit">更新</button>
-                            <a href="{{ route('admin.stores.index') }}" class="px-4 py-2 bg-gray-200 rounded">戻る</a>
+                            <button class="px-4 py-2 bg-primary text-primary-foreground rounded" type="submit">更新</button>
+                            <x-secondary-button href="{{ route('admin.stores.index') }}">戻る</x-secondary-button>
                         </div>
                     </form>
                 </div>

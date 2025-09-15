@@ -82,16 +82,23 @@
             </div>
 
             <div class="flex gap-2">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">更新</button>
-                <a href="{{ route('admin.notification-templates.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
+                <x-primary-button type="submit">更新</x-primary-button>
+                <x-secondary-button href="{{ route('admin.notification-templates.index') }}">戻る</x-secondary-button>
             </div>
         </form>
     </div>
     <script>
         (function() {
+            function legacyCopy(text){
+                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            }
             function copy(text){
-                if(navigator.clipboard){ navigator.clipboard.writeText(text); return; }
-                const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+                    return;
+                }
+                legacyCopy(text);
             }
             function moustacheFor(ph){
                 const open = String.fromCharCode(123,123); // "{{"

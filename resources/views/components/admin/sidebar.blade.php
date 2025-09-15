@@ -1,14 +1,14 @@
 <nav class="h-full p-4 space-y-1 text-sm">
-    <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('dashboard') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">ダッシュボード</a>
+    <x-admin.sidebar-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">ダッシュボード</x-admin.sidebar-link>
 
     <div class="pt-2 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">マスター</div>
-    <a href="{{ route('admin.stores.index') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.stores.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">店舗</a>
-    <a href="{{ route('admin.instructors.index') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.instructors.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">インストラクター</a>
-    <a href="{{ route('admin.lesson-categories.index') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.lesson-categories.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">レッスンカテゴリ</a>
-    <a href="{{ route('admin.lessons.index') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.lessons.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">レッスン</a>
-    <a href="{{ route('admin.notification-templates.index') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.notification-templates.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">通知テンプレート</a>
-    <a href="{{ route('admin.lesson-schedules.index') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.lesson-schedules.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">レッスンスケジュール</a>
-    <a href="{{ route('admin.settings.edit') }}" class="block px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.settings.*') ? 'bg-gray-100 dark:bg-gray-700 font-semibold' : '' }}">システム設定</a>
+    <x-admin.sidebar-link href="{{ route('admin.stores.index') }}" :active="request()->routeIs('admin.stores.*')">店舗</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.instructors.index') }}" :active="request()->routeIs('admin.instructors.*')">インストラクター</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.lesson-categories.index') }}" :active="request()->routeIs('admin.lesson-categories.*')">レッスンカテゴリ</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.lessons.index') }}" :active="request()->routeIs('admin.lessons.*')">レッスン</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.notification-templates.index') }}" :active="request()->routeIs('admin.notification-templates.*')">通知テンプレート</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.lesson-schedules.index') }}" :active="request()->routeIs('admin.lesson-schedules.*')">レッスンスケジュール</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.settings.edit') }}" :active="request()->routeIs('admin.settings.*')">システム設定</x-admin.sidebar-link>
 
     <div class="pt-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">アカウント</div>
     <form method="POST" action="{{ route('logout') }}">

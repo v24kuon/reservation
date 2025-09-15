@@ -10,7 +10,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="mb-4">
-                        <a href="{{ route('admin.instructors.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded">新規作成</a>
+                        <x-primary-button as="a" href="{{ route('admin.instructors.create') }}">新規作成</x-primary-button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
@@ -27,15 +27,17 @@
                                 @forelse($instructors as $instructor)
                                     <tr class="border-t">
                                         <td class="px-2 py-1">{{ $instructor->id }}</td>
-                                        <td class="px-2 py-1">{{ $instructor->name }}</td>
+                                        <td class="px-2 py-1">
+                                            <a href="{{ route('admin.instructors.show', $instructor) }}" class="text-indigo-600">{{ $instructor->name }}</a>
+                                        </td>
                                         <td class="px-2 py-1">{{ $instructor->email }}</td>
                                         <td class="px-2 py-1">{{ $instructor->created_at?->format('Y-m-d') }}</td>
                                         <td class="px-2 py-1 space-x-2">
-                                            @can('access-admin')
+                                            @can('update', $instructor)
                                             <a href="{{ route('admin.instructors.edit', $instructor) }}" class="text-blue-600">編集</a>
                                             @endcan
-                                            @can('access-admin')
-                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" data-confirm="削除しますか？">
+                                            @can('delete', $instructor)
+                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>

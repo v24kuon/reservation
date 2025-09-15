@@ -47,8 +47,8 @@
         </div>
 
         <div class="flex gap-2">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
-            <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
+            <x-primary-button type="submit">保存</x-primary-button>
+            <x-secondary-button href="{{ route('admin.lesson-schedules.index') }}">戻る</x-secondary-button>
         </div>
     </form>
     </div>
@@ -69,25 +69,28 @@
 
             const addMinutesToDatetimeLocal = (value, minutesToAdd) => {
                 if (!value || !minutesToAdd) return value;
-                const dt = new Date(value);
-                if (isNaN(dt.getTime())) return value;
+                const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+                if (!m) return value;
+                const dt = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]), 0, 0);
                 dt.setMinutes(dt.getMinutes() + minutesToAdd);
                 const y = dt.getFullYear();
-                const m = pad(dt.getMonth() + 1);
+                const mo = pad(dt.getMonth() + 1);
                 const d = pad(dt.getDate());
                 const hh = pad(dt.getHours());
                 const mm = pad(dt.getMinutes());
-                return `${y}-${m}-${d}T${hh}:${mm}`;
+                return `${y}-${mo}-${d}T${hh}:${mm}`;
             };
 
             const updateEndFromStart = () => {
                 const dur = getSelectedDuration();
                 if (!dur) return;
                 if (!startInput?.value) return;
+                endInput.min = startInput.value;
                 endInput.value = addMinutesToDatetimeLocal(startInput.value, dur);
             };
 
             lessonSelect?.addEventListener('change', updateEndFromStart);
+            startInput?.addEventListener('input', updateEndFromStart);
             startInput?.addEventListener('change', updateEndFromStart);
             startInput?.addEventListener('blur', updateEndFromStart);
         });

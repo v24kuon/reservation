@@ -42,7 +42,7 @@ Route::get('/dashboard', function () {
             $dayCapacity = 0;
             $dayBooked = 0;
             foreach ($byDate->get($key, collect()) as $schedule) {
-                $capacity = (int) ($schedule->lesson->capacity ?? 0);
+                $capacity = (int) ($schedule->lesson?->capacity ?? 0);
                 $dayCapacity += $capacity;
                 $dayBooked += (int) $schedule->current_bookings;
             }
@@ -58,7 +58,7 @@ Route::get('/dashboard', function () {
             $totalBooked += $dayBooked;
         }
 
-        $todayKey = now()->toDateString();
+        $todayKey = $start->toDateString();
         $today = collect($daily)->firstWhere('date', $todayKey) ?? ['capacity' => 0, 'booked' => 0];
 
         $adminStats = [
@@ -121,7 +121,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Admin: instructors CRUD (create by admin only)
         Route::resource('instructors', InstructorController::class)
-            ->except(['show'])
             ->parameters([
                 'instructors' => 'instructor',
             ]);

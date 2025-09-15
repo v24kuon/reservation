@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BulkStoreLessonSchedulesRequest;
 use App\Http\Requests\Admin\GenerateRecurringLessonSchedulesRequest;
+use App\Http\Requests\Admin\IndexLessonSchedulesRequest;
 use App\Http\Requests\StoreLessonScheduleRequest;
 use App\Http\Requests\UpdateLessonScheduleRequest;
 use App\Models\Lesson;
 use App\Models\LessonSchedule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\Admin\IndexLessonSchedulesRequest;
 
 class LessonScheduleController extends Controller
 {
@@ -22,18 +22,18 @@ class LessonScheduleController extends Controller
 
         $validated = $request->validated();
 
-        if (!empty($validated['date_from'])) {
+        if (! empty($validated['date_from'])) {
             $from = \Illuminate\Support\Carbon::parse($validated['date_from'])->startOfDay();
             $query->where('start_datetime', '>=', $from);
         }
-        if (!empty($validated['date_to'])) {
+        if (! empty($validated['date_to'])) {
             $to = \Illuminate\Support\Carbon::parse($validated['date_to'])->endOfDay();
             $query->where('end_datetime', '<=', $to);
         }
-        if (!empty($validated['lesson_id'])) {
+        if (! empty($validated['lesson_id'])) {
             $query->where('lesson_id', $validated['lesson_id']);
         }
-        if (!empty($validated['instructor_user_id'])) {
+        if (! empty($validated['instructor_user_id'])) {
             $query->whereHas('lesson', function ($q) use ($validated) {
                 $q->where('instructor_user_id', $validated['instructor_user_id']);
             });
@@ -150,10 +150,8 @@ class LessonScheduleController extends Controller
         $weekdays = (array) $validated['weekdays']; // 0 (Sun) ... 6 (Sat)
 
         $items = [];
+        $limit = 1000;
         foreach ($weekdays as $weekday) {
-            if (count($items) > 1000) {
-                return response()->json(['message' => '生成件数が多すぎます（>1000）。期間や曜日を見直してください。'], 422);
-            }
             $cursor = $startDate->copy();
             // advance to first matching weekday
             while ($cursor->dayOfWeek !== (int) $weekday) {
@@ -168,9 +166,13 @@ class LessonScheduleController extends Controller
                 $start = \Illuminate\Support\Carbon::parse($date->format('Y-m-d').' '.$startTime);
                 $end = \Illuminate\Support\Carbon::parse($date->format('Y-m-d').' '.$endTime);
                 $items[] = [
-                    'start_datetime' => $start->format('Y-m-d H:i:s'),
-                    'end_datetime' => $end->format('Y-m-d H:i:s'),
+                    // Return ISO-8601 with offset to prevent TZ drift on clients
+                    'start_datetime' => $start->toIso8601String(),
+                    'end_datetime' => $end->toIso8601String(),
                 ];
+                if (count($items) > $limit) {
+                    return response()->json(['message' => "生成件数が多すぎます（>{$limit}）。期間や曜日を見直してください。"], 422);
+                }
             }
         }
 

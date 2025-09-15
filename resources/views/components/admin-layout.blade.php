@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false, dark: localStorage.getItem('theme') === 'dark' }" x-bind:class="{ 'dark': dark }">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false, dark: (function(){ try { const saved = localStorage.getItem('theme'); if (saved) return saved === 'dark'; return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; } catch(_) { return false; } })() }" x-bind:class="{ 'dark': dark }">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,17 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <style>[x-cloak]{display:none!important}</style>
+        <script>
+            (function () {
+                try {
+                    const saved = localStorage.getItem('theme');
+                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    const isDark = saved ? saved === 'dark' : prefersDark;
+                    if (isDark) document.documentElement.classList.add('dark');
+                } catch (_) {}
+            })();
+        </script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
@@ -32,10 +43,12 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <button
-                            x-on:click="dark = !dark; document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', dark ? 'dark' : 'light')"
+                            x-on:click="dark = !dark; localStorage.setItem('theme', dark ? 'dark' : 'light')"
+                            x-bind:aria-pressed="dark.toString()"
+                            aria-label="ダークモード切替"
                             class="inline-flex items-center px-3 py-2 text-sm rounded-md bg-background border border-token hover:bg-surface">
-                            <span x-show="!dark">🌙</span>
-                            <span x-show="dark">☀️</span>
+                            <span x-show="!dark" aria-hidden="true">🌙</span>
+                            <span x-show="dark" aria-hidden="true">☀️</span>
                         </button>
                         @auth
                             <span class="hidden sm:inline text-sm">{{ Auth::user()->name }}</span>
@@ -105,8 +118,13 @@
                 document.addEventListener('DOMContentLoaded', applyToAll);
                 document.addEventListener('focusin', (e) => {
                     const t = e.target;
-                    if (t && (t.type === 'date' || t.type === 'time' || t.type === 'datetime-local')) bind(t);
+                    if (t && (t.type === 'date' || t.type === 'time' || t.type === 'datetime-local')) {
+                        if (typeof t.showPicker === 'function') { try { t.showPicker(); } catch(_) {} }
+                        bind(t);
+                    }
                 });
+                document.addEventListener('livewire:load', applyToAll);
+                document.addEventListener('livewire:navigated', applyToAll);
             })();
         </script>
     </body>

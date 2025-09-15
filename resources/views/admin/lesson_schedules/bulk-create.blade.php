@@ -95,8 +95,8 @@
 
             <div class="flex gap-2">
                 <button type="button" id="add-row" class="px-4 py-2 border rounded">行を追加</button>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">一括作成</button>
-                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-gray-200 rounded">一覧へ戻る</a>
+                <button type="submit" class="bg-primary text-primary-foreground px-4 py-2 rounded">一括作成</button>
+                <a href="{{ route('admin.lesson-schedules.index') }}" class="px-4 py-2 bg-muted text-foreground rounded">一覧へ戻る</a>
             </div>
         </form>
     </div>
@@ -112,6 +112,17 @@
             const recEndTime = document.getElementById('rec-end-time');
             const recInterval = document.getElementById('rec-interval');
             const lessonSelect = document.querySelector('select[name="lesson_id"]');
+
+            // 既存行の最大 index を検出し、次に使う index を単調増加で採番
+            let nextIndex = (() => {
+                const names = Array.from(container.querySelectorAll('input[name*="[start_datetime]"], input[name*="[end_datetime]"]'))
+                    .map(el => el.name);
+                const idxs = names.map(n => {
+                    const m = n.match(/items\[(\d+)\]/);
+                    return m ? Number(m[1]) : NaN;
+                }).filter(Number.isFinite);
+                return idxs.length ? Math.max(...idxs) + 1 : 0;
+            })();
 
             const getSelectedDuration = () => {
                 const opt = lessonSelect?.options[lessonSelect.selectedIndex];
@@ -129,8 +140,34 @@
                 return `${y}-${m}-${d}T${hh}:${mm}`;
             };
 
+            // 共通の終了時刻計算関数
+            const fillEndFromStart = (startValue) => {
+                const dur = getSelectedDuration();
+                if (!dur || !startValue) return null;
+                const dt = new Date(startValue);
+                if (Number.isNaN(dt.getTime())) return null;
+                dt.setMinutes(dt.getMinutes() + dur);
+                return toDatetimeLocal(dt);
+            };
+
+            // 全行の終了時刻を再計算
+            const recalcAllEnds = () => {
+                const dur = getSelectedDuration();
+                if (!dur) return;
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const s = row.querySelector('input[name*="[start_datetime]"]');
+                    const e = row.querySelector('input[name*="[end_datetime]"]');
+                    if (s?.value) {
+                        const v = fillEndFromStart(s.value);
+                        if (v) e.value = v;
+                    }
+                });
+                // 繰り返しセクション
+                updateRecEndTime();
+            };
+
             addBtn.addEventListener('click', () => {
-                const index = container.querySelectorAll('.item-row').length;
+                const index = nextIndex++;
                 const wrapper = document.createElement('div');
                 wrapper.className = 'border rounded p-4 space-y-3 item-row';
                 wrapper.innerHTML = `
@@ -161,12 +198,8 @@
                 const startEl = wrapper.querySelector(`input[name="items[${index}][start_datetime]"]`);
                 const endEl = wrapper.querySelector(`input[name="items[${index}][end_datetime]"]`);
                 const updateEnd = () => {
-                    const dur = getSelectedDuration();
-                    if (!dur || !startEl?.value) return;
-                    const dt = new Date(startEl.value);
-                    if (isNaN(dt.getTime())) return;
-                    dt.setMinutes(dt.getMinutes() + dur);
-                    endEl.value = toDatetimeLocal(dt);
+                    const v = fillEndFromStart(startEl?.value);
+                    if (v) endEl.value = v;
                 };
                 startEl?.addEventListener('change', updateEnd);
                 startEl?.addEventListener('blur', updateEnd);
@@ -240,20 +273,24 @@
                     const data = await res.json();
                     const items = Array.isArray(data.items) ? data.items : [];
                     for (const item of items) {
-                        const index = container.querySelectorAll('.item-row').length;
+                        const index = nextIndex++;
                         const wrapper = document.createElement('div');
                         wrapper.className = 'border rounded p-4 space-y-3 item-row';
-                        // Convert Y-m-d H:i:s -> datetime-local
-                        const toLocal = (s) => s.replace(' ', 'T').slice(0, 16);
+                        // Robustly convert API payload to datetime-local (TZ-aware when possible)
+                        const toLocal = (s) => {
+                            const isoLike = s.includes('T') ? s : s.replace(' ', 'T');
+                            const d = new Date(isoLike);
+                            return Number.isNaN(d.getTime()) ? isoLike.slice(0, 16) : toDatetimeLocal(d);
+                        };
                         wrapper.innerHTML = `
                             <div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">
                                 <div>
                                     <label class=\"block text-sm font-medium\">開始日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.start_datetime)}\" step=\"300\" required>
+                                    <input type=\"datetime-local\" name=\"items[${index}][start_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.start_datetime)}\" required>
                                 </div>
                                 <div>
                                     <label class=\"block text-sm font-medium\">終了日時</label>
-                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.end_datetime)}\" step=\"300\" required>
+                                    <input type=\"datetime-local\" name=\"items[${index}][end_datetime]\" class=\"border rounded w-full p-2\" value=\"${toLocal(item.end_datetime)}\" required>
                                 </div>
                             </div>
                             <div>
@@ -273,12 +310,8 @@
                         const startEl = wrapper.querySelector(`input[name=\"items[${index}][start_datetime]\"]`);
                         const endEl = wrapper.querySelector(`input[name=\"items[${index}][end_datetime]\"]`);
                         const updateEnd = () => {
-                            const dur = getSelectedDuration();
-                            if (!dur || !startEl?.value) return;
-                            const dt = new Date(startEl.value);
-                            if (isNaN(dt.getTime())) return;
-                            dt.setMinutes(dt.getMinutes() + dur);
-                            endEl.value = toDatetimeLocal(dt);
+                            const v = fillEndFromStart(startEl?.value);
+                            if (v) endEl.value = v;
                         };
                         startEl?.addEventListener('change', updateEnd);
                         startEl?.addEventListener('blur', updateEnd);
@@ -294,12 +327,8 @@
                 const endInput = row.querySelector('input[name*="[end_datetime]"]');
                 if (startInput && endInput) {
                     const updateEnd = () => {
-                        const dur = getSelectedDuration();
-                        if (!dur || !startInput.value) return;
-                        const dt = new Date(startInput.value);
-                        if (isNaN(dt.getTime())) return;
-                        dt.setMinutes(dt.getMinutes() + dur);
-                        endInput.value = toDatetimeLocal(dt);
+                        const v = fillEndFromStart(startInput.value);
+                        if (v) endInput.value = v;
                     };
                     startInput.addEventListener('change', updateEnd);
                     startInput.addEventListener('blur', updateEnd);
@@ -325,6 +354,9 @@
             };
             recStartTime?.addEventListener('change', updateRecEndTime);
             recStartTime?.addEventListener('blur', updateRecEndTime);
+
+            // レッスン変更時に全行の終了時刻を再計算
+            lessonSelect?.addEventListener('change', recalcAllEnds);
         });
     </script>
 </x-admin-layout>
