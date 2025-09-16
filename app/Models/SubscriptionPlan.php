@@ -51,4 +51,20 @@ class SubscriptionPlan extends Model
     {
         return '¥'.number_format($this->price);
     }
+
+    /**
+     * Scope a query to only include active plans.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to only include inactive plans.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
+    }
 }

@@ -10,9 +10,10 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     @include('admin.subscription_plans._form', [
-                        'action' => route('admin.subscription_plans.store'),
+                        'action' => route('admin.subscription-plans.store'),
                         'method' => 'POST',
                         'plan' => null,
+                        'categories' => $categories,
                     ])
                 </div>
             </div>
