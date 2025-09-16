@@ -196,7 +196,7 @@
 ### Stripe Product and Price Management Tasks
 ### Stripeプロダクト・価格管理タスク
 
-- [ ] 22. Create Stripe products and prices via Stripe Dashboard / Stripeダッシュボード経由でStripeプロダクトと価格を作成
+- [x] 22. Create Stripe products and prices via Stripe Dashboard / Stripeダッシュボード経由でStripeプロダクトと価格を作成
   - External: Stripe Dashboard (stripe.com) / 外部: Stripe Dashboard (stripe.com)
   - Create products for Group Lessons and Personal Lessons / グループレッスンと個人レッスン用のプロダクトを作成
   - Create prices for each subscription tier / 各サブスクリプションティア用の価格を作成
@@ -205,7 +205,7 @@
   - Dependencies: Tasks 19-20 / 依存関係: タスク19-20
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 23. Update SubscriptionPlan model for Stripe integration / Stripe統合用にSubscriptionPlanモデルを更新
+- [x] 23. Update SubscriptionPlan model for Stripe integration / Stripe統合用にSubscriptionPlanモデルを更新
   - File: app/Models/SubscriptionPlan.php (modify) / ファイル: app/Models/SubscriptionPlan.php (修正)
   - UserモデルにBillableトレイトを付与 / User::class に Billable を追加
   - SubscriptionPlan は Stripe の product/price のメタ情報保持のみ / プラン定義は product_id, price_id 等を保持
@@ -214,13 +214,14 @@
   - Dependencies: Task 22 / 依存関係: タスク22
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 24. Create SubscriptionPlan seeder with Stripe data / StripeデータでSubscriptionPlanシーダーを作成
-  - File: database/seeders/SubscriptionPlanSeeder.php (new) / ファイル: database/seeders/SubscriptionPlanSeeder.php (新規)
-  - Populate subscription plans with Stripe product/price IDs / Stripeプロダクト/価格IDでサブスクリプションプランを投入
-  - Purpose: Seed database with subscription plan data / 目的: サブスクリプションプランデータでデータベースをシード
+- [ ] 24. Implement SubscriptionPlan admin interface for Stripe data management / Stripeデータ管理用のSubscriptionPlan管理画面を実装
+  - Files: app/Http/Controllers/Admin/SubscriptionPlanController.php (implement), routes/web.php (add routes), resources/views/admin/subscription_plans/ (complete forms) / ファイル: app/Http/Controllers/Admin/SubscriptionPlanController.php (実装), routes/web.php (ルート追加), resources/views/admin/subscription_plans/ (フォーム完成)
+  - Add admin CRUD interface for subscription plans with Stripe product/price ID input / Stripeプロダクト/価格ID入力付きサブスクリプションプラン管理画面を追加
+  - Include form validation for Stripe IDs and lesson category selection / Stripe IDとレッスンカテゴリ選択のフォームバリデーションを含める
+  - Purpose: Allow admin to manage subscription plans via web interface / 目的: 管理者がWebインターフェース経由でサブスクリプションプランを管理可能にする
   - Requirements: 6.1 / 要件: 6.1
   - Dependencies: Tasks 22, 23 / 依存関係: タスク22, 23
-  - Estimated time: 20 minutes / 推定時間: 20分
+  - Estimated time: 45 minutes / 推定時間: 45分
 
 ### Stripe Checkout Integration Tasks
 ### Stripe Checkout統合タスク
@@ -265,7 +266,7 @@
 
 - [ ] 29. Configure webhook CSRF exclusion / Webhook CSRF除外設定
   - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
-  - Exclude CSRF for 'stripe/*' only (use default Cashier route `/stripe/webhook`) / 'stripe/*' のみCSRF除外設定（既定のCashierルート `/stripe/webhook` を利用）
+  - Exclude CSRF only for '/stripe/webhook' (use default Cashier route) / '/stripe/webhook' のみCSRF除外設定（既定のCashierルートを利用）
   - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
   - Purpose: Accept Stripe webhook notifications via default Cashier route / 目的: 既定のCashierルート経由でStripe Webhook通知を受け入れる
   - Requirements: 7.2 / 要件: 7.2
