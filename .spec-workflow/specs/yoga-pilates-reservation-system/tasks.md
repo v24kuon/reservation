@@ -217,11 +217,19 @@
 - [ ] 24. Implement SubscriptionPlan admin interface for Stripe data management / Stripeデータ管理用のSubscriptionPlan管理画面を実装
   - Files: app/Http/Controllers/Admin/SubscriptionPlanController.php (implement), routes/web.php (add routes), resources/views/admin/subscription_plans/ (complete forms) / ファイル: app/Http/Controllers/Admin/SubscriptionPlanController.php (実装), routes/web.php (ルート追加), resources/views/admin/subscription_plans/ (フォーム完成)
   - Add admin CRUD interface for subscription plans with Stripe product/price ID input / Stripeプロダクト/価格ID入力付きサブスクリプションプラン管理画面を追加
-  - Include form validation for Stripe IDs and lesson category selection / Stripe IDとレッスンカテゴリ選択のフォームバリデーションを含める
+  - サーバー側バリデーション:
+    - product_id: 正規表現 ^prod_[A-Za-z0-9]+$
+    - price_id:   正規表現 ^price_[A-Za-z0-9]+$
+  - 保存前チェック（Stripe API照合）:
+    - price が active かつ recurring であること、currency/interval が想定内であることを確認
+    - product と price の関連が一致していることを確認
+  - 運用ガード:
+    - 既に購読中ユーザーがいるプランの product/price 変更や削除は禁止（別レコード追加 → 段階的移行）
+    - Live/Test のID混入を防ぐため、環境毎の接頭辞・キーで検証し保存を拒否
   - Purpose: Allow admin to manage subscription plans via web interface / 目的: 管理者がWebインターフェース経由でサブスクリプションプランを管理可能にする
   - Requirements: 6.1 / 要件: 6.1
   - Dependencies: Tasks 22, 23 / 依存関係: タスク22, 23
-  - Estimated time: 45 minutes / 推定時間: 45分
+  - Estimated time: 60 minutes / 推定時間: 60分
 
 ### Stripe Checkout Integration Tasks
 ### Stripe Checkout統合タスク
@@ -267,11 +275,15 @@
 - [ ] 29. Configure webhook CSRF exclusion / Webhook CSRF除外設定
   - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
   - Exclude CSRF only for '/stripe/webhook' (use default Cashier route) / '/stripe/webhook' のみCSRF除外設定（既定のCashierルートを利用）
+  - Webhookルートは POST のみ許可し、Cashierの署名検証を必須化（STRIPE_WEBHOOK_SECRET）
+  - リスナーはキュー経由で非同期処理（長時間処理の同期応答を避ける）
+  - 受信時の冪等性（event.id 記録）と再試行時の安全性を明記
+  - Webhook専用ログ/メトリクス（受信数、検証失敗、重複破棄件数）を追加
   - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
   - Purpose: Accept Stripe webhook notifications via default Cashier route / 目的: 既定のCashierルート経由でStripe Webhook通知を受け入れる
   - Requirements: 7.2 / 要件: 7.2
   - Dependencies: Task 28 / 依存関係: タスク28
-  - Estimated time: 5 minutes / 推定時間: 5分
+  - Estimated time: 15 minutes / 推定時間: 15分
 
 - [ ] 30. Implement webhook event handlers / Webhookイベントハンドラーを実装
   - File: app/Listeners/ (implement listener logic) / ファイル: app/Listeners/ (リスナーロジック実装)
