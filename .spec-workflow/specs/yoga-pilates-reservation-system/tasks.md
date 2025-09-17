@@ -284,7 +284,7 @@
   - Dependencies: Task 27 / 依存関係: タスク27
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 29. Implement plan switching functionality / プラン切り替え機能を実装
+- [x] 29. Implement plan switching functionality / プラン切り替え機能を実装
   - File: app/Services/SubscriptionService.php (new) / ファイル: app/Services/SubscriptionService.php (新規)
   - Add SubscriptionService::switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): void method / SubscriptionService::switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): voidメソッドを追加
   - Implement same-category-only switching rule with validation / 同じカテゴリー内のみ切り替え可能ルールとバリデーションを実装
