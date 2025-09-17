@@ -6,6 +6,7 @@ use App\Models\SubscriptionPlan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Stripe\StripeClient;
 
 class SubscriptionController extends Controller
@@ -95,6 +96,27 @@ class SubscriptionController extends Controller
         }
 
         return redirect()->away($session->url);
+    }
+
+    /**
+     * Checkout success landing
+     */
+    public function success(Request $request): View
+    {
+        // セッションIDは今後の照合用に受け取る（表示には使わない）
+        $sessionId = (string) $request->query('session_id', '');
+
+        return view('subscription.success', [
+            'sessionId' => $sessionId,
+        ]);
+    }
+
+    /**
+     * Checkout cancel back
+     */
+    public function cancel(): RedirectResponse
+    {
+        return redirect()->route('home')->with('status', 'サブスクリプション手続きがキャンセルされました。');
     }
 
     /**
