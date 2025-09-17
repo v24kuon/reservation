@@ -43,10 +43,8 @@ class SubscriptionPlanController extends Controller
     public function store(StoreSubscriptionPlanRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $this->verifyStripeResources($data['stripe_product_id'], $data['stripe_price_id']);
-
-        // Always override price from Stripe
-        $data['price'] = $this->fetchStripePriceAmount($data['stripe_price_id']);
+        $price = $this->getValidatedStripePrice($data['stripe_product_id'], $data['stripe_price_id']);
+        $data['price'] = (int) ($price->unit_amount ?? 0);
 
         // Expand any selected parent categories into their child categories (server-side safety net)
         $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids']);
@@ -60,7 +58,7 @@ class SubscriptionPlanController extends Controller
             'stripe_product_id' => $data['stripe_product_id'],
             'stripe_price_id' => $data['stripe_price_id'],
             'description' => $data['description'] ?? null,
-            'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_active' => $request->boolean('is_active', true),
         ]);
         $plan->save();
 
@@ -72,8 +70,16 @@ class SubscriptionPlanController extends Controller
      */
     public function show(SubscriptionPlan $subscriptionPlan): View
     {
+        $allowedCategories = collect();
+        if (!empty($subscriptionPlan->allowed_category_ids)) {
+            $allowedCategories = LessonCategory::query()
+                ->whereIn('id', $subscriptionPlan->allowed_category_ids ?? [])
+                ->get(['id', 'name']);
+        }
+
         return view('admin.subscription_plans.show', [
             'plan' => $subscriptionPlan,
+            'allowedCategories' => $allowedCategories,
         ]);
     }
 
@@ -105,13 +111,9 @@ class SubscriptionPlanController extends Controller
             ]);
         }
 
-        // Verify with Stripe if IDs are provided/changed
-        if ($stripeChanging) {
-            $this->verifyStripeResources($data['stripe_product_id'], $data['stripe_price_id']);
-        }
-
-        // Always override price from Stripe
-        $data['price'] = $this->fetchStripePriceAmount($data['stripe_price_id']);
+        // Always validate and fetch latest price information from Stripe
+        $price = $this->getValidatedStripePrice($data['stripe_product_id'], $data['stripe_price_id']);
+        $data['price'] = (int) ($price->unit_amount ?? 0);
 
         // Expand any selected parent categories into their child categories (server-side safety net)
         $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids']);
@@ -124,7 +126,7 @@ class SubscriptionPlanController extends Controller
             'stripe_product_id' => $data['stripe_product_id'],
             'stripe_price_id' => $data['stripe_price_id'],
             'description' => $data['description'] ?? null,
-            'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_active' => $request->boolean('is_active', $subscriptionPlan->is_active),
         ])->save();
 
         return redirect()->route('admin.subscription-plans.index')->with('status', '月謝プランを更新しました。');
@@ -136,7 +138,7 @@ class SubscriptionPlanController extends Controller
     public function destroy(SubscriptionPlan $subscriptionPlan): RedirectResponse
     {
         if ($subscriptionPlan->userSubscriptions()->active()->exists()) {
-            return back()->withErrors('稼働中のプランは削除できません。先に利用者を移行してください。');
+            return back()->withErrors(['subscription_plan' => '稼働中のプランは削除できません。先に利用者を移行してください。']);
         }
         $subscriptionPlan->delete();
 
@@ -154,12 +156,25 @@ class SubscriptionPlanController extends Controller
             'price_id' => ['required', 'regex:/^price_[A-Za-z0-9]+$/'],
         ]);
 
-        // Ensure Stripe credentials exist and price is valid
-        $amount = $this->fetchStripePriceAmount($validated['price_id']);
+        // Basic validation using Stripe (no product check for lookup UI)
+        try {
+            $price = $this->stripe()->prices->retrieve($validated['price_id'], []);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['success' => false], 422);
+        }
+
+        if (!(($price->active ?? false)
+            && (($price->type ?? '') === 'recurring')
+            && (strtolower($price->currency ?? '') === 'jpy')
+            && (((bool) ($price->livemode ?? false)) === app()->environment('production'))
+        )) {
+            return response()->json(['success' => false], 422);
+        }
 
         return response()->json([
             'success' => true,
-            'price' => $amount,
+            'price' => (int) ($price->unit_amount ?? 0),
         ]);
     }
 
@@ -168,8 +183,13 @@ class SubscriptionPlanController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    private function verifyStripeResources(string $productId, string $priceId): void
+    private function stripe(): StripeClient
     {
+        static $client = null;
+        if ($client instanceof StripeClient) {
+            return $client;
+        }
+
         $secret = config('services.stripe.secret');
         if (empty($secret)) {
             throw ValidationException::withMessages([
@@ -177,19 +197,27 @@ class SubscriptionPlanController extends Controller
             ]);
         }
 
-        $client = new StripeClient($secret);
-        try {
-            $price = $client->prices->retrieve($priceId, []);
-            $product = $client->products->retrieve($productId, []);
-        } catch (\Throwable $e) {
-            throw ValidationException::withMessages([
-                'stripe_price_id' => 'Stripeの照合に失敗しました: '.$e->getMessage(),
-            ]);
-        }
+        $client = new StripeClient([
+            'api_key' => $secret,
+            'max_network_retries' => 2,
+        ]);
 
-        if (($price->product ?? null) !== $product->id) {
+        return $client;
+    }
+
+    /**
+     * Retrieve and validate a Stripe Price with optional product match.
+     *
+     * @return \Stripe\Price
+     */
+    private function getValidatedStripePrice(?string $productId, string $priceId)
+    {
+        try {
+            $price = $this->stripe()->prices->retrieve($priceId, ['expand' => ['product']]);
+        } catch (\Throwable $e) {
+            report($e);
             throw ValidationException::withMessages([
-                'stripe_price_id' => '選択した Price は指定の Product に紐づいていません。',
+                'stripe_price_id' => 'Stripeの照合に失敗しました。',
             ]);
         }
 
@@ -205,7 +233,8 @@ class SubscriptionPlanController extends Controller
             ]);
         }
 
-        $interval = $price->recurring->interval ?? null;
+        $interval = $price->recurring?->interval ?? null;
+        $interval = $price->recurring?->interval ?? null;
         if ($interval !== 'month') {
             throw ValidationException::withMessages([
                 'stripe_price_id' => 'Price の課金間隔は月額のみ対応しています。',
@@ -228,61 +257,24 @@ class SubscriptionPlanController extends Controller
                     : '開発環境では Test モードの Price を指定してください。',
             ]);
         }
-    }
 
-    /**
-     * Fetch unit_amount from Stripe after basic validation of the Price ID.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    private function fetchStripePriceAmount(string $priceId): int
-    {
-        $secret = config('services.stripe.secret');
-        if (empty($secret)) {
+        // Product一致確認（productId が与えられている場合のみ）
+        if (!empty($productId)) {
+            $productIdFromPrice = is_object($price->product) ? ($price->product->id ?? null) : ($price->product ?? null);
+            if ($productIdFromPrice !== $productId) {
+                throw ValidationException::withMessages([
+                    'stripe_price_id' => '選択した Price は指定の Product に紐づいていません。',
+                ]);
+            }
+        }
+
+        if ((int) ($price->unit_amount ?? 0) <= 0) {
             throw ValidationException::withMessages([
-                'stripe_price_id' => 'StripeのAPIキーが未設定です（.env の STRIPE_SECRET を設定してください）。',
+                'stripe_price_id' => 'Price の金額が不正です（0円以下）。',
             ]);
         }
 
-        $client = new StripeClient($secret);
-        try {
-            $price = $client->prices->retrieve($priceId, []);
-        } catch (\Throwable $e) {
-            throw ValidationException::withMessages([
-                'stripe_price_id' => 'Stripeの照合に失敗しました: '.$e->getMessage(),
-            ]);
-        }
-
-        if (!($price->active ?? false)) {
-            throw ValidationException::withMessages([
-                'stripe_price_id' => 'Price が非アクティブです。',
-            ]);
-        }
-
-        if (($price->type ?? '') !== 'recurring') {
-            throw ValidationException::withMessages([
-                'stripe_price_id' => 'Price は定期課金（recurring）である必要があります。',
-            ]);
-        }
-
-        $currency = $price->currency ?? '';
-        if (strtolower($currency) !== 'jpy') {
-            throw ValidationException::withMessages([
-                'stripe_price_id' => 'Price の通貨は JPY のみ対応しています。',
-            ]);
-        }
-
-        $isProd = app()->environment('production');
-        $liveMode = (bool) ($price->livemode ?? false);
-        if ($liveMode !== $isProd) {
-            throw ValidationException::withMessages([
-                'stripe_price_id' => $isProd
-                    ? '本番環境では Live モードの Price を指定してください。'
-                    : '開発環境では Test モードの Price を指定してください。',
-            ]);
-        }
-
-        return (int) ($price->unit_amount ?? 0);
+        return $price;
     }
 
     /**
@@ -299,18 +291,24 @@ class SubscriptionPlanController extends Controller
         // Fetch once
         $all = LessonCategory::query()->get(['id', 'parent_id']);
         $childrenByParent = $all->whereNotNull('parent_id')->groupBy('parent_id');
-        $roots = $all->whereNull('parent_id')->pluck('id')->all();
+        $allIds = $all->pluck('id')->all();
 
         $expanded = collect();
         foreach ($selected as $id) {
-            if (in_array($id, $roots, true)) {
-                // Add all children of this root
-                $children = $childrenByParent->get($id, collect());
-                if ($children->isNotEmpty()) {
-                    $expanded = $expanded->merge($children->pluck('id'));
+            // BFS to gather all leaf nodes; if no children, keep the node itself
+            $queue = collect([$id]);
+            $hasAnyChild = false;
+            while ($queue->isNotEmpty()) {
+                $cur = (int) $queue->shift();
+                $children = $childrenByParent->get($cur, collect());
+                if ($children->isEmpty()) {
+                    $expanded->push($cur);
+                } else {
+                    $hasAnyChild = true;
+                    $queue = $queue->merge($children->pluck('id'));
                 }
-            } else {
-                // Keep leaf selections as-is
+            }
+            if (!$hasAnyChild && in_array($id, $allIds, true)) {
                 $expanded->push($id);
             }
         }

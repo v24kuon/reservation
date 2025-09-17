@@ -35,14 +35,18 @@
                                     <td class="px-4 py-2">{{ $category->sort_order }}</td>
                                     <td class="px-4 py-2">{{ $category->is_active ? '有効' : '無効' }}</td>
                                     <td class="px-4 py-2 space-x-2">
-                                        <a href="{{ route('admin.lesson-categories.edit', $category) }}" class="text-blue-600">編集</a>
-                                        @if($category->parent_id)
-                                            <form action="{{ route('admin.lesson-categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
+                                        @can('update', $category)
+                                            <a href="{{ route('admin.lesson-categories.edit', $category) }}" class="text-blue-600">編集</a>
+                                        @endcan
+                                        @can('delete', $category)
+                                            @if($category->parent_id)
+                                            <form action="{{ route('admin.lesson-categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('カテゴリ「{{ $category->name }}」を削除しますか？この操作は取り消せません。');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>
                                             </form>
-                                        @endif
+                                            @endif
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforeach

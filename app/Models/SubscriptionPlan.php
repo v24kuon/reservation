@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @method static Builder active()
+ * @method static Builder inactive()
+ */
 class SubscriptionPlan extends Model
 {
     use HasFactory;
@@ -55,7 +60,7 @@ class SubscriptionPlan extends Model
     /**
      * Scope a query to only include active plans.
      */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
@@ -63,7 +68,7 @@ class SubscriptionPlan extends Model
     /**
      * Scope a query to only include inactive plans.
      */
-    public function scopeInactive($query)
+    public function scopeInactive(Builder $query): Builder
     {
         return $query->where('is_active', false);
     }

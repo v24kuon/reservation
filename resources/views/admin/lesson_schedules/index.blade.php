@@ -85,12 +85,16 @@
                                         <td class="px-2 py-1">{{ $schedule->current_bookings }}</td>
                                         <td class="px-2 py-1">{{ $schedule->is_active ? 'はい' : 'いいえ' }}</td>
                                         <td class="px-2 py-1 space-x-2">
+                                            @can('update', $schedule)
                                             <a href="{{ route('admin.lesson-schedules.edit', $schedule) }}" class="text-blue-600">編集</a>
-                                            <form class="inline" method="POST" action="{{ route('admin.lesson-schedules.destroy', $schedule) }}" onsubmit="return confirm('削除しますか？')">
+                                            @endcan
+                                            @can('delete', $schedule)
+                                            <form class="inline" method="POST" action="{{ route('admin.lesson-schedules.destroy', $schedule) }}" onsubmit="return confirm('スケジュールID {{ $schedule->id }} を削除しますか？この操作は取り消せません。')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>
                                             </form>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

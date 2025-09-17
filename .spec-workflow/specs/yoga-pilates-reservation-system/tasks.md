@@ -225,6 +225,12 @@
     - product と price の関連が一致していることを確認
   - 運用ガード:
     - 既に購読中ユーザーがいるプランの product/price 変更や削除は禁止（別レコード追加 → 段階的移行）
+      - 判定基準: subscriptions.status in (trialing, active, past_due)
+      - 判定クエリ例: `$plan->userSubscriptions()->whereIn('status', ['trialing', 'active', 'past_due'])->exists()`
+      - 段階的移行フロー:
+        1. 新規プランレコード作成（既存プランは無効化）
+        2. 既存ユーザーに新プランへの切替誘導
+        3. 全ユーザー移行完了後に旧プラン削除
     - Live/Test のID混入を防ぐため、環境毎の接頭辞・キーで検証し保存を拒否
   - Purpose: Allow admin to manage subscription plans via web interface / 目的: 管理者がWebインターフェース経由でサブスクリプションプランを管理可能にする
   - Requirements: 6.1 / 要件: 6.1
@@ -335,7 +341,7 @@
   - File: app/Listeners/ (new listener classes) / ファイル: app/Listeners/ (新規リスナークラス)
   - Handle checkout.session.completed: user_subscriptions creation with period sync and remaining lessons transfer / checkout.session.completed: user_subscriptions作成、period同期、残り回数引継ぎ
   - Handle customer.subscription.created/updated/deleted: status/payment_status/period sync / customer.subscription.created/updated/deleted: status/payment_status/period同期
-  - Handle invoice.paid: current_period_* sync + current_month_used_count=0 (statistics reset) / invoice.paid: current_period_*同期＋current_month_used_count=0（統計リセット）
+  - Handle invoice.paid: current_period_* sync + current_month_used_count=0 (statistics reset) / invoice.paid: current_period_*同期+current_month_used_count=0（統計リセット）
   - Handle invoice.payment_failed: payment_status=failed (new reservation blocking due to count limits) / invoice.payment_failed: payment_status=failed（回数制限による新規予約ブロック）
   - Use Cashier's default /stripe/webhook route (no custom controller to avoid conflicts) / Cashierの既定ルート /stripe/webhook を使用（衝突回避のためカスタムコントローラーは作成しない）
   - Enforce idempotency by recording processed event.id / event.id を保存して多重処理を防止
@@ -349,8 +355,12 @@
   - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
   - Exclude CSRF only for '/stripe/webhook' (use default Cashier route) / '/stripe/webhook' のみCSRF除外設定（既定のCashierルートを利用）
   - Webhookルートは POST のみ許可し、Cashierの署名検証を必須化（STRIPE_WEBHOOK_SECRET）
+  - JSONのみ受理（Content-Type: application/json）
   - リスナーはキュー経由で非同期処理（長時間処理の同期応答を避ける）
   - 受信時の冪等性（event.id 記録）と再試行時の安全性を明記
+    - 整合時: 204/200レスポンス
+    - 重複時: 204/409レスポンス
+  - 署名検証失敗時: 400/401/403レスポンス
   - Webhook専用ログ/メトリクス（受信数、検証失敗、重複破棄件数）を追加
   - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
   - Purpose: Accept Stripe webhook notifications via default Cashier route / 目的: 既定のCashierルート経由でStripe Webhook通知を受け入れる

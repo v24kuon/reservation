@@ -20,10 +20,7 @@
                     @endif
                     <p><strong>対象カテゴリ:</strong>
                         @if($plan->allowed_category_ids)
-                            @php
-                                $categories = App\Models\LessonCategory::whereIn('id', $plan->allowed_category_ids)->get();
-                            @endphp
-                            @foreach($categories as $category)
+                            @foreach($allowedCategories as $category)
                                 <span class="inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-2 py-1 rounded mr-2 mb-1">{{ $category->name }}</span>
                             @endforeach
                         @else

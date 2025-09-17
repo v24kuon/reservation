@@ -37,12 +37,16 @@
                                         <td class="px-2 py-1">{{ $lesson->instructor?->name ?? '-' }}</td>
                                         <td class="px-2 py-1">{{ $lesson->is_active ? '有効' : '無効' }}</td>
                                         <td class="px-2 py-1 space-x-2">
+                                            @can('update', $lesson)
                                             <a href="{{ route('admin.lessons.edit', $lesson) }}" class="text-blue-600">編集</a>
-                                            <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
+                                            @endcan
+                                            @can('delete', $lesson)
+                                            <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" class="inline" onsubmit="return confirm('レッスン「{{ $lesson->name }}」を削除しますか？この操作は取り消せません。');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>
                                             </form>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @endforeach

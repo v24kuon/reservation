@@ -120,7 +120,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('subscription-plans', SubscriptionPlanController::class);
         // Ajax: lookup Stripe price amount
         Route::post('subscription-plans/price-lookup', [SubscriptionPlanController::class, 'priceLookup'])
-            ->name('subscription-plans.price-lookup');
+            ->name('subscription-plans.price-lookup')
+            ->middleware('throttle:30,1');
 
         // Admin: system settings
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');

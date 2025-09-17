@@ -100,6 +100,7 @@
     const priceInput = document.getElementById('price');
     const priceIdInput = document.getElementById('stripe_price_id');
     let timer;
+    let abortController;
 
     function debounce(fn, wait) {
         return function(...args) {
@@ -111,20 +112,29 @@
     async function lookupPrice(priceId) {
         if (!priceId || !/^price_[A-Za-z0-9]+$/.test(priceId)) return;
         try {
+            // cancel previous in-flight request
+            if (abortController) abortController.abort();
+            abortController = new AbortController();
             const res = await fetch('{{ route('admin.subscription-plans.price-lookup') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
-                body: JSON.stringify({ price_id: priceId })
+                body: JSON.stringify({ price_id: priceId }),
+                signal: abortController.signal
             });
+            if (!res.ok) return;
             const data = await res.json();
             if (data && data.success) {
                 priceInput.value = data.price;
             }
         } catch (e) {
-            // no-op
+            if (e.name !== 'AbortError') {
+                // no-op
+            }
         }
     }
 
