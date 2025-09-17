@@ -121,7 +121,7 @@ class UserSubscription extends Model
      */
     public function allowsCategory(int $categoryId): bool
     {
-        return $this->plan->allowsCategory($categoryId);
+        return $this->plan?->allowsCategory($categoryId) ?? false;
     }
 
     /**
