@@ -3,13 +3,14 @@
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\LessonController;
-use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\LessonScheduleController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\InstructorProfileController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Models\LessonSchedule;
 use Illuminate\Support\Facades\Route;
 
@@ -78,6 +79,13 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified', 'can:access-dashboard'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Subscription checkout (auth required)
+    Route::get('/subscription/checkout/{plan}', [SubscriptionController::class, 'createCheckoutSession'])
+        ->name('subscription.checkout');
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])
+        ->name('subscription.success');
+    Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])
+        ->name('subscription.cancel');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -240,7 +240,7 @@
 ### Stripe Checkout Integration Tasks
 ### Stripe Checkout統合タスク
 
-- [ ] 25. Create checkout session controller / チェックアウトセッションコントローラーを作成
+- [x] 25. Create checkout session controller / チェックアウトセッションコントローラーを作成
   - File: app/Http/Controllers/SubscriptionController.php (new) / ファイル: app/Http/Controllers/SubscriptionController.php (新規)
   - Method: createCheckoutSession($planId) / メソッド: createCheckoutSession($planId)
   - Purpose: Handle Stripe checkout session creation / 目的: Stripeチェックアウトセッション作成を処理
@@ -248,7 +248,7 @@
   - Dependencies: Tasks 22, 23 / 依存関係: タスク22, 23
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 26. Add subscription routes / サブスクリプションルートを追加
+- [x] 26. Add subscription routes / サブスクリプションルートを追加
   - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
   - Add routes for subscription checkout and success / サブスクリプションチェックアウトと成功用のルートを追加
   - Purpose: Define URL routing for subscription features / 目的: サブスクリプション機能のURLルーティングを定義
@@ -256,7 +256,7 @@
   - Dependencies: Task 25 / 依存関係: タスク25
   - Estimated time: 10 minutes / 推定時間: 10分
 
-- [ ] 27. Create checkout success page / チェックアウト成功ページを作成
+- [x] 27. Create checkout success page / チェックアウト成功ページを作成
   - File: resources/views/subscription/success.blade.php (new) / ファイル: resources/views/subscription/success.blade.php (新規)
   - Display subscription confirmation and next steps / サブスクリプション確認と次のステップを表示
   - Purpose: Provide user feedback after successful subscription / 目的: サブスクリプション成功後のユーザーフィードバックを提供

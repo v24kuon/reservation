@@ -144,8 +144,10 @@ class LessonScheduleController extends Controller
 
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($lesson_schedule, $data) {
+                $lessonId = $data['lesson_id'] ?? $lesson_schedule->lesson_id;
+
                 \App\Models\Lesson::query()
-                    ->whereKey($data['lesson_id'])
+                    ->whereKey($lessonId)
                     ->lockForUpdate()
                     ->firstOrFail();
 
