@@ -10,7 +10,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 space-y-2">
                     <p><strong>プラン名:</strong> {{ $plan->name }}</p>
-                    <p><strong>価格:</strong> ¥{{ number_format($plan->price) }}</p>
+                    <p><strong>価格:</strong> {{ $plan->formatted_price }}</p>
                     <p><strong>月間回数:</strong> {{ $plan->lesson_count }}回</p>
                     <p><strong>状態:</strong> {{ $plan->is_active ? '有効' : '無効' }}</p>
                     <p><strong>Stripe Product ID:</strong> <span class="font-mono">{{ $plan->stripe_product_id }}</span></p>
@@ -30,7 +30,7 @@
 
                     <div class="pt-4 flex space-x-2">
                         <x-primary-button as="a" href="{{ route('admin.subscription-plans.edit', $plan) }}">編集</x-primary-button>
-                        <x-secondary-button href="{{ route('admin.subscription-plans.index') }}">戻る</x-secondary-button>
+                        <x-secondary-button as="a" href="{{ route('admin.subscription-plans.index') }}">戻る</x-secondary-button>
                     </div>
                 </div>
             </div>

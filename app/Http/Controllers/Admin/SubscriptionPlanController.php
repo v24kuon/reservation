@@ -47,7 +47,7 @@ class SubscriptionPlanController extends Controller
         $data['price'] = (int) ($price->unit_amount ?? 0);
 
         // Expand any selected parent categories into their child categories (server-side safety net)
-        $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids']);
+        $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids'] ?? []);
 
         $plan = new SubscriptionPlan();
         $plan->fill([
@@ -116,7 +116,7 @@ class SubscriptionPlanController extends Controller
         $data['price'] = (int) ($price->unit_amount ?? 0);
 
         // Expand any selected parent categories into their child categories (server-side safety net)
-        $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids']);
+        $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids'] ?? []);
 
         $subscriptionPlan->fill([
             'name' => $data['name'],
@@ -233,7 +233,6 @@ class SubscriptionPlanController extends Controller
             ]);
         }
 
-        $interval = $price->recurring?->interval ?? null;
         $interval = $price->recurring?->interval ?? null;
         if ($interval !== 'month') {
             throw ValidationException::withMessages([

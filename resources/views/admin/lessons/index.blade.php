@@ -41,7 +41,7 @@
                                             <a href="{{ route('admin.lessons.edit', $lesson) }}" class="text-blue-600">編集</a>
                                             @endcan
                                             @can('delete', $lesson)
-                                            <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" class="inline" onsubmit="return confirm('レッスン「{{ $lesson->name }}」を削除しますか？この操作は取り消せません。');">
+                                            <form action="{{ route('admin.lessons.destroy', $lesson) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from("レッスン「{$lesson->name}」を削除しますか？この操作は取り消せません。") }});">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>

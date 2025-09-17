@@ -9,6 +9,8 @@ class LessonPolicy
 {
     /**
      * Admin: allow all by default
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function before(User $user, string $ability): ?bool
     {
@@ -19,11 +21,17 @@ class LessonPolicy
         return null;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function update(User $user, Lesson $lesson): bool
     {
         return false;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function delete(User $user, Lesson $lesson): bool
     {
         return false;

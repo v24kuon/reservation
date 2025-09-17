@@ -40,7 +40,7 @@
                                         @endcan
                                         @can('delete', $category)
                                             @if($category->parent_id)
-                                            <form action="{{ route('admin.lesson-categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('カテゴリ「{{ $category->name }}」を削除しますか？この操作は取り消せません。');">
+                                            <form action="{{ route('admin.lesson-categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from("カテゴリ「{$category->name}」を削除しますか？この操作は取り消せません。") }});">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>

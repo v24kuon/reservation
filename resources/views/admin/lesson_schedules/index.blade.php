@@ -89,7 +89,7 @@
                                             <a href="{{ route('admin.lesson-schedules.edit', $schedule) }}" class="text-blue-600">編集</a>
                                             @endcan
                                             @can('delete', $schedule)
-                                            <form class="inline" method="POST" action="{{ route('admin.lesson-schedules.destroy', $schedule) }}" onsubmit="return confirm('スケジュールID {{ $schedule->id }} を削除しますか？この操作は取り消せません。')">
+                                            <form class="inline" method="POST" action="{{ route('admin.lesson-schedules.destroy', $schedule) }}" onsubmit="return confirm({{ Js::from("スケジュールID {$schedule->id} を削除しますか？この操作は取り消せません。") }});">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>

@@ -32,7 +32,7 @@
                                         <td class="px-4 py-2">
                                             <a class="text-indigo-600" href="{{ route('admin.subscription-plans.show', $plan) }}">{{ $plan->name }}</a>
                                         </td>
-                                        <td class="px-4 py-2">¥{{ number_format($plan->price) }}</td>
+                                        <td class="px-4 py-2">{{ $plan->formatted_price }}</td>
                                         <td class="px-4 py-2">{{ $plan->lesson_count }}回</td>
                                         <td class="px-4 py-2">{{ $plan->is_active ? '有効' : '無効' }}</td>
                                         <td class="px-4 py-2 space-x-2">
@@ -40,7 +40,7 @@
                                                 <a href="{{ route('admin.subscription-plans.edit', $plan) }}" class="text-blue-600">編集</a>
                                             @endcan
                                             @can('delete', $plan)
-                                                <form action="{{ route('admin.subscription-plans.destroy', $plan) }}" method="POST" class="inline" onsubmit="return confirm('プラン「{{ $plan->name }}」を削除しますか？この操作は取り消せません。');">
+                                                <form action="{{ route('admin.subscription-plans.destroy', $plan) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from("プラン「{$plan->name}」を削除しますか？この操作は取り消せません。") }});">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600">削除</button>

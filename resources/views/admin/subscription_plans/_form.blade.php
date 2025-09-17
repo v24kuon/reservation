@@ -110,7 +110,10 @@
     }
 
     async function lookupPrice(priceId) {
-        if (!priceId || !/^price_[A-Za-z0-9]+$/.test(priceId)) return;
+        if (!priceId || !/^price_[A-Za-z0-9]+$/.test(priceId)) {
+            if (priceInput) priceInput.value = '';
+            return;
+        }
         try {
             // cancel previous in-flight request
             if (abortController) abortController.abort();
@@ -121,19 +124,24 @@
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content
+                                     || document.querySelector('input[name="_token"]')?.value
+                                     || '')
                 },
                 body: JSON.stringify({ price_id: priceId }),
                 signal: abortController.signal
             });
-            if (!res.ok) return;
+            if (!res.ok) {
+                if (priceInput) priceInput.value = '';
+                return;
+            }
             const data = await res.json();
             if (data && data.success) {
                 priceInput.value = data.price;
             }
         } catch (e) {
             if (e.name !== 'AbortError') {
-                // no-op
+                if (priceInput) priceInput.value = '';
             }
         }
     }

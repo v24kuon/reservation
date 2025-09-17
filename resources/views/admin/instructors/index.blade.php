@@ -37,7 +37,7 @@
                                             <a href="{{ route('admin.instructors.edit', $instructor) }}" class="text-blue-600">編集</a>
                                             @endcan
                                             @can('delete', $instructor)
-                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');">
+                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>

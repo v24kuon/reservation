@@ -10,6 +10,8 @@ class UserPolicy
 
     /**
      * Admin は（delete/forceDelete を除き）全権限を許可
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function before(User $user, string $ability): ?bool
     {
