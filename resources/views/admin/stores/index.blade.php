@@ -37,7 +37,7 @@
                                         <a href="{{ route('admin.stores.edit', $store) }}" class="text-blue-600">編集</a>
                                         @endcan
                                         @can('delete', $store)
-                                        <form action="{{ route('admin.stores.destroy', $store) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});">
+                                        <form action="{{ route('admin.stores.destroy', $store) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});" aria-label="『{{ $store->name }}』を削除">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600">削除</button>

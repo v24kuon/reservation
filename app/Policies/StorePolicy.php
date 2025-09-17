@@ -8,72 +8,66 @@ use App\Models\User;
 class StorePolicy
 {
     /**
+     * 管理者は全権限許可
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        return $user->hasRole(User::ROLE_ADMIN) ? true : null;
+    }
+
+    /**
      * Determine whether the user can view any models.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 
     /**
      * Determine whether the user can view the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function view(User $user, Store $store): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 
     /**
      * Determine whether the user can create models.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 
     /**
      * Determine whether the user can update the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function update(User $user, Store $store): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function delete(User $user, Store $store): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 
     /**
      * Determine whether the user can restore the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function restore(User $user, Store $store): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 
     /**
      * Determine whether the user can permanently delete the model.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function forceDelete(User $user, Store $store): bool
     {
-        return $user->hasRole(User::ROLE_ADMIN);
+        return false;
     }
 }

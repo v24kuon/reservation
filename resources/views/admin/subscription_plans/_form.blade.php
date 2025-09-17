@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label for="price" class="block text-sm font-medium">価格（円）</label>
-                <input id="price" name="price" type="number" min="1" class="mt-1 w-full border rounded p-2 bg-gray-100" readonly value="{{ old('price', $plan->price ?? '') }}" aria-invalid="@error('price') true @else false @enderror" placeholder="Stripe Price から自動取得">
+                <input id="price" name="price" type="number" min="1" class="mt-1 w-full border rounded p-2 bg-gray-100" readonly value="{{ old('price', $plan->price ?? '') }}" aria-invalid="@error('price') true @else false @enderror" aria-describedby="price-help" placeholder="Stripe Price から自動取得">
                 @error('price')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
                 <p id="price-help" class="text-xs text-gray-500 mt-1">StripeのPrice IDを入力すると自動で反映されます</p>
             </div>
@@ -136,8 +136,11 @@
                 return;
             }
             const data = await res.json();
-            if (data && data.success) {
-                priceInput.value = data.price;
+            const next = Number(data?.price);
+            if (data?.success && Number.isFinite(next)) {
+                priceInput.value = String(next);
+            } else {
+                if (priceInput) priceInput.value = '';
             }
         } catch (e) {
             if (e.name !== 'AbortError') {

@@ -34,10 +34,10 @@
                                         <td class="px-2 py-1">{{ $instructor->created_at?->format('Y-m-d') }}</td>
                                         <td class="px-2 py-1 space-x-2">
                                             @can('update', $instructor)
-                                            <a href="{{ route('admin.instructors.edit', $instructor) }}" class="text-blue-600">編集</a>
+                                            <a href="{{ route('admin.instructors.edit', $instructor) }}" class="text-blue-600" aria-label="『{{ $instructor->name }}』を編集">編集</a>
                                             @endcan
                                             @can('delete', $instructor)
-                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});">
+                                            <form action="{{ route('admin.instructors.destroy', $instructor) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});" aria-label="『{{ $instructor->name }}』を削除">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600">削除</button>
