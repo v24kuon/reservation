@@ -10,15 +10,17 @@ use Stripe\StripeClient;
 
 class SubscriptionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Create a Stripe Checkout Session for the given plan and redirect user.
      */
     public function createCheckoutSession(Request $request, int $planId): RedirectResponse
     {
         $user = $request->user();
-        if ($user === null) {
-            return redirect()->route('login');
-        }
 
         $plan = SubscriptionPlan::query()->active()->findOrFail($planId);
 
@@ -29,33 +31,44 @@ class SubscriptionController extends Controller
         $user->createOrGetStripeCustomer();
 
         // Success / Cancel URLs (Task 26/27 will register named routes). Use temporary absolute URLs.
-        $successUrl = url('/subscription/success') . '?session_id={CHECKOUT_SESSION_ID}';
+        $successUrl = url('/subscription/success').'?session_id={CHECKOUT_SESSION_ID}';
         $cancelUrl = url('/subscription/cancel');
 
         try {
+            // 同一ユーザー×プランの短期的な二重発行を抑止（必要ならキャッシュで再利用）
+            $idemKey = 'checkout:'.$user->getKey().':'.$plan->getKey().':'.(string) \Illuminate\Support\Str::uuid();
             $session = $this->stripe()->checkout->sessions->create([
                 'mode' => 'subscription',
                 'customer' => $user->stripe_id,
                 'line_items' => [
                     [
-                        'price' => $plan->stripe_price_id,
+                        'price' => $price->id,
                         'quantity' => 1,
                     ],
                 ],
                 'success_url' => $successUrl,
                 'cancel_url' => $cancelUrl,
                 'locale' => 'ja',
+                'client_reference_id' => (string) $user->getKey(),
                 'metadata' => [
                     'app_plan_id' => (string) $plan->getKey(),
                     'app_user_id' => (string) $user->getKey(),
-                    'stripe_product_id' => (string) $plan->stripe_product_id,
-                    'stripe_price_id' => (string) $plan->stripe_price_id,
+                    'stripe_product_id' => (string) (is_object($price->product) ? ($price->product->id ?? $price->product) : $price->product),
+                    'stripe_price_id' => (string) $price->id,
                 ],
                 // Optional: enable promotion codes in future if needed
                 // 'allow_promotion_codes' => true,
+            ], [
+                'idempotency_key' => $idemKey,
             ]);
         } catch (\Throwable $e) {
             report($e);
+            if ($e instanceof \Stripe\Exception\ApiErrorException) {
+                logger()->warning('Stripe API error', [
+                    'request_id' => $e->getRequestId(),
+                    'stripe_code' => $e->getStripeCode(),
+                ]);
+            }
             throw ValidationException::withMessages([
                 'subscription' => '決済セッションの作成に失敗しました。時間をおいて再度お試しください。',
             ]);
@@ -105,7 +118,7 @@ class SubscriptionController extends Controller
             ]);
         }
 
-        if (!($price->active ?? false)) {
+        if (! ($price->active ?? false)) {
             throw ValidationException::withMessages([
                 'stripe_price_id' => 'Price が非アクティブです。',
             ]);
@@ -141,7 +154,7 @@ class SubscriptionController extends Controller
             ]);
         }
 
-        if (!empty($productId)) {
+        if (! empty($productId)) {
             $productIdFromPrice = is_object($price->product) ? ($price->product->id ?? null) : ($price->product ?? null);
             if ($productIdFromPrice !== $productId) {
                 throw ValidationException::withMessages([
