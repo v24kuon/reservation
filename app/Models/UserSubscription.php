@@ -101,7 +101,9 @@ class UserSubscription extends Model
      */
     public function hasRemainingLessons(): bool
     {
-        return $this->current_month_used_count < $this->plan->lesson_count;
+        $limit = $this->plan?->lesson_count ?? 0;
+
+        return $this->current_month_used_count < $limit;
     }
 
     /**
@@ -109,7 +111,9 @@ class UserSubscription extends Model
      */
     public function getRemainingLessonsAttribute(): int
     {
-        return max(0, $this->plan->lesson_count - $this->current_month_used_count);
+        $limit = $this->plan?->lesson_count ?? 0;
+
+        return max(0, $limit - $this->current_month_used_count);
     }
 
     /**
@@ -160,6 +164,9 @@ class UserSubscription extends Model
      */
     public function getFormattedPeriodAttribute(): string
     {
-        return $this->current_period_start->format('Y年m月d日').' ～ '.$this->current_period_end->format('Y年m月d日');
+        $start = $this->current_period_start?->format('Y年m月d日') ?? '-';
+        $end = $this->current_period_end?->format('Y年m月d日') ?? '-';
+
+        return "{$start} ～ {$end}";
     }
 }

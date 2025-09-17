@@ -152,10 +152,21 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getActiveSubscriptionForCategory(int $categoryId): ?UserSubscription
     {
+        $now = now();
+
         return $this->userSubscriptions()
             ->active()
             ->paid()
             ->forCategory($categoryId)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('current_period_start')
+                    ->orWhere('current_period_start', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('current_period_end')
+                    ->orWhere('current_period_end', '>=', $now);
+            })
+            ->with('plan')
             ->orderByDesc('current_period_start')
             ->orderByDesc('id')
             ->first();
