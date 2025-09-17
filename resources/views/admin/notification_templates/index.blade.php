@@ -41,7 +41,7 @@
                                         <a href="{{ route('admin.notification-templates.edit', $template) }}" class="text-blue-600" aria-label="『{{ $template->name }}』を編集">編集</a>
                                         @endcan
                                         @can('delete', $template)
-                                        <form action="{{ route('admin.notification-templates.destroy', $template) }}" method="POST" class="inline" onsubmit="return confirm('削除しますか？');" aria-label="『{{ $template->name }}』を削除">
+                                        <form action="{{ route('admin.notification-templates.destroy', $template) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});" aria-label="『{{ $template->name }}』を削除">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600">削除</button>

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\LessonController;
+use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\LessonScheduleController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\SettingController;
@@ -114,6 +115,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Admin: notification templates CRUD
         Route::resource('notification-templates', NotificationTemplateController::class);
+
+        // Admin: subscription plans CRUD
+        Route::resource('subscription-plans', SubscriptionPlanController::class);
+        // Ajax: lookup Stripe price amount
+        Route::post('subscription-plans/price-lookup', [SubscriptionPlanController::class, 'priceLookup'])
+            ->name('subscription-plans.price-lookup')
+            ->middleware('throttle:30,1');
 
         // Admin: system settings
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');

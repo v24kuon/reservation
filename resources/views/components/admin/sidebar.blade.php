@@ -8,6 +8,7 @@
     <x-admin.sidebar-link href="{{ route('admin.lessons.index') }}" :active="request()->routeIs('admin.lessons.*')">レッスン</x-admin.sidebar-link>
     <x-admin.sidebar-link href="{{ route('admin.notification-templates.index') }}" :active="request()->routeIs('admin.notification-templates.*')">通知テンプレート</x-admin.sidebar-link>
     <x-admin.sidebar-link href="{{ route('admin.lesson-schedules.index') }}" :active="request()->routeIs('admin.lesson-schedules.*')">レッスンスケジュール</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.subscription-plans.index') }}" :active="request()->routeIs('admin.subscription-plans.*')">月謝プラン</x-admin.sidebar-link>
     <x-admin.sidebar-link href="{{ route('admin.settings.edit') }}" :active="request()->routeIs('admin.settings.*')">システム設定</x-admin.sidebar-link>
 
     <div class="pt-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">アカウント</div>
