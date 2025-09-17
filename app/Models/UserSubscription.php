@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,7 +57,7 @@ class UserSubscription extends Model
     /**
      * Scope a query to only include active subscriptions.
      */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
@@ -64,9 +65,19 @@ class UserSubscription extends Model
     /**
      * Scope a query to only include paid subscriptions.
      */
-    public function scopePaid($query)
+    public function scopePaid(Builder $query): Builder
     {
         return $query->where('payment_status', 'paid');
+    }
+
+    /**
+     * Scope by lesson category allowed by the plan.
+     */
+    public function scopeForCategory(Builder $query, int $categoryId): Builder
+    {
+        return $query->whereHas('plan', function (Builder $planQuery) use ($categoryId): void {
+            $planQuery->whereJsonContains('allowed_category_ids', $categoryId);
+        });
     }
 
     /**
@@ -90,7 +101,9 @@ class UserSubscription extends Model
      */
     public function hasRemainingLessons(): bool
     {
-        return $this->current_month_used_count < $this->plan->lesson_count;
+        $limit = $this->plan?->lesson_count ?? 0;
+
+        return $this->current_month_used_count < $limit;
     }
 
     /**
@@ -98,7 +111,9 @@ class UserSubscription extends Model
      */
     public function getRemainingLessonsAttribute(): int
     {
-        return max(0, $this->plan->lesson_count - $this->current_month_used_count);
+        $limit = $this->plan?->lesson_count ?? 0;
+
+        return max(0, $limit - $this->current_month_used_count);
     }
 
     /**
@@ -106,7 +121,42 @@ class UserSubscription extends Model
      */
     public function allowsCategory(int $categoryId): bool
     {
-        return $this->plan->allowsCategory($categoryId);
+        return $this->plan?->allowsCategory($categoryId) ?? false;
+    }
+
+    /**
+     * Alias for allowsCategory to match task specification.
+     */
+    public function hasCategory(int $categoryId): bool
+    {
+        return $this->allowsCategory($categoryId);
+    }
+
+    /**
+     * Determine if the user can book the given lesson under this subscription.
+     */
+    public function canBookLesson(Lesson $lesson): bool
+    {
+        if (! $this->isActive() || ! $this->isPaid()) {
+            return false;
+        }
+
+        // Period validity check
+        $now = now();
+        if ($this->current_period_start && $now->lt($this->current_period_start)) {
+            return false;
+        }
+        if ($this->current_period_end && $now->gt($this->current_period_end)) {
+            return false;
+        }
+
+        // Category permission
+        if (! $this->hasCategory((int) $lesson->category_id)) {
+            return false;
+        }
+
+        // Lesson count enforcement
+        return $this->hasRemainingLessons();
     }
 
     /**
@@ -114,6 +164,9 @@ class UserSubscription extends Model
      */
     public function getFormattedPeriodAttribute(): string
     {
-        return $this->current_period_start->format('Y年m月d日').' ～ '.$this->current_period_end->format('Y年m月d日');
+        $start = $this->current_period_start?->format('Y年m月d日') ?? '-';
+        $end = $this->current_period_end?->format('Y年m月d日') ?? '-';
+
+        return "{$start} ～ {$end}";
     }
 }

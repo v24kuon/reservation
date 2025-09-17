@@ -267,7 +267,7 @@
 ### Advanced Subscription Management Tasks
 ### 高度なサブスクリプション管理タスク
 
-- [ ] 28. Implement category-based subscription management / カテゴリー別サブスクリプション管理を実装
+- [x] 28. Implement category-based subscription management / カテゴリー別サブスクリプション管理を実装
   - File: app/Models/User.php (modify), app/Models/UserSubscription.php (modify) / ファイル: app/Models/User.php (修正), app/Models/UserSubscription.php (修正)
   - **Architecture Design / アーキテクチャ設計**:
     - Two-layer subscription management: Stripe Layer (subscriptions table) vs Application Layer (user_subscriptions table) / 二層サブスクリプション管理: Stripe Layer (subscriptions table) vs Application Layer (user_subscriptions table)
@@ -315,7 +315,7 @@
   - File: database/migrations/ (new migration files) / ファイル: database/migrations/ (新規マイグレーションファイル)
   - Add remaining_lessons column to user_subscriptions table / user_subscriptionsテーブルにremaining_lessonsカラムを追加
   - Create plan_switch_logs table for statistics / 統計用plan_switch_logsテーブルを作成
-  - Add performance indexes: (user_id, status, payment_status), (user_id, current_period_start DESC), (user_id, lesson_schedule_id) / パフォーマンスインデックス追加: (user_id, status, payment_status), (user_id, current_period_start DESC), (user_id, lesson_schedule_id)
+  - Add performance indexes: (user_id, status, payment_status), (user_id, current_period_start DESC), (user_id, lesson_schedule_id), (user_id, status, payment_status, current_period_start DESC, id DESC) / パフォーマンスインデックス追加: (user_id, status, payment_status), (user_id, current_period_start DESC), (user_id, lesson_schedule_id), (user_id, status, payment_status, current_period_start DESC, id DESC)
   - Optional: Add stripe_price_id column for audit trail / 任意: 監査用stripe_price_idカラムを追加
   - Purpose: Support advanced subscription management features / 目的: 高度なサブスクリプション管理機能をサポート
   - Requirements: 6.1 / 要件: 6.1
