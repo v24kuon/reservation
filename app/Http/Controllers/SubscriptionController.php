@@ -11,11 +11,6 @@ use Stripe\StripeClient;
 
 class SubscriptionController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     /**
      * Create a Stripe Checkout Session for the given plan and redirect user.
      */
@@ -103,12 +98,8 @@ class SubscriptionController extends Controller
      */
     public function success(Request $request): View
     {
-        // セッションIDは今後の照合用に受け取る（表示には使わない）
-        $sessionId = (string) $request->query('session_id', '');
-
-        return view('subscription.success', [
-            'sessionId' => $sessionId,
-        ]);
+        // （必要になるまで session_id は保持・表示しない）
+        return view('subscription.success');
     }
 
     /**

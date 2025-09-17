@@ -79,7 +79,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified', 'can:access-dashboard'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Subscription checkout
+    // Subscription checkout (auth required)
     Route::get('/subscription/checkout/{plan}', [SubscriptionController::class, 'createCheckoutSession'])
         ->name('subscription.checkout');
     Route::get('/subscription/success', [SubscriptionController::class, 'success'])
