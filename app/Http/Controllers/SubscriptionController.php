@@ -24,19 +24,37 @@ class SubscriptionController extends Controller
 
         $plan = SubscriptionPlan::query()->active()->findOrFail($planId);
 
+        // 既存の同一プラン（同一Price）への重複加入を抑止
+        if (method_exists($user, 'subscribedToPrice') && $user->subscribedToPrice($plan->stripe_price_id)) {
+            throw ValidationException::withMessages([
+                'subscription' => 'すでにこのプランに加入済みです。',
+            ]);
+        }
+
         // Validate price/product in Stripe and environment consistency
         $price = $this->getValidatedStripePrice($plan->stripe_product_id, $plan->stripe_price_id);
 
         // Ensure Stripe customer exists
         $user->createOrGetStripeCustomer();
 
-        // Success / Cancel URLs (Task 26/27 will register named routes). Use temporary absolute URLs.
-        $successUrl = url('/subscription/success').'?session_id={CHECKOUT_SESSION_ID}';
-        $cancelUrl = url('/subscription/cancel');
+        // Success / Cancel URLs
+        // Task 26/27 完了後は route 名の絶対URLに移行（HTTPSはグローバルでforceScheme推奨）
+        if (app('router')->has('subscription.success')) {
+            $successUrl = route('subscription.success', ['session_id' => '{CHECKOUT_SESSION_ID}'], true);
+        } else {
+            $successUrl = url('/subscription/success').'?session_id={CHECKOUT_SESSION_ID}';
+        }
+        if (app('router')->has('subscription.cancel')) {
+            $cancelUrl = route('subscription.cancel', [], true);
+        } else {
+            $cancelUrl = url('/subscription/cancel');
+        }
 
         try {
-            // 同一ユーザー×プランの短期的な二重発行を抑止（必要ならキャッシュで再利用）
-            $idemKey = 'checkout:'.$user->getKey().':'.$plan->getKey().':'.(string) \Illuminate\Support\Str::uuid();
+            // 同一ユーザー×プランの短期的な二重発行を抑止
+            // フロント付与のIdempotency-Keyを優先。無ければセッションID由来の安定キーを生成
+            $idemKey = $request->header('Idempotency-Key')
+                ?? ('checkout:'.hash('sha256', $user->getKey().':'.$plan->getKey().':'.$request->session()->getId()));
             $session = $this->stripe()->checkout->sessions->create([
                 'mode' => 'subscription',
                 'customer' => $user->stripe_id,
@@ -53,7 +71,9 @@ class SubscriptionController extends Controller
                 'metadata' => [
                     'app_plan_id' => (string) $plan->getKey(),
                     'app_user_id' => (string) $user->getKey(),
-                    'stripe_product_id' => (string) (is_object($price->product) ? ($price->product->id ?? $price->product) : $price->product),
+                    'stripe_product_id' => is_string($price->product)
+                        ? $price->product
+                        : ($price->product->id ?? ''),
                     'stripe_price_id' => (string) $price->id,
                 ],
                 // Optional: enable promotion codes in future if needed
@@ -104,10 +124,8 @@ class SubscriptionController extends Controller
 
     /**
      * Retrieve and validate a Stripe Price with optional product match.
-     *
-     * @return \Stripe\Price
      */
-    private function getValidatedStripePrice(?string $productId, string $priceId)
+    private function getValidatedStripePrice(?string $productId, string $priceId): \Stripe\Price
     {
         try {
             $price = $this->stripe()->prices->retrieve($priceId, ['expand' => ['product']]);
