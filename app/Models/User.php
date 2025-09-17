@@ -146,4 +146,18 @@ class User extends Authenticatable implements MustVerifyEmail
         // Use app-specific subscription scopes
         return $this->userSubscriptions()->active()->paid();
     }
+
+    /**
+     * Get the latest active subscription that allows the given category.
+     */
+    public function getActiveSubscriptionForCategory(int $categoryId): ?UserSubscription
+    {
+        return $this->userSubscriptions()
+            ->active()
+            ->paid()
+            ->forCategory($categoryId)
+            ->orderByDesc('current_period_start')
+            ->orderByDesc('id')
+            ->first();
+    }
 }

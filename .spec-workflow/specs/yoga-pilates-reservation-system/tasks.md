@@ -267,7 +267,7 @@
 ### Advanced Subscription Management Tasks
 ### 高度なサブスクリプション管理タスク
 
-- [ ] 28. Implement category-based subscription management / カテゴリー別サブスクリプション管理を実装
+- [x] 28. Implement category-based subscription management / カテゴリー別サブスクリプション管理を実装
   - File: app/Models/User.php (modify), app/Models/UserSubscription.php (modify) / ファイル: app/Models/User.php (修正), app/Models/UserSubscription.php (修正)
   - **Architecture Design / アーキテクチャ設計**:
     - Two-layer subscription management: Stripe Layer (subscriptions table) vs Application Layer (user_subscriptions table) / 二層サブスクリプション管理: Stripe Layer (subscriptions table) vs Application Layer (user_subscriptions table)
