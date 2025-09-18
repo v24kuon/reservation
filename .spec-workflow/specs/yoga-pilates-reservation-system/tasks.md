@@ -352,7 +352,7 @@
   - Dependencies: Task 19 / 依存関係: タスク19
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 32. Configure webhook CSRF exclusion / Webhook CSRF除外設定
+- [x] 32. Configure webhook CSRF exclusion / Webhook CSRF除外設定
   - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
   - Exclude CSRF only for '/stripe/webhook' (use default Cashier route) / '/stripe/webhook' のみCSRF除外設定（既定のCashierルートを利用）
   - Webhookルートは POST のみ許可し、Cashierの署名検証を必須化（STRIPE_WEBHOOK_SECRET）
@@ -369,20 +369,19 @@
   - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 33. Implement webhook event handlers / Webhookイベントハンドラーを実装
+- [x] 33. Implement webhook event handlers / Webhookイベントハンドラーを実装
   - File: app/Listeners/ (implement listener logic) / ファイル: app/Listeners/ (リスナーロジック実装)
   - Handle subscription status changes via event listeners / イベントリスナー経由でサブスクリプションステータス変更を処理
   - Update user subscription records with lesson count enforcement / 回数制限付きでユーザーサブスクリプションレコードを更新
-  - Send notifications for subscription events and count limit warnings / サブスクリプションイベントと回数制限警告の通知を送信
   - Purpose: Process subscription lifecycle events via listeners with count limit management / 目的: 回数制限管理付きでリスナー経由のサブスクリプションライフサイクルイベントを処理
-  - Requirements: 7.2, 10.2 / 要件: 7.2, 10.2
+  - Requirements: 7.2 / 要件: 7.2
   - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 40 minutes / 推定時間: 40分
 
 ### Reservation System Implementation Tasks
 ### 予約システム実装タスク
 
-- [ ] 34. Create Reservation model and migration / Reservationモデルとマイグレーションを作成
+- [x] 34. Create Reservation model and migration / Reservationモデルとマイグレーションを作成
   - File: app/Models/Reservation.php (new) / ファイル: app/Models/Reservation.php (新規)
   - File: database/migrations/create_reservations_table.php (new) / ファイル: database/migrations/create_reservations_table.php (新規)
   - Define relationships and business logic methods / リレーションとビジネスロジックメソッドを定義
@@ -476,26 +475,32 @@
 - [ ] 41. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
   - File: app/Models/NotificationTemplate.php (modify) / ファイル: app/Models/NotificationTemplate.php (修正)
   - Add template type constants and validation / テンプレートタイプ定数とバリデーションを追加
-  - Purpose: Support different notification types / 目的: 異なる通知タイプをサポート
+  - Add subscription event notification types (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント通知タイプを追加（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
+  - Add lesson count limit warning notification types / 回数制限警告通知タイプを追加
+  - Purpose: Support different notification types including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む異なる通知タイプをサポート
   - Requirements: 10.1, 10.2 / 要件: 10.1, 10.2
   - Dependencies: None / 依存関係: なし
-  - Estimated time: 15 minutes / 推定時間: 15分
+  - Estimated time: 20 minutes / 推定時間: 20分
 
 - [ ] 42. Create notification service / 通知サービスを作成
   - File: app/Services/NotificationService.php (new) / ファイル: app/Services/NotificationService.php (新規)
   - Implement email sending with template substitution / テンプレート置換でメール送信を実装
-  - Purpose: Centralized notification handling / 目的: 集中化された通知処理
+  - Add methods for subscription event notifications (sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed) / サブスクリプションイベント通知メソッドを追加（sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed）
+  - Add methods for lesson count limit warnings (sendCountLimitWarning, sendCountLimitReached) / 回数制限警告メソッドを追加（sendCountLimitWarning, sendCountLimitReached）
+  - Purpose: Centralized notification handling including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む集中化された通知処理
   - Requirements: 10.3, 10.4 / 要件: 10.3, 10.4
   - Dependencies: Task 41 / 依存関係: タスク41
-  - Estimated time: 30 minutes / 推定時間: 30分
+  - Estimated time: 45 minutes / 推定時間: 45分
 
 - [ ] 43. Implement notification templates / 通知テンプレートを実装
   - File: database/seeders/NotificationTemplateSeeder.php (new) / ファイル: database/seeders/NotificationTemplateSeeder.php (新規)
   - Create templates for reservation confirmation, reminders, cancellations / 予約確認、リマインダー、キャンセル用のテンプレートを作成
-  - Purpose: Populate notification templates / 目的: 通知テンプレートを投入
+  - Create templates for subscription events (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント用テンプレートを作成（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
+  - Create templates for lesson count limit warnings (count_limit_warning, count_limit_reached) / 回数制限警告用テンプレートを作成（count_limit_warning, count_limit_reached）
+  - Purpose: Populate notification templates including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む通知テンプレートを投入
   - Requirements: 10.1 / 要件: 10.1
   - Dependencies: Task 41 / 依存関係: タスク41
-  - Estimated time: 25 minutes / 推定時間: 25分
+  - Estimated time: 35 minutes / 推定時間: 35分
 
 ### Security Enhancement Tasks (Phase 2 Final)
 ### セキュリティ強化タスク (フェーズ2最終)

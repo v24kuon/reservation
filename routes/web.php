@@ -8,15 +8,14 @@ use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstructorProfileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\LessonSchedule;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-})->middleware(['auth', 'verified'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
 
 Route::get('/dashboard', function () {
     $adminStats = null;
@@ -89,6 +88,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Reservation pages (placeholder routes for now)
+    Route::get('/reservations/group', function () {
+        return view('reservations.group');
+    })->name('reservations.group');
+    Route::get('/reservations/personal', function () {
+        return view('reservations.personal');
+    })->name('reservations.personal');
 
     // Instructor self profile
     Route::get('/instructor/profile', [InstructorProfileController::class, 'editSelf'])

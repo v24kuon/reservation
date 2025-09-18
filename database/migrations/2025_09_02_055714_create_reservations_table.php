@@ -19,6 +19,13 @@ return new class extends Migration
             $table->string('status')->default('confirmed'); // confirmed, canceled, completed, no_show
             $table->dateTime('reserved_at');
             $table->timestamps();
+
+            // Prevent double booking: one user cannot have multiple active reservations for the same lesson schedule
+            $table->unique(['user_id', 'lesson_schedule_id'], 'unique_user_lesson_schedule');
+
+            // Index for performance optimization
+            $table->index(['lesson_schedule_id', 'status'], 'idx_lesson_schedule_status');
+            $table->index(['user_id', 'status'], 'idx_user_status');
         });
     }
 

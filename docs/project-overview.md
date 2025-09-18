@@ -14,8 +14,8 @@
 ## 技術スタック
 
 ### バックエンド
-- **PHP**: 8.2+
-- **Laravel Framework**: 12.x
+- **PHP**: 8.4.12
+- **Laravel Framework**: 12.26.3
 - **データベース**:
   - 開発環境: SQLite
   - 本番環境: MySQL
@@ -44,10 +44,12 @@
 ### 開発ツール
 - **Laravel Herd**: 開発環境として使用
 - **Laravel Boost**: ^1.0
-- **Laravel Pint**: ^1.24
-- **Laravel Sail**: ^1.41
+- **Laravel Pint**: 1.24.0
+- **Laravel Sail**: 1.45.0
 - **Laravel Pail**: ^1.2.2
-- **PHPUnit**: ^11.5.3
+- **Pest**: 4.0.4
+- **Livewire**: 3.6.4
+- **Tailwind CSS**: 3.4.17
 
 ## システム設計
 
@@ -76,8 +78,9 @@ subscription_plans (月謝プラン) ✅
 ├── 制約: stripe_product_id, stripe_price_id に一意制約
 
 user_subscriptions (ユーザーの月謝契約) ✅
-├── id, user_id, plan_id, stripe_subscription_id, status, payment_status, failure_reason, current_period_start, current_period_end, current_month_used_count, created_at, updated_at
+├── id, user_id, plan_id, stripe_subscription_id, status, payment_status, failure_reason, current_period_start, current_period_end, current_month_used_count, remaining_lessons, created_at, updated_at
 ├── リレーション: user, plan, reservations
+├── 機能: 回数制限管理、プラン切り替え時の残数移行、Webhook同期
 
 lessons (レッスン) ✅
 ├── id, store_id, name, category_id, instructor_user_id, duration, capacity, booking_deadline_hours, cancel_deadline_hours, is_active, created_at, updated_at
@@ -90,6 +93,8 @@ lesson_schedules (レッスンスケジュール) ✅
 reservations (予約) ✅
 ├── id, user_id, lesson_schedule_id, user_subscription_id, status, reserved_at, created_at, updated_at
 ├── リレーション: user, lessonSchedule, userSubscription
+├── 制約: user_id + lesson_schedule_id のユニーク制約（二重予約防止）
+├── 機能: 予約制約バリデーション、キャンセル期限チェック、ビジネスロジック
 
 user_favorites (ユーザーお気に入り) ✅
 ├── id, user_id, favoritable_type, favoritable_id, created_at, updated_at
@@ -115,6 +120,11 @@ system_settings (システム設定) ✅
 ├── 用途: アプリケーション全体の設定値管理
 ├── 主要設定: email_variables_whitelist（メール通知で利用可能な変数リスト）
 ├── データ型: JSON、テキスト、数値など（typeフィールドで管理）
+
+plan_switch_logs (プラン切り替えログ) ✅
+├── id, user_id, from_plan_id, to_plan_id, remaining_lessons_hint, stripe_checkout_session_id, remaining_calculated_at, meta (JSON), created_at, updated_at
+├── 用途: プラン切り替え時の残数移行記録と監査
+├── 機能: 残数計算の透明性確保、Stripe Checkout Session追跡
 ```
 
 ### 機能設計
@@ -289,14 +299,33 @@ system_settings (システム設定) ✅
   - [x] Cashierマイグレーション公開: `php artisan vendor:publish --tag="cashier-migrations"`
   - [x] マイグレーション実行: `php artisan migrate`
   - [x] Stripeキー設定: `.env(.example)` に `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` を追加
-- [ ] Stripe Products & Prices設定
-- [ ] Stripe Checkout統合
-- [ ] Webhook設定・自動同期
-- [ ] サブスクリプション管理
-- [ ] subscription_plans（月謝プラン）CRUD実装
-- [ ] 決済失敗時のエラーハンドリング
+- [x] Stripe Products & Prices設定
+  - [x] 管理画面でのStripe Price ID自動取得機能
+  - [x] 価格バリデーション（JPY、recurring、active状態チェック）
+- [x] Stripe Checkout統合
+  - [x] サブスクリプション作成・更新・キャンセル機能
+  - [x] プラン切り替え時の残数移行機能
+- [x] Webhook設定・自動同期
+  - [x] StripeWebhookListener実装
+  - [x] 専用キュー（stripe-webhooks）での処理
+  - [x] 冪等性を保つWebhook処理
+  - [x] 回数制限管理とWebhook同期
+- [x] サブスクリプション管理
+  - [x] 回数制限管理機能（remaining_lessons、current_month_used_count）
+  - [x] プラン切り替え時の残数移行ログ
+- [x] subscription_plans（月謝プラン）CRUD実装
+  - [x] 管理画面でのプラン管理
+  - [x] Stripe連携バリデーション
+- [x] 決済失敗時のエラーハンドリング
+  - [x] Webhook経由での決済失敗処理
+  - [x] エラーログとユーザー通知
 
 ### Phase 3: 予約システム
+- [x] 予約データモデル構築
+  - [x] Reservationモデルとマイグレーション作成
+  - [x] 二重予約防止制約（user_id + lesson_schedule_id ユニーク制約）
+  - [x] 予約制約バリデーション機能
+  - [x] キャンセル期限チェック機能
 - [ ] レッスン予約機能（Livewire）
 - [ ] 予約制限・重複チェック
 - [ ] 時間帯重複防止チェック
@@ -602,5 +631,5 @@ git push origin feature/user-authentication
 ---
 
 **作成日**: 2025年9月
-**バージョン**: 1.5
-**ステータス**: 基盤CRUD完了・通知テンプレート管理実装完了
+**バージョン**: 1.6
+**ステータス**: Phase 2完了（Stripe統合・Webhook処理・回数制限管理）、Phase 3開始（予約データモデル構築完了）
