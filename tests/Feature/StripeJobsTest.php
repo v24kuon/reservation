@@ -10,8 +10,17 @@ use App\Models\User;
 use App\Models\UserSubscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Config::set('services.stripe.secret', '');
+});
+
+afterEach(function () {
+    Carbon::setTestNow(); // reset
+});
 
 it('creates or updates user subscription on checkout.session.completed (new subscription)', function (): void {
     Carbon::setTestNow(Carbon::parse('2025-01-01 00:00:00'));
@@ -91,6 +100,9 @@ it('transfers remaining lessons hint on plan switch at checkout.session.complete
         'user_id' => $user->id,
         'plan_id' => $plan->id,
         'remaining_lessons' => 6,
+        'current_month_used_count' => 0,
+        'status' => 'active',
+        'payment_status' => 'paid',
     ]);
 });
 
@@ -136,6 +148,8 @@ it('updates status and period on customer.subscription.updated', function (): vo
     $this->assertDatabaseHas('user_subscriptions', [
         'stripe_subscription_id' => 'sub_upd',
         'status' => 'past_due',
+        'current_period_start' => Carbon::createFromTimestamp($start),
+        'current_period_end' => Carbon::createFromTimestamp($end),
     ]);
 });
 

@@ -38,7 +38,9 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
             return; // Not a subscription checkout
         }
 
-        $userId = (int) ($metadata['app_user_id'] ?? ($session['client_reference_id'] ?? 0));
+        $userId = isset($metadata['app_user_id'])
+            ? (int) $metadata['app_user_id']
+            : (is_numeric($session['client_reference_id'] ?? null) ? (int) $session['client_reference_id'] : 0);
         $planId = (int) ($metadata['app_plan_id'] ?? 0);
         if ($userId <= 0 || $planId <= 0) {
             return; // Missing required identifiers
@@ -53,8 +55,8 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
         }
 
         // Fetch subscription from Stripe for accurate period bounds when possible
-        $periodStart = now();
-        $periodEnd = now()->addMonth();
+        $periodStart = CarbonImmutable::now();
+        $periodEnd = CarbonImmutable::now()->addMonth();
         $status = 'active';
 
         try {
@@ -67,10 +69,10 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
                 $startTs = (int) ($sub->current_period_start ?? 0);
                 $endTs = (int) ($sub->current_period_end ?? 0);
                 if ($startTs > 0) {
-                    $periodStart = CarbonImmutable::createFromTimestamp($startTs);
+                    $periodStart = CarbonImmutable::createFromTimestampUTC($startTs);
                 }
                 if ($endTs > 0) {
-                    $periodEnd = CarbonImmutable::createFromTimestamp($endTs);
+                    $periodEnd = CarbonImmutable::createFromTimestampUTC($endTs);
                 }
             }
         } catch (\Throwable $e) {
@@ -96,7 +98,8 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
                 'user_id' => $user->getKey(),
                 'plan_id' => $plan->getKey(),
                 'status' => $status,
-                'payment_status' => 'paid',
+                // Session が 'paid' のときのみ即時反映。そうでなければ invoice.* で最終確定
+                'payment_status' => (($session['payment_status'] ?? null) === 'paid') ? 'paid' : ($this->payload['_noop_payment_status'] ?? null),
                 'current_period_start' => $periodStart,
                 'current_period_end' => $periodEnd,
                 'current_month_used_count' => 0,

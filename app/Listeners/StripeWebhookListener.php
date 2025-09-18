@@ -22,7 +22,7 @@ class StripeWebhookListener implements ShouldQueue
      *
      * @var array<int, string>
      */
-    private array $allowedEventTypes = [
+    private const ALLOWED_EVENT_TYPES = [
         'checkout.session.completed',
         'customer.subscription.created',
         'customer.subscription.updated',
@@ -39,7 +39,7 @@ class StripeWebhookListener implements ShouldQueue
         $payload = $event->payload;
         $type = (string) ($payload['type'] ?? '');
 
-        if ($type === '' || ! in_array($type, $this->allowedEventTypes, true)) {
+        if ($type === '' || ! in_array($type, self::ALLOWED_EVENT_TYPES, true)) {
             return; // Not allowed or malformed
         }
 
@@ -56,24 +56,24 @@ class StripeWebhookListener implements ShouldQueue
         try {
             switch ($type) {
                 case 'checkout.session.completed':
-                    ProcessCheckoutSessionCompleted::dispatch($payload);
+                    ProcessCheckoutSessionCompleted::dispatch($payload)->onQueue('stripe-webhooks');
                     break;
 
                 case 'customer.subscription.created':
                 case 'customer.subscription.updated':
-                    ProcessCustomerSubscriptionUpdated::dispatch($payload);
+                    ProcessCustomerSubscriptionUpdated::dispatch($payload)->onQueue('stripe-webhooks');
                     break;
 
                 case 'customer.subscription.deleted':
-                    ProcessCustomerSubscriptionDeleted::dispatch($payload);
+                    ProcessCustomerSubscriptionDeleted::dispatch($payload)->onQueue('stripe-webhooks');
                     break;
 
                 case 'invoice.payment_succeeded':
-                    ProcessInvoicePaid::dispatch($payload);
+                    ProcessInvoicePaid::dispatch($payload)->onQueue('stripe-webhooks');
                     break;
 
                 case 'invoice.payment_failed':
-                    ProcessInvoicePaymentFailed::dispatch($payload);
+                    ProcessInvoicePaymentFailed::dispatch($payload)->onQueue('stripe-webhooks');
                     break;
             }
         } catch (\Throwable $e) {

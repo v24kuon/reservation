@@ -27,24 +27,23 @@ class ProcessInvoicePaid implements ShouldQueue
     public function handle(): void
     {
         $invoice = (array) Arr::get($this->payload, 'data.object', []);
-        $lines = (array) ($invoice['lines']['data'] ?? []);
         $subscriptionId = (string) ($invoice['subscription'] ?? '');
         if ($subscriptionId === '') {
             return;
         }
 
-        $periodStart = (int) ($invoice['lines']['data'][0]['period']['start'] ?? 0);
-        $periodEnd = (int) ($invoice['lines']['data'][0]['period']['end'] ?? 0);
+        $periodStart = (int) Arr::get($invoice, 'lines.data.0.period.start', 0);
+        $periodEnd = (int) Arr::get($invoice, 'lines.data.0.period.end', 0);
 
         $update = [
             'payment_status' => 'paid',
             'current_month_used_count' => 0,
         ];
         if ($periodStart > 0) {
-            $update['current_period_start'] = CarbonImmutable::createFromTimestamp($periodStart);
+            $update['current_period_start'] = CarbonImmutable::createFromTimestampUTC($periodStart);
         }
         if ($periodEnd > 0) {
-            $update['current_period_end'] = CarbonImmutable::createFromTimestamp($periodEnd);
+            $update['current_period_end'] = CarbonImmutable::createFromTimestampUTC($periodEnd);
         }
 
         UserSubscription::query()

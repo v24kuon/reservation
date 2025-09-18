@@ -40,10 +40,10 @@ class ProcessCustomerSubscriptionUpdated implements ShouldQueue
             'status' => $status,
         ];
         if ($startTs > 0) {
-            $update['current_period_start'] = CarbonImmutable::createFromTimestamp($startTs);
+            $update['current_period_start'] = CarbonImmutable::createFromTimestampUTC($startTs);
         }
         if ($endTs > 0) {
-            $update['current_period_end'] = CarbonImmutable::createFromTimestamp($endTs);
+            $update['current_period_end'] = CarbonImmutable::createFromTimestampUTC($endTs);
         }
 
         // If invoice was paid, Cashier also emits invoice.payment_succeeded,
