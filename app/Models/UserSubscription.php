@@ -22,12 +22,14 @@ class UserSubscription extends Model
         'current_period_start',
         'current_period_end',
         'current_month_used_count',
+        'remaining_lessons',
     ];
 
     protected $casts = [
         'current_period_start' => 'datetime',
         'current_period_end' => 'datetime',
         'current_month_used_count' => 'integer',
+        'remaining_lessons' => 'integer',
     ];
 
     /**
@@ -101,9 +103,7 @@ class UserSubscription extends Model
      */
     public function hasRemainingLessons(): bool
     {
-        $limit = $this->plan?->lesson_count ?? 0;
-
-        return $this->current_month_used_count < $limit;
+        return $this->getRemainingLessons() > 0;
     }
 
     /**
@@ -111,9 +111,32 @@ class UserSubscription extends Model
      */
     public function getRemainingLessonsAttribute(): int
     {
-        $limit = $this->plan?->lesson_count ?? 0;
+        // 永続値が存在すればそれを優先（負値は0に丸め）
+        $raw = $this->getRawOriginal('remaining_lessons');
+        if ($raw !== null) {
+            return max(0, (int) $raw);
+        }
+        $limit = (int) ($this->plan?->lesson_count ?? 0);
 
-        return max(0, $limit - $this->current_month_used_count);
+        return max(0, $limit - (int) $this->current_month_used_count);
+    }
+
+    /**
+     * Total available lessons for the current period (plan-defined quota).
+     */
+    public function getTotalAvailableLessons(): int
+    {
+        return (int) ($this->plan?->lesson_count ?? 0);
+    }
+
+    /**
+     * Remaining lessons for the current period (method form).
+     * Mirrors the accessor while providing an explicit method per spec.
+     */
+    public function getRemainingLessons(): int
+    {
+        // Accessorに集約
+        return $this->getRemainingLessonsAttribute();
     }
 
     /**
