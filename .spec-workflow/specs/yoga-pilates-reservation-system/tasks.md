@@ -284,12 +284,13 @@
   - Dependencies: Task 27 / 依存関係: タスク27
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 29. Implement plan switching functionality / プラン切り替え機能を実装
+- [x] 29. Implement plan switching functionality / プラン切り替え機能を実装
   - File: app/Services/SubscriptionService.php (new) / ファイル: app/Services/SubscriptionService.php (新規)
-  - Add SubscriptionService::switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): void method / SubscriptionService::switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): voidメソッドを追加
+  - Add SubscriptionService::switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): StripeCheckoutSession method / SubscriptionService::switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): StripeCheckoutSessionメソッドを追加
   - Implement same-category-only switching rule with validation / 同じカテゴリー内のみ切り替え可能ルールとバリデーションを実装
-  - Calculate remaining lessons: old_plan.lesson_count - current_month_used_count / 残り回数計算: old_plan.lesson_count - current_month_used_count
-  - Create Checkout Session with remaining lessons metadata / 残り回数メタデータ付きCheckout Session作成
+  - Calculate remaining lessons at webhook time to avoid race: new_remaining = old_plan.lesson_count - current_month_used_count (at completion) / レース回避のため Webhook 時点で再計算
+  - Create Checkout Session with hint metadata (remaining_calculated_at, ids) / 参考用メタデータ（remaining_calculated_at 等）を付与
+  - Use idempotency_key for session creation (format example: switch:{user_id}:{from_id}:{to_id}:{minute_ts}) / セッション作成に idempotency_key を付与
   - Handle Stripe subscription cancellation and creation via webhooks / Webhook経由でStripeサブスクリプションのキャンセルと作成を処理
   - New subscription: new_plan.lesson_count + remaining_lessons / 新サブスクリプション: new_plan.lesson_count + remaining_lessons
   - Purpose: Allow users to switch between plans within the same category with remaining lessons transfer / 目的: ユーザーが同じカテゴリー内でプランを切り替え可能にし、残り回数を引継ぎ

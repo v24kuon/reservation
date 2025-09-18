@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::table('user_subscriptions', function (Blueprint $table) {
             // Composite index to speed up active subscription lookups
-            $table->index(['user_id', 'status', 'payment_status', 'current_period_start', 'id'], 'user_subs_active_lookup_idx');
+            // Include plan_id to support queries filtering by specific plan
+            $table->index(['user_id', 'plan_id', 'status', 'payment_status', 'current_period_start', 'id'], 'user_subs_active_lookup_idx');
         });
     }
 
