@@ -164,7 +164,7 @@ class SubscriptionPlanController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return response()->json(['success' => false], 422);
+            return response()->json(['success' => false, 'error' => 'stripe_price_lookup_failed'], 422);
         }
 
         if (! (($price->active ?? false)
@@ -172,7 +172,7 @@ class SubscriptionPlanController extends Controller
             && (strtolower($price->currency ?? '') === 'jpy')
             && (((bool) ($price->livemode ?? false)) === app()->environment('production'))
         )) {
-            return response()->json(['success' => false], 422);
+            return response()->json(['success' => false, 'error' => 'stripe_price_invalid'], 422);
         }
 
         return response()->json([
@@ -309,9 +309,7 @@ class SubscriptionPlanController extends Controller
                     $queue = $queue->merge($children->pluck('id'));
                 }
             }
-            if (! $hasAnyChild && in_array($id, $allIds, true)) {
-                $expanded->push($id);
-            }
+            // ここでの再 push は不要（BFS 中に葉を push 済み）
         }
 
         return $expanded->unique()->values()->all();

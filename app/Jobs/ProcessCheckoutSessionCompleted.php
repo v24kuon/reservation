@@ -34,6 +34,9 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
         $metadata = (array) ($session['metadata'] ?? []);
 
         $stripeSubscriptionId = (string) ($session['subscription'] ?? '');
+        if (($session['mode'] ?? null) !== 'subscription') {
+            return;
+        }
         if ($stripeSubscriptionId === '') {
             return; // Not a subscription checkout
         }
@@ -43,6 +46,8 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
             : (is_numeric($session['client_reference_id'] ?? null) ? (int) $session['client_reference_id'] : 0);
         $planId = (int) ($metadata['app_plan_id'] ?? 0);
         if ($userId <= 0 || $planId <= 0) {
+            Log::info('checkout.session.completed skipped: missing ids', ['user_id' => $userId, 'plan_id' => $planId]);
+
             return; // Missing required identifiers
         }
 
@@ -89,22 +94,32 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
             ? max(0, (int) $plan->lesson_count + max(0, $remainingHint))
             : (int) $plan->lesson_count;
 
-        // Upsert by Stripe subscription id (unique)
-        UserSubscription::query()->updateOrCreate(
-            [
-                'stripe_subscription_id' => $stripeSubscriptionId,
-            ],
-            [
-                'user_id' => $user->getKey(),
-                'plan_id' => $plan->getKey(),
-                'status' => $status,
-                // Session が 'paid' のときのみ即時反映。そうでなければ invoice.* で最終確定
-                'payment_status' => (($session['payment_status'] ?? null) === 'paid') ? 'paid' : ($this->payload['_noop_payment_status'] ?? null),
-                'current_period_start' => $periodStart,
-                'current_period_end' => $periodEnd,
-                'current_month_used_count' => 0,
-                'remaining_lessons' => $initialRemaining,
-            ]
-        );
+        // 冪等にする: 既存が同一期間ならカウンタ保持、期間更新時のみリセット
+        /** @var UserSubscription $us */
+        $us = UserSubscription::query()->firstOrNew([
+            'stripe_subscription_id' => $stripeSubscriptionId,
+        ]);
+        $us->user_id = $user->getKey();
+        $us->plan_id = $plan->getKey();
+        $us->status = $status;
+        $us->payment_status = (($session['payment_status'] ?? null) === 'paid')
+            ? 'paid'
+            : ($this->payload['_noop_payment_status'] ?? $us->payment_status);
+
+        $samePeriod = $us->exists
+            && ($us->current_period_start instanceof \Carbon\CarbonInterface)
+            && ($us->current_period_end instanceof \Carbon\CarbonInterface)
+            && $us->current_period_start->equalTo($periodStart)
+            && $us->current_period_end->equalTo($periodEnd);
+
+        $us->current_period_start = $periodStart;
+        $us->current_period_end = $periodEnd;
+
+        if (! $samePeriod) {
+            $us->current_month_used_count = 0;
+            $us->remaining_lessons = $initialRemaining;
+        }
+
+        $us->save();
     }
 }
