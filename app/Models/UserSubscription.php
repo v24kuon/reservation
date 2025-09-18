@@ -28,6 +28,7 @@ class UserSubscription extends Model
         'current_period_start' => 'datetime',
         'current_period_end' => 'datetime',
         'current_month_used_count' => 'integer',
+        'remaining_lessons' => 'integer',
     ];
 
     /**
@@ -114,6 +115,24 @@ class UserSubscription extends Model
         $limit = $this->plan?->lesson_count ?? 0;
 
         return max(0, $limit - $this->current_month_used_count);
+    }
+
+    /**
+     * Total available lessons for the current period (plan-defined quota).
+     */
+    public function getTotalAvailableLessons(): int
+    {
+        return (int) ($this->plan?->lesson_count ?? 0);
+    }
+
+    /**
+     * Remaining lessons for the current period (method form).
+     * Mirrors the accessor while providing an explicit method per spec.
+     */
+    public function getRemainingLessons(): int
+    {
+        // Prefer dynamic calculation to avoid stale values; persisted value will be handled by webhooks if adopted.
+        return $this->getRemainingLessonsAttribute();
     }
 
     /**

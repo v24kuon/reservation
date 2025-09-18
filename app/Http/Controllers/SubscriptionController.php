@@ -86,7 +86,7 @@ class SubscriptionController extends Controller
                 ]);
             }
             throw ValidationException::withMessages([
-                'subscription' => '決済セッションの作成に失敗しました。時間をおいて再度お試しください。',
+                'subscription' => trans('subscription.errors.reservation_blocked'),
             ]);
         }
 

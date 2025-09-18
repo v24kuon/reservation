@@ -298,7 +298,7 @@
   - Dependencies: Task 28 / 依存関係: タスク28
   - Estimated time: 45 minutes / 推定時間: 45分
 
-- [ ] 30. Implement lesson count management / 回数管理機能を実装
+- [x] 30. Implement lesson count management / 回数管理機能を実装
   - File: app/Models/UserSubscription.php (modify) / ファイル: app/Models/UserSubscription.php (修正)
   - Add UserSubscription::getTotalAvailableLessons(): int method / UserSubscription::getTotalAvailableLessons(): intメソッドを追加
   - Add UserSubscription::getRemainingLessons(): int method / UserSubscription::getRemainingLessons(): intメソッドを追加
@@ -312,7 +312,7 @@
   - Dependencies: Task 29 / 依存関係: タスク29
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 30.1. Add database schema enhancements for subscription management / サブスクリプション管理用データベーススキーマ強化を追加
+- [x] 30.1. Add database schema enhancements for subscription management / サブスクリプション管理用データベーススキーマ強化を追加
   - File: database/migrations/ (new migration files) / ファイル: database/migrations/ (新規マイグレーションファイル)
   - Add remaining_lessons column to user_subscriptions table / user_subscriptionsテーブルにremaining_lessonsカラムを追加
   - Create plan_switch_logs table for statistics / 統計用plan_switch_logsテーブルを作成
@@ -323,7 +323,7 @@
   - Dependencies: Task 30 / 依存関係: タスク30
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 30.2. Implement comprehensive error handling and user messaging / 包括的なエラーハンドリングとユーザーメッセージングを実装
+- [x] 30.2. Implement comprehensive error handling and user messaging / 包括的なエラーハンドリングとユーザーメッセージングを実装
   - File: app/Http/Controllers/SubscriptionController.php (modify), resources/lang/ (new files) / ファイル: app/Http/Controllers/SubscriptionController.php (修正), resources/lang/ (新規ファイル)
   - Define specific error messages for lesson count limit scenarios / 回数制限シナリオ用の具体的なエラーメッセージを定義
   - Define specific error messages for reservation blocking scenarios / 予約ブロックシナリオ用の具体的なエラーメッセージを定義
@@ -457,6 +457,18 @@
   - Requirements: 8.5 / 要件: 8.5
   - Dependencies: Task 38 / 依存関係: タスク38
   - Estimated time: 20 minutes / 推定時間: 20分
+
+- [ ] 40.1. Implement detailed error handling for reservation operations / 予約操作の詳細エラーハンドリングを実装
+  - File: app/Http/Controllers/ReservationController.php (modify), app/Http/Controllers/Admin/ReservationController.php (modify) / ファイル: app/Http/Controllers/ReservationController.php (修正), app/Http/Controllers/Admin/ReservationController.php (修正)
+  - Define specific error messages for reservation creation blocking scenarios / 予約作成ブロックシナリオ用の具体的なエラーメッセージを定義
+  - Define specific error messages for reservation cancellation scenarios / 予約キャンセルシナリオ用の具体的なエラーメッセージを定義
+  - Implement lesson count limit enforcement with user-friendly messages / ユーザーフレンドリーなメッセージで回数制限を強制
+  - Handle subscription status validation with clear feedback / 明確なフィードバックでサブスクリプション状態バリデーションを処理
+  - Add reservation deadline validation and messaging / 予約期限バリデーションとメッセージングを追加
+  - Purpose: Provide clear user feedback for reservation operations with count limits / 目的: 回数制限付きで予約操作に対する明確なユーザーフィードバックを提供
+  - Requirements: 8.3, 8.4, 8.5 / 要件: 8.3, 8.4, 8.5
+  - Dependencies: Task 40 / 依存関係: タスク40
+  - Estimated time: 25 minutes / 推定時間: 25分
 
 ### Notification System Implementation Tasks
 ### 通知システム実装タスク
