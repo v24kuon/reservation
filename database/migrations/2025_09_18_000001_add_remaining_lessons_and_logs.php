@@ -15,6 +15,21 @@ return new class extends Migration
             }
         });
 
+        // Optional: non-negative guard (best-effort by driver)
+        $conn = Schema::getConnection();
+        $tableName = $conn->getTablePrefix().'user_subscriptions';
+        try {
+            if ($conn->getDriverName() === 'pgsql') {
+                DB::statement("ALTER TABLE {$tableName} ADD CONSTRAINT user_subs_remaining_nonneg CHECK (remaining_lessons IS NULL OR remaining_lessons >= 0)");
+            } elseif ($conn->getDriverName() === 'mysql') {
+                DB::statement("ALTER TABLE {$tableName} ADD CONSTRAINT user_subs_remaining_nonneg CHECK (remaining_lessons IS NULL OR remaining_lessons >= 0)");
+            } elseif ($conn->getDriverName() === 'sqlite') {
+                // SQLite は CHECK をサポートするが、テーブル再作成が必要になる場合があるためスキップ
+            }
+        } catch (\Throwable $e) {
+            // 制約追加が非対応/既存等の環境では黙殺
+        }
+
         // Indexes: guard against duplicates if they already exist from previous migrations
         $hasStatusIdx = $this->indexExists('user_subscriptions', 'user_subs_status_idx');
         $hasStartIdx = $this->indexExists('user_subscriptions', 'user_subs_period_start_idx');
@@ -34,8 +49,8 @@ return new class extends Migration
             $table->foreignId('from_plan_id')->constrained('subscription_plans')->cascadeOnDelete();
             $table->foreignId('to_plan_id')->constrained('subscription_plans')->cascadeOnDelete();
             $table->integer('remaining_lessons_hint')->default(0);
-            $table->string('stripe_checkout_session_id')->nullable();
-            $table->index('stripe_checkout_session_id', 'plan_switch_stripe_session_idx');
+            $table->string('stripe_checkout_session_id', 255)->nullable();
+            $table->unique('stripe_checkout_session_id', 'plan_switch_stripe_session_uidx');
             $table->timestamp('remaining_calculated_at')->nullable();
             $table->json('meta')->nullable();
             $table->timestamps();

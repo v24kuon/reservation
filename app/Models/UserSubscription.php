@@ -22,6 +22,7 @@ class UserSubscription extends Model
         'current_period_start',
         'current_period_end',
         'current_month_used_count',
+        'remaining_lessons',
     ];
 
     protected $casts = [
@@ -111,8 +112,9 @@ class UserSubscription extends Model
     public function getRemainingLessonsAttribute(): int
     {
         // 永続値が存在すればそれを優先（負値は0に丸め）
-        if (array_key_exists('remaining_lessons', $this->attributes) && $this->attributes['remaining_lessons'] !== null) {
-            return max(0, (int) $this->attributes['remaining_lessons']);
+        $raw = $this->getRawOriginal('remaining_lessons');
+        if ($raw !== null) {
+            return max(0, (int) $raw);
         }
         $limit = (int) ($this->plan?->lesson_count ?? 0);
 
