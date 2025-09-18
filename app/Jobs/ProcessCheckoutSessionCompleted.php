@@ -2,11 +2,18 @@
 
 namespace App\Jobs;
 
+use App\Models\SubscriptionPlan;
+use App\Models\User;
+use App\Models\UserSubscription;
+use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
+use Stripe\StripeClient;
 
 class ProcessCheckoutSessionCompleted implements ShouldQueue
 {
@@ -23,6 +30,78 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
 
     public function handle(): void
     {
-        // Stub: implement creation of user_subscriptions and period sync, remaining lessons transfer
+        $session = (array) Arr::get($this->payload, 'data.object', []);
+        $metadata = (array) ($session['metadata'] ?? []);
+
+        $stripeSubscriptionId = (string) ($session['subscription'] ?? '');
+        if ($stripeSubscriptionId === '') {
+            return; // Not a subscription checkout
+        }
+
+        $userId = (int) ($metadata['app_user_id'] ?? ($session['client_reference_id'] ?? 0));
+        $planId = (int) ($metadata['app_plan_id'] ?? 0);
+        if ($userId <= 0 || $planId <= 0) {
+            return; // Missing required identifiers
+        }
+
+        /** @var User|null $user */
+        $user = User::query()->find($userId);
+        /** @var SubscriptionPlan|null $plan */
+        $plan = SubscriptionPlan::query()->find($planId);
+        if (! $user || ! $plan) {
+            return;
+        }
+
+        // Fetch subscription from Stripe for accurate period bounds when possible
+        $periodStart = now();
+        $periodEnd = now()->addMonth();
+        $status = 'active';
+
+        try {
+            $secret = (string) config('services.stripe.secret');
+            if ($secret !== '') {
+                $client = new StripeClient(['api_key' => $secret]);
+                $sub = $client->subscriptions->retrieve($stripeSubscriptionId, []);
+                $status = (string) ($sub->status ?? $status);
+
+                $startTs = (int) ($sub->current_period_start ?? 0);
+                $endTs = (int) ($sub->current_period_end ?? 0);
+                if ($startTs > 0) {
+                    $periodStart = CarbonImmutable::createFromTimestamp($startTs);
+                }
+                if ($endTs > 0) {
+                    $periodEnd = CarbonImmutable::createFromTimestamp($endTs);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Stripe subscription fetch failed; using fallback period', [
+                'subscription' => $stripeSubscriptionId,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        // Compute initial remaining lessons
+        $remainingHint = (int) ($metadata['remaining_lessons_hint'] ?? 0);
+        $isSwitch = isset($metadata['switch_to_app_plan_id']) || isset($metadata['switch_from_app_plan_id']);
+        $initialRemaining = $isSwitch
+            ? max(0, (int) $plan->lesson_count + max(0, $remainingHint))
+            : (int) $plan->lesson_count;
+
+        // Upsert by Stripe subscription id (unique)
+        UserSubscription::query()->updateOrCreate(
+            [
+                'stripe_subscription_id' => $stripeSubscriptionId,
+            ],
+            [
+                'user_id' => $user->getKey(),
+                'plan_id' => $plan->getKey(),
+                'status' => $status,
+                'payment_status' => 'paid',
+                'current_period_start' => $periodStart,
+                'current_period_end' => $periodEnd,
+                'current_month_used_count' => 0,
+                'remaining_lessons' => $initialRemaining,
+            ]
+        );
     }
 }

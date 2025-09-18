@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Models\UserSubscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Arr;
 
 class ProcessInvoicePaymentFailed implements ShouldQueue
 {
@@ -23,6 +25,16 @@ class ProcessInvoicePaymentFailed implements ShouldQueue
 
     public function handle(): void
     {
-        // Stub: set payment_status failed and enforce reservation blocking
+        $invoice = (array) Arr::get($this->payload, 'data.object', []);
+        $subscriptionId = (string) ($invoice['subscription'] ?? '');
+        if ($subscriptionId === '') {
+            return;
+        }
+
+        UserSubscription::query()
+            ->where('stripe_subscription_id', $subscriptionId)
+            ->update([
+                'payment_status' => 'failed',
+            ]);
     }
 }

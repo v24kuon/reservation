@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Models\UserSubscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Arr;
 
 class ProcessCustomerSubscriptionDeleted implements ShouldQueue
 {
@@ -23,6 +25,17 @@ class ProcessCustomerSubscriptionDeleted implements ShouldQueue
 
     public function handle(): void
     {
-        // Stub: implement deletion sync / set status canceled
+        $object = (array) Arr::get($this->payload, 'data.object', []);
+        $stripeId = (string) ($object['id'] ?? '');
+        if ($stripeId === '') {
+            return;
+        }
+
+        UserSubscription::query()
+            ->where('stripe_subscription_id', $stripeId)
+            ->update([
+                'status' => 'canceled',
+                'payment_status' => 'failed',
+            ]);
     }
 }
