@@ -19,12 +19,14 @@ class SubscriptionService
      * - Validates same-category rule
      * - Calculates remaining lessons (old_plan.lesson_count - current_month_used_count)
      * - Adds remaining lessons metadata so webhook can apply new_plan.lesson_count + remaining
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function switchPlan(User $user, SubscriptionPlan $from, SubscriptionPlan $to): StripeCheckoutSession
     {
         // Validate same-category-only rule: intersection of allowed categories must be non-empty
-        $fromCategories = $from->allowed_category_ids ?? [];
-        $toCategories = $to->allowed_category_ids ?? [];
+        $fromCategories = array_map('intval', Arr::wrap($from->allowed_category_ids));
+        $toCategories = array_map('intval', Arr::wrap($to->allowed_category_ids));
         $shared = array_values(array_intersect($fromCategories, $toCategories));
         if (empty($shared)) {
             throw ValidationException::withMessages([
@@ -48,18 +50,34 @@ class SubscriptionService
             ]);
         }
 
-        // Calculate remaining lessons for transfer
+        // Calculate remaining lessons (hint only). Final value is recalculated at webhook time.
         $remaining = max(0, (int) $from->lesson_count - (int) $current->current_month_used_count);
 
-        // Ensure Stripe customer exists
-        $user->createOrGetStripeCustomer();
+        // Guard: ensure target price exists
+        if (empty($to->stripe_price_id)) {
+            throw ValidationException::withMessages([
+                'plan' => '切替先プランの価格設定が不正です。',
+            ]);
+        }
 
         // Build URLs
         $successUrl = route('subscription.success', ['session_id' => '{CHECKOUT_SESSION_ID}'], true);
         $cancelUrl = route('subscription.cancel', [], true);
 
+        // Idempotency key (minute-granularity to mitigate double-submit)
+        $idempotencyKey = sprintf(
+            'switch:%d:%d:%d:%s',
+            $user->getKey(),
+            $from->getKey(),
+            $to->getKey(),
+            now()->startOfMinute()->timestamp
+        );
+
         // Create Checkout Session for the TO plan with remaining lessons metadata
         try {
+            // Ensure Stripe customer exists
+            $user->createOrGetStripeCustomer();
+
             $session = $this->stripe->checkout->sessions->create([
                 'mode' => 'subscription',
                 'customer' => $user->stripe_id,
@@ -76,11 +94,13 @@ class SubscriptionService
                 'metadata' => [
                     'switch_from_app_plan_id' => (string) $from->getKey(),
                     'switch_to_app_plan_id' => (string) $to->getKey(),
-                    'remaining_lessons' => (string) $remaining,
+                    // Hint only: webhook recalculates using latest usage at completion time
+                    'remaining_lessons_hint' => (string) $remaining,
+                    'remaining_calculated_at' => now()->toIso8601String(),
                     // Optional: assist webhook with category context
                     'switch_shared_category_id' => (string) Arr::first($shared),
                 ],
-            ]);
+            ], ['idempotency_key' => $idempotencyKey]);
         } catch (\Throwable $e) {
             report($e);
             throw ValidationException::withMessages([
