@@ -8,9 +8,9 @@ use App\Http\Requests\UpdateSubscriptionPlanRequest;
 use App\Models\LessonCategory;
 use App\Models\SubscriptionPlan;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Stripe\StripeClient;
 
@@ -34,6 +34,7 @@ class SubscriptionPlanController extends Controller
     public function create(): View
     {
         $categories = LessonCategory::query()->orderBy('sort_order')->orderBy('id')->get();
+
         return view('admin.subscription_plans.create', compact('categories'));
     }
 
@@ -49,7 +50,7 @@ class SubscriptionPlanController extends Controller
         // Expand any selected parent categories into their child categories (server-side safety net)
         $data['allowed_category_ids'] = $this->expandCategoryIds($data['allowed_category_ids'] ?? []);
 
-        $plan = new SubscriptionPlan();
+        $plan = new SubscriptionPlan;
         $plan->fill([
             'name' => $data['name'],
             'price' => $data['price'],
@@ -71,7 +72,7 @@ class SubscriptionPlanController extends Controller
     public function show(SubscriptionPlan $subscriptionPlan): View
     {
         $allowedCategories = collect();
-        if (!empty($subscriptionPlan->allowed_category_ids)) {
+        if (! empty($subscriptionPlan->allowed_category_ids)) {
             $allowedCategories = LessonCategory::query()
                 ->whereIn('id', $subscriptionPlan->allowed_category_ids ?? [])
                 ->get(['id', 'name']);
@@ -89,6 +90,7 @@ class SubscriptionPlanController extends Controller
     public function edit(SubscriptionPlan $subscriptionPlan): View
     {
         $categories = LessonCategory::query()->orderBy('sort_order')->orderBy('id')->get();
+
         return view('admin.subscription_plans.edit', [
             'plan' => $subscriptionPlan,
             'categories' => $categories,
@@ -161,15 +163,16 @@ class SubscriptionPlanController extends Controller
             $price = $this->stripe()->prices->retrieve($validated['price_id'], []);
         } catch (\Throwable $e) {
             report($e);
-            return response()->json(['success' => false], 422);
+
+            return response()->json(['success' => false, 'error' => 'stripe_price_lookup_failed'], 422);
         }
 
-        if (!(($price->active ?? false)
+        if (! (($price->active ?? false)
             && (($price->type ?? '') === 'recurring')
             && (strtolower($price->currency ?? '') === 'jpy')
             && (((bool) ($price->livemode ?? false)) === app()->environment('production'))
         )) {
-            return response()->json(['success' => false], 422);
+            return response()->json(['success' => false, 'error' => 'stripe_price_invalid'], 422);
         }
 
         return response()->json([
@@ -199,7 +202,6 @@ class SubscriptionPlanController extends Controller
 
         $client = new StripeClient([
             'api_key' => $secret,
-            'max_network_retries' => 2,
         ]);
 
         return $client;
@@ -221,7 +223,7 @@ class SubscriptionPlanController extends Controller
             ]);
         }
 
-        if (!($price->active ?? false)) {
+        if (! ($price->active ?? false)) {
             throw ValidationException::withMessages([
                 'stripe_price_id' => 'Price が非アクティブです。',
             ]);
@@ -258,7 +260,7 @@ class SubscriptionPlanController extends Controller
         }
 
         // Product一致確認（productId が与えられている場合のみ）
-        if (!empty($productId)) {
+        if (! empty($productId)) {
             $productIdFromPrice = is_object($price->product) ? ($price->product->id ?? null) : ($price->product ?? null);
             if ($productIdFromPrice !== $productId) {
                 throw ValidationException::withMessages([
@@ -307,9 +309,7 @@ class SubscriptionPlanController extends Controller
                     $queue = $queue->merge($children->pluck('id'));
                 }
             }
-            if (!$hasAnyChild && in_array($id, $allIds, true)) {
-                $expanded->push($id);
-            }
+            // ここでの再 push は不要（BFS 中に葉を push 済み）
         }
 
         return $expanded->unique()->values()->all();

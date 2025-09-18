@@ -338,7 +338,7 @@
 ### Webhook Processing Tasks
 ### Webhook処理タスク
 
-- [ ] 31. Create webhook event listeners / Webhookイベントリスナーを作成
+- [x] 31. Create webhook event listeners / Webhookイベントリスナーを作成
   - File: app/Listeners/ (new listener classes) / ファイル: app/Listeners/ (新規リスナークラス)
   - Handle checkout.session.completed: user_subscriptions creation with period sync and remaining lessons transfer / checkout.session.completed: user_subscriptions作成、period同期、残り回数引継ぎ
   - Handle customer.subscription.created/updated/deleted: status/payment_status/period sync / customer.subscription.created/updated/deleted: status/payment_status/period同期
