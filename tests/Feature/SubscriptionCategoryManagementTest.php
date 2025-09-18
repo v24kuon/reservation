@@ -61,9 +61,8 @@ it('scopeForCategory filters subscriptions by plan allowed_category_ids', functi
         'current_month_used_count' => 0,
     ]);
 
-    $subsForA = $user->userSubscriptions()->forCategory($a->id)->get();
-    expect($subsForA)->toHaveCount(1)
-        ->and($subsForA->first()->plan_id)->toBe($planA->id);
+    $subForA = $user->userSubscriptions()->forCategory($a->id)->sole();
+    expect($subForA->plan_id)->toBe($planA->id);
 });
 
 it('User::getActiveSubscriptionForCategory returns latest active within period', function () {

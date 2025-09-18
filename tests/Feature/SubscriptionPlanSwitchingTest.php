@@ -47,6 +47,12 @@ it('rejects switching across different categories', function () {
 
     $service = app(SubscriptionService::class);
 
-    $this->expectException(\Illuminate\Validation\ValidationException::class);
-    $service->switchPlan($user, $from, $to);
+    try {
+        $service->switchPlan($user, $from, $to);
+        $this->fail('ValidationException expected');
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        expect($e->errors())->toHaveKey('subscription');
+        expect($e->errors()['subscription'][0] ?? null)
+            ->toBe(__('subscription.errors.plan_switch_invalid'));
+    }
 });

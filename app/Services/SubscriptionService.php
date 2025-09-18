@@ -30,7 +30,7 @@ class SubscriptionService
         $shared = array_values(array_intersect($fromCategories, $toCategories));
         if (empty($shared)) {
             throw ValidationException::withMessages([
-                'plan' => '同じカテゴリー内のプランのみ切り替えできます。',
+                'subscription' => trans('subscription.errors.plan_switch_invalid'),
             ]);
         }
 

@@ -102,9 +102,7 @@ class UserSubscription extends Model
      */
     public function hasRemainingLessons(): bool
     {
-        $limit = $this->plan?->lesson_count ?? 0;
-
-        return $this->current_month_used_count < $limit;
+        return $this->getRemainingLessons() > 0;
     }
 
     /**
@@ -112,9 +110,13 @@ class UserSubscription extends Model
      */
     public function getRemainingLessonsAttribute(): int
     {
-        $limit = $this->plan?->lesson_count ?? 0;
+        // 永続値が存在すればそれを優先（負値は0に丸め）
+        if (array_key_exists('remaining_lessons', $this->attributes) && $this->attributes['remaining_lessons'] !== null) {
+            return max(0, (int) $this->attributes['remaining_lessons']);
+        }
+        $limit = (int) ($this->plan?->lesson_count ?? 0);
 
-        return max(0, $limit - $this->current_month_used_count);
+        return max(0, $limit - (int) $this->current_month_used_count);
     }
 
     /**
@@ -131,7 +133,7 @@ class UserSubscription extends Model
      */
     public function getRemainingLessons(): int
     {
-        // Prefer dynamic calculation to avoid stale values; persisted value will be handled by webhooks if adopted.
+        // Accessorに集約
         return $this->getRemainingLessonsAttribute();
     }
 

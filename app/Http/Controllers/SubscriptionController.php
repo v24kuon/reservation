@@ -86,7 +86,7 @@ class SubscriptionController extends Controller
                 ]);
             }
             throw ValidationException::withMessages([
-                'subscription' => trans('subscription.errors.reservation_blocked'),
+                'subscription' => trans('subscription.errors.checkout_failed'),
             ]);
         }
 
@@ -107,7 +107,7 @@ class SubscriptionController extends Controller
      */
     public function cancel(): RedirectResponse
     {
-        return redirect()->route('home')->with('status', 'サブスクリプション手続きがキャンセルされました。');
+        return redirect()->route('home')->with('status', trans('subscription.success.checkout_canceled'));
     }
 
     /**
