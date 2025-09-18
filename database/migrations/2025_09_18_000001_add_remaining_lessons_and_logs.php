@@ -46,9 +46,9 @@ return new class extends Migration
         Schema::create('plan_switch_logs', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('from_plan_id')->constrained('subscription_plans')->cascadeOnDelete();
-            $table->foreignId('to_plan_id')->constrained('subscription_plans')->cascadeOnDelete();
-            $table->integer('remaining_lessons_hint')->default(0);
+            $table->foreignId('from_plan_id')->nullable()->constrained('subscription_plans')->nullOnDelete();
+            $table->foreignId('to_plan_id')->nullable()->constrained('subscription_plans')->nullOnDelete();
+            $table->unsignedInteger('remaining_lessons_hint')->default(0);
             $table->string('stripe_checkout_session_id', 255)->nullable();
             $table->unique('stripe_checkout_session_id', 'plan_switch_stripe_session_uidx');
             $table->timestamp('remaining_calculated_at')->nullable();
