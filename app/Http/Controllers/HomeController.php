@@ -20,7 +20,7 @@ class HomeController extends Controller
         $currentReservations = Reservation::query()
             ->with(['lessonSchedule.lesson.store', 'lessonSchedule.lesson.category'])
             ->where('user_id', $user->id)
-            ->where('status', 'confirmed')
+            ->confirmed()
             ->whereHas('lessonSchedule', function ($query) {
                 $query->where('start_datetime', '>', now());
             })

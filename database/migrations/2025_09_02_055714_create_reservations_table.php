@@ -20,8 +20,9 @@ return new class extends Migration
             $table->dateTime('reserved_at');
             $table->timestamps();
 
-            // Prevent double booking: one user cannot have multiple active reservations for the same lesson schedule
-            $table->unique(['user_id', 'lesson_schedule_id'], 'unique_user_lesson_schedule');
+            // Prevent double booking only for active (confirmed) by including status in uniqueness
+            // DB-agnostic approach: include status to allow rebooking after cancellation/completion
+            $table->unique(['user_id', 'lesson_schedule_id', 'status'], 'uniq_user_schedule_status');
 
             // Index for performance optimization
             $table->index(['lesson_schedule_id', 'status'], 'idx_lesson_schedule_status');

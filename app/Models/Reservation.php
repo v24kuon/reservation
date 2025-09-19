@@ -10,6 +10,14 @@ class Reservation extends Model
 {
     use HasFactory;
 
+    public const STATUS_CONFIRMED = 'confirmed';
+
+    public const STATUS_CANCELED = 'canceled';
+
+    public const STATUS_COMPLETED = 'completed';
+
+    public const STATUS_NO_SHOW = 'no_show';
+
     protected $fillable = [
         'user_id',
         'lesson_schedule_id',
@@ -51,7 +59,7 @@ class Reservation extends Model
      */
     public function scopeConfirmed($query)
     {
-        return $query->where('status', 'confirmed');
+        return $query->where('status', self::STATUS_CONFIRMED);
     }
 
     /**
@@ -59,7 +67,7 @@ class Reservation extends Model
      */
     public function scopeCanceled($query)
     {
-        return $query->where('status', 'canceled');
+        return $query->where('status', self::STATUS_CANCELED);
     }
 
     /**
@@ -67,7 +75,7 @@ class Reservation extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', self::STATUS_COMPLETED);
     }
 
     /**
@@ -75,7 +83,7 @@ class Reservation extends Model
      */
     public function isConfirmed(): bool
     {
-        return $this->status === 'confirmed';
+        return $this->status === self::STATUS_CONFIRMED;
     }
 
     /**
@@ -83,7 +91,7 @@ class Reservation extends Model
      */
     public function isCanceled(): bool
     {
-        return $this->status === 'canceled';
+        return $this->status === self::STATUS_CANCELED;
     }
 
     /**
@@ -91,7 +99,7 @@ class Reservation extends Model
      */
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === self::STATUS_COMPLETED;
     }
 
     /**
@@ -104,7 +112,8 @@ class Reservation extends Model
         }
 
         $lesson = $this->lessonSchedule->lesson;
-        $cancelDeadline = $this->lessonSchedule->start_datetime->subHours($lesson->cancel_deadline_hours);
+        $cancelHours = (int) ($lesson->cancel_deadline_hours ?? 0);
+        $cancelDeadline = $this->lessonSchedule->start_datetime->copy()->subHours($cancelHours);
 
         return now()->lt($cancelDeadline);
     }
@@ -115,10 +124,10 @@ class Reservation extends Model
     public function getFormattedStatusAttribute(): string
     {
         return match ($this->status) {
-            'confirmed' => '予約済み',
-            'canceled' => 'キャンセル済み',
-            'completed' => '完了',
-            'no_show' => '欠席',
+            self::STATUS_CONFIRMED => '予約済み',
+            self::STATUS_CANCELED => 'キャンセル済み',
+            self::STATUS_COMPLETED => '完了',
+            self::STATUS_NO_SHOW => '欠席',
             default => $this->status,
         };
     }
@@ -129,7 +138,8 @@ class Reservation extends Model
     public function hasBookingDeadlinePassed(): bool
     {
         $lesson = $this->lessonSchedule->lesson;
-        $bookingDeadline = $this->lessonSchedule->start_datetime->subHours($lesson->booking_deadline_hours);
+        $bookingHours = (int) ($lesson->booking_deadline_hours ?? 0);
+        $bookingDeadline = $this->lessonSchedule->start_datetime->copy()->subHours($bookingHours);
 
         return now()->gt($bookingDeadline);
     }
@@ -183,24 +193,37 @@ class Reservation extends Model
      */
     public static function createWithValidation(array $attributes): array
     {
-        $reservation = new self($attributes);
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($attributes) {
+                $reservation = new self($attributes);
 
-        // Validate constraints
-        $errors = $reservation->validateReservationConstraints();
-        if (! empty($errors)) {
-            return ['success' => false, 'errors' => $errors];
+                // Validate constraints
+                $errors = $reservation->validateReservationConstraints();
+                if (! empty($errors)) {
+                    return ['success' => false, 'errors' => $errors];
+                }
+
+                // Set safe defaults if not provided
+                $reservation->status = $reservation->status ?? self::STATUS_CONFIRMED;
+                $reservation->reserved_at = $reservation->reserved_at ?? now();
+
+                // Persist reservation
+                $reservation->save();
+
+                // Atomic counters update
+                $reservation->lessonSchedule->incrementCurrentBookings();
+                $reservation->userSubscription->incrementUsedCount();
+
+                // Refresh to sync defaults
+                $reservation->refresh();
+
+                return ['success' => true, 'reservation' => $reservation];
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return ['success' => false, 'errors' => ['予約処理中にエラーが発生しました。時間をおいて再度お試しください。']];
         }
-
-        // Save reservation and update counts
-        $reservation->save();
-
-        // Requirement 8.1: Decrement available slots
-        $reservation->lessonSchedule->incrementCurrentBookings();
-
-        // Update user subscription lesson count
-        $reservation->userSubscription->incrementUsedCount();
-
-        return ['success' => true, 'reservation' => $reservation];
     }
 
     /**
@@ -208,20 +231,31 @@ class Reservation extends Model
      */
     public function cancelWithValidation(): array
     {
-        // Requirement 8.4: Check cancel deadline and permissions
-        if (! $this->canBeCanceled()) {
-            return ['success' => false, 'error' => 'キャンセル期限を過ぎているため、キャンセルできません。'];
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () {
+                // Requirement 8.4: Check cancel deadline and permissions
+                if (! $this->canBeCanceled()) {
+                    return ['success' => false, 'error' => 'キャンセル期限を過ぎているため、キャンセルできません。'];
+                }
+
+                // Update status
+                $this->update(['status' => self::STATUS_CANCELED]);
+
+                // Decrement current bookings
+                $this->lessonSchedule->decrementCurrentBookings();
+
+                // Return lesson count if within deadline
+                $this->userSubscription->decrementUsedCount();
+
+                // Sync any DB defaults
+                $this->refresh();
+
+                return ['success' => true];
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return ['success' => false, 'error' => 'キャンセル処理中にエラーが発生しました。'];
         }
-
-        // Update status
-        $this->update(['status' => 'canceled']);
-
-        // Decrement current bookings
-        $this->lessonSchedule->decrementCurrentBookings();
-
-        // Return lesson count if within deadline
-        $this->userSubscription->decrementUsedCount();
-
-        return ['success' => true];
     }
 }

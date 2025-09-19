@@ -81,6 +81,9 @@ user_subscriptions (ユーザーの月謝契約) ✅
 ├── id, user_id, plan_id, stripe_subscription_id, status, payment_status, failure_reason, current_period_start, current_period_end, current_month_used_count, remaining_lessons, created_at, updated_at
 ├── リレーション: user, plan, reservations
 ├── 機能: 回数制限管理、プラン切り替え時の残数移行、Webhook同期
+├── 回数管理仕様: remaining_lessons が真実源（表示・制限判定に使用）
+├── リセットタイミング: invoice.paid イベントで current_month_used_count=0 にリセット
+├── プラン切替: 残数は新プランの lesson_count に再計算（繰越なし）
 
 lessons (レッスン) ✅
 ├── id, store_id, name, category_id, instructor_user_id, duration, capacity, booking_deadline_hours, cancel_deadline_hours, is_active, created_at, updated_at
@@ -93,7 +96,8 @@ lesson_schedules (レッスンスケジュール) ✅
 reservations (予約) ✅
 ├── id, user_id, lesson_schedule_id, user_subscription_id, status, reserved_at, created_at, updated_at
 ├── リレーション: user, lessonSchedule, userSubscription
-├── 制約: user_id + lesson_schedule_id のユニーク制約（二重予約防止）
+├── 制約: 二重予約防止（user_id + lesson_schedule_id + status のユニーク制約）
+├── 再予約対応: キャンセル/完了後の再予約を許容（ステータス込み制約）
 ├── 機能: 予約制約バリデーション、キャンセル期限チェック、ビジネスロジック
 
 user_favorites (ユーザーお気に入り) ✅
@@ -104,7 +108,11 @@ user_favorites (ユーザーお気に入り) ✅
 notification_templates (通知テンプレート) ✅
 ├── id, name, type, subject, body_text, variables (JSON), is_active, created_at, updated_at
 ├── リレーション: notifications
-├── 制約: type は固定集合（reservation_confirmation, reminder, cancellation, subscription_update）かつ一意制約
+├── 制約: type は固定集合
+    （reservation_confirmation, reminder, cancellation, subscription_update,
+      subscription.created, subscription.updated, subscription.deleted,
+      payment.succeeded, payment.failed,
+      count_limit_warning, count_limit_reached）かつ一意制約
 ├── 本文: テキストのみ（HTML なし）
 ├── 変数置換: {{users_name}}, {{lessons_name}}, {{stores_name}}, {{lesson_schedules_start_datetime}} など
 ├── 変数管理: システム設定でテーブル別に許可リスト管理、テンプレート作成時は自動適用（手動入力不可）
@@ -125,6 +133,8 @@ plan_switch_logs (プラン切り替えログ) ✅
 ├── id, user_id, from_plan_id, to_plan_id, remaining_lessons_hint, stripe_checkout_session_id, remaining_calculated_at, meta (JSON), created_at, updated_at
 ├── 用途: プラン切り替え時の残数移行記録と監査
 ├── 機能: 残数計算の透明性確保、Stripe Checkout Session追跡
+├── 推奨インデックス: (user_id, created_at DESC)
+├── 一意制約: stripe_checkout_session_id の一意制約（冪等性）
 ```
 
 ### 機能設計
@@ -310,8 +320,11 @@ plan_switch_logs (プラン切り替えログ) ✅
   - [x] 専用キュー（stripe-webhooks）での処理
   - [x] 冪等性を保つWebhook処理
   - [x] 回数制限管理とWebhook同期
+  - [x] 時刻境界の注意（Stripe period_start 基準、JST表示とのズレ回避）
 - [x] サブスクリプション管理
   - [x] 回数制限管理機能（remaining_lessons、current_month_used_count）
+  - [x] 月次リセット（invoice.paid で current_month_used_count=0 にリセット）
+  - [x] プラン切替時の残数再計算（新プランの lesson_count に設定）
   - [x] プラン切り替え時の残数移行ログ
 - [x] subscription_plans（月謝プラン）CRUD実装
   - [x] 管理画面でのプラン管理
@@ -326,6 +339,7 @@ plan_switch_logs (プラン切り替えログ) ✅
   - [x] 二重予約防止制約（user_id + lesson_schedule_id ユニーク制約）
   - [x] 予約制約バリデーション機能
   - [x] キャンセル期限チェック機能
+  - [x] サーバー側バリデーション強制（UI無効化に加えて）
 - [ ] レッスン予約機能（Livewire）
 - [ ] 予約制限・重複チェック
 - [ ] 時間帯重複防止チェック
@@ -499,6 +513,9 @@ APP_DEBUG=false
 APP_ENV=production
 APP_KEY=base64:your-32-character-key
 
+# 注意: 上記は本番推奨設定です。開発環境では異なる値を使用してください。
+# 開発環境例: APP_DEBUG=true, APP_ENV=local
+
 # セッションセキュリティ
 SESSION_SECURE_COOKIE=true
 SESSION_HTTP_ONLY=true
@@ -534,8 +551,8 @@ class ReservationRequest extends FormRequest
 ### 開発環境
 - **Laravel Herd**: 開発環境として使用
 - **GitHub**: バージョン管理・コード共有
-- **PHP**: 8.2+
-- **Laravel**: 12.x
+- **PHP**: 8.4.12
+- **Laravel**: 12.26.3
 - **データベース**: SQLite（開発）
 
 ### 必要なパッケージ

@@ -359,8 +359,7 @@
   - JSONのみ受理（Content-Type: application/json）
   - リスナーはキュー経由で非同期処理（長時間処理の同期応答を避ける）
   - 受信時の冪等性（event.id 記録）と再試行時の安全性を明記
-    - 整合時: 204/200レスポンス
-    - 重複時: 204/409レスポンス
+    - 整合時/重複時: 200 または 204 を返却（常に2xxでリトライ抑止）
   - 署名検証失敗時: 400/401/403レスポンス
   - Webhook専用ログ/メトリクス（受信数、検証失敗、重複破棄件数）を追加
   - Do not apply global rate limiting to webhook route / Webhookにはグローバルなレート制限を適用しない
@@ -385,6 +384,8 @@
   - File: app/Models/Reservation.php (new) / ファイル: app/Models/Reservation.php (新規)
   - File: database/migrations/create_reservations_table.php (new) / ファイル: database/migrations/create_reservations_table.php (新規)
   - Define relationships and business logic methods / リレーションとビジネスロジックメソッドを定義
+  - DB constraints: FK(user_id), FK(lesson_schedule_id), FK(user_subscription_id) with ON DELETE CASCADE / DB制約: FK(user_id), FK(lesson_schedule_id), FK(user_subscription_id) with ON DELETE CASCADE
+  - Indexes: (user_id, status), (lesson_schedule_id, status) for search optimization / インデックス: (user_id, status), (lesson_schedule_id, status) for search optimization
   - Purpose: Create reservation data model / 目的: 予約データモデルを作成
   - Requirements: 8.1, 8.2 / 要件: 8.1, 8.2
   - Dependencies: None / 依存関係: なし
@@ -487,6 +488,8 @@
   - Implement email sending with template substitution / テンプレート置換でメール送信を実装
   - Add methods for subscription event notifications (sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed) / サブスクリプションイベント通知メソッドを追加（sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed）
   - Add methods for lesson count limit warnings (sendCountLimitWarning, sendCountLimitReached) / 回数制限警告メソッドを追加（sendCountLimitWarning, sendCountLimitReached）
+  - Implement idempotency: check (user_id, event_id, type) in notifications table to prevent duplicate sends / 冪等性実装: notificationsテーブルで(user_id, event_id, type)をチェックして重複送信を防止
+  - Add rate limiting: throttle notification frequency per user/type to prevent spam / レート制限追加: ユーザー/タイプ別の通知頻度を制限してスパムを防止
   - Purpose: Centralized notification handling including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む集中化された通知処理
   - Requirements: 10.3, 10.4 / 要件: 10.3, 10.4
   - Dependencies: Task 41 / 依存関係: タスク41
@@ -497,6 +500,8 @@
   - Create templates for reservation confirmation, reminders, cancellations / 予約確認、リマインダー、キャンセル用のテンプレートを作成
   - Create templates for subscription events (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント用テンプレートを作成（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
   - Create templates for lesson count limit warnings (count_limit_warning, count_limit_reached) / 回数制限警告用テンプレートを作成（count_limit_warning, count_limit_reached）
+  - Seed system_settings with email_variables_whitelist for template variable validation / テンプレート変数バリデーション用のemail_variables_whitelistをsystem_settingsに投入
+  - Ensure template variables match allowed whitelist from database schema / テンプレート変数がデータベーススキーマの許可ホワイトリストと一致することを確認
   - Purpose: Populate notification templates including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む通知テンプレートを投入
   - Requirements: 10.1 / 要件: 10.1
   - Dependencies: Task 41 / 依存関係: タスク41

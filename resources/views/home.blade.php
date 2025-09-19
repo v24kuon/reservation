@@ -20,13 +20,13 @@
                                 <div class="flex justify-between items-start">
                                     <div class="flex-1">
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $reservation->lessonSchedule->lesson->name }}
+                                            {{ $reservation->lessonSchedule?->lesson?->name }}
                                         </h4>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            {{ $reservation->lessonSchedule->lesson->store->name }}
+                                            {{ $reservation->lessonSchedule?->lesson?->store?->name }}
                                         </p>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            {{ $reservation->lessonSchedule->start_datetime->format('m/d H:i') }}
+                                            {{ $reservation->lessonSchedule?->start_datetime?->format('m/d H:i') }}
                                         </p>
                                     </div>
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -58,13 +58,13 @@
                                 <div class="flex justify-between items-start">
                                     <div class="flex-1">
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $subscription->plan->name }}
+                                            {{ $subscription->plan?->name }}
                                         </h4>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            残り回数: {{ $subscription->remaining_lessons ?? $subscription->plan->lesson_count }}回
+                                            残り回数: {{ $subscription->remaining_lessons ?? $subscription->plan?->lesson_count }}回
                                         </p>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            次回更新: {{ $subscription->current_period_end->format('m/d') }}
+                                            次回更新: {{ $subscription->current_period_end?->format('m/d') }}
                                         </p>
                                     </div>
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -137,7 +137,7 @@
                 </a>
 
                 <!-- Reservations Button -->
-                <a href="#" class="flex flex-col items-center space-y-1 text-gray-500 dark:text-gray-400">
+                <a aria-disabled="true" class="flex flex-col items-center space-y-1 text-gray-500 dark:text-gray-400 pointer-events-none opacity-50">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
@@ -145,7 +145,7 @@
                 </a>
 
                 <!-- Subscriptions Button -->
-                <a href="#" class="flex flex-col items-center space-y-1 text-gray-500 dark:text-gray-400">
+                <a aria-disabled="true" class="flex flex-col items-center space-y-1 text-gray-500 dark:text-gray-400 pointer-events-none opacity-50">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>

@@ -89,13 +89,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Reservation pages (placeholder routes for now)
-    Route::get('/reservations/group', function () {
-        return view('reservations.group');
-    })->name('reservations.group');
-    Route::get('/reservations/personal', function () {
-        return view('reservations.personal');
-    })->name('reservations.personal');
+    // Reservation pages (placeholder views)
+    Route::view('/reservations/group', 'reservations.group')->name('reservations.group');
+    Route::view('/reservations/personal', 'reservations.personal')->name('reservations.personal');
 
     // Instructor self profile
     Route::get('/instructor/profile', [InstructorProfileController::class, 'editSelf'])
