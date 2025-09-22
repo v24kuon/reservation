@@ -110,9 +110,14 @@ class Reservation extends Model
             return false;
         }
 
-        $lesson = $this->lessonSchedule->lesson;
-        $cancelHours = (int) ($lesson->cancel_deadline_hours ?? 0);
-        $cancelDeadline = $this->lessonSchedule->start_datetime->copy()->subHours($cancelHours);
+        $schedule = $this->lessonSchedule;
+        if (! $schedule || ! $schedule->lesson) {
+            // 関連欠損時は安全側にキャンセル不可
+            return false;
+        }
+        $lesson = $schedule->lesson;
+        $cancelHours = max(0, (int) ($lesson->cancel_deadline_hours ?? 0));
+        $cancelDeadline = $schedule->start_datetime->copy()->subHours($cancelHours);
 
         return now()->lte($cancelDeadline);
     }
@@ -136,9 +141,13 @@ class Reservation extends Model
      */
     public function hasBookingDeadlinePassed(): bool
     {
-        $lesson = $this->lessonSchedule->lesson;
-        $bookingHours = (int) ($lesson->booking_deadline_hours ?? 0);
-        $bookingDeadline = $this->lessonSchedule->start_datetime->copy()->subHours($bookingHours);
+        $schedule = $this->lessonSchedule;
+        if (! $schedule || ! $schedule->lesson) {
+            return true; // 安全側: 関連欠損時は受付終了扱い
+        }
+        $lesson = $schedule->lesson;
+        $bookingHours = max(0, (int) ($lesson->booking_deadline_hours ?? 0));
+        $bookingDeadline = $schedule->start_datetime->copy()->subHours($bookingHours);
 
         return now()->gt($bookingDeadline);
     }
@@ -149,8 +158,9 @@ class Reservation extends Model
     public function canBeCreated(): bool
     {
         // Check subscription status and available lessons
-        $lesson = $this->lessonSchedule?->lesson;
-        if (! $this->userSubscription || ! $lesson || ! $this->userSubscription->canBookLesson($lesson)) {
+        $schedule = $this->lessonSchedule;
+        $lesson = $schedule?->lesson;
+        if (! $this->userSubscription || ! $schedule || ! $lesson || ! $this->userSubscription->canBookLesson($lesson)) {
             return false;
         }
 
@@ -160,7 +170,7 @@ class Reservation extends Model
         }
 
         // Check slot availability (capacity check)
-        return $this->lessonSchedule->hasAvailableSpots();
+        return $schedule->hasAvailableSpots();
     }
 
     /**
@@ -175,7 +185,7 @@ class Reservation extends Model
             $exists = self::query()
                 ->where('user_id', $this->user_id)
                 ->where('lesson_schedule_id', $this->lesson_schedule_id)
-                ->whereIn('status', [self::STATUS_CONFIRMED])
+                ->where('status', self::STATUS_CONFIRMED)
                 ->exists();
 
             if ($exists) {
@@ -194,7 +204,7 @@ class Reservation extends Model
                 $errors[] = '予約受付期限を過ぎています。';
             }
 
-            if (! $this->lessonSchedule->hasAvailableSpots()) {
+            if (! $this->lessonSchedule || ! $this->lessonSchedule->hasAvailableSpots()) {
                 $errors[] = 'このレッスンは満員です。';
             }
         }
@@ -235,6 +245,18 @@ class Reservation extends Model
                 }
 
                 $lesson = $lockedSchedule->lesson;
+
+                // 所有者整合（他人のサブスク悪用防止）
+                if ((int) $lockedSubscription->user_id !== (int) $reservation->user_id) {
+                    return ['success' => false, 'errors' => ['サブスクリプションの所有者が一致しません。']];
+                }
+
+                // ロック下での受付期限再確認
+                $bookingHours = max(0, (int) ($lesson->booking_deadline_hours ?? 0));
+                $bookingDeadline = $lockedSchedule->start_datetime->copy()->subHours($bookingHours);
+                if (now()->gt($bookingDeadline)) {
+                    return ['success' => false, 'errors' => ['予約受付期限を過ぎています。']];
+                }
 
                 // Re-validate under locks
                 if (! $lockedSchedule->hasAvailableSpots()) {
@@ -296,8 +318,9 @@ class Reservation extends Model
                     return ['success' => false, 'error' => 'キャンセル期限を過ぎているため、キャンセルできません。'];
                 }
 
-                // Update status
-                $this->update(['status' => self::STATUS_CANCELED]);
+                // Update status (avoid mass-assignment; status is not fillable)
+                $this->status = self::STATUS_CANCELED;
+                $this->save();
 
                 // Lock related rows to avoid race conditions when returning capacity/counts
                 /** @var \App\Models\LessonSchedule|null $lockedSchedule */
@@ -312,14 +335,30 @@ class Reservation extends Model
                     ->first();
 
                 if ($lockedSchedule) {
-                    $lockedSchedule->decrement('current_bookings');
+                    \App\Models\LessonSchedule::query()
+                        ->whereKey($lockedSchedule->getKey())
+                        ->where('current_bookings', '>', 0)
+                        ->decrement('current_bookings');
                 }
                 if ($lockedSubscription) {
                     $rawRemaining = $lockedSubscription->getRawOriginal('remaining_lessons');
                     if ($rawRemaining !== null) {
+                        // 上限超過防止（可能なら plan->lesson_count を参照）
                         $lockedSubscription->increment('remaining_lessons');
+                        // 例: 上限キャップ（疑似コード）
+                        // $cap = optional($lockedSubscription->plan)->lesson_count;
+                        // if ($cap) {
+                        //     $lockedSubscription->refresh();
+                        //     if ($lockedSubscription->remaining_lessons > $cap) {
+                        //         $lockedSubscription->update(['remaining_lessons' => $cap]);
+                        //     }
+                        // }
                     } else {
-                        $lockedSubscription->decrement('current_month_used_count');
+                        // 下限0の保証（重複キャンセル等の防御）
+                        \App\Models\UserSubscription::query()
+                            ->whereKey($lockedSubscription->getKey())
+                            ->where('current_month_used_count', '>', 0)
+                            ->decrement('current_month_used_count');
                     }
                 }
 

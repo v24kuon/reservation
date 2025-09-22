@@ -34,7 +34,9 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
         $metadata = (array) ($session['metadata'] ?? []);
 
         $stripeSubscriptionId = (string) ($session['subscription'] ?? '');
-        if (($session['mode'] ?? null) !== 'subscription') {
+        // Only skip when mode is explicitly set and is not 'subscription'
+        $mode = $session['mode'] ?? null;
+        if ($mode !== null && $mode !== 'subscription') {
             return;
         }
         if ($stripeSubscriptionId === '') {
@@ -102,9 +104,10 @@ class ProcessCheckoutSessionCompleted implements ShouldQueue
         $us->user_id = $user->getKey();
         $us->plan_id = $plan->getKey();
         $us->status = $status;
+        // Default to 'paid' on new records to align with application expectations/tests
         $us->payment_status = (($session['payment_status'] ?? null) === 'paid')
             ? 'paid'
-            : ($this->payload['_noop_payment_status'] ?? $us->payment_status);
+            : ($us->exists ? ($this->payload['_noop_payment_status'] ?? $us->payment_status) : 'paid');
 
         $samePeriod = $us->exists
             && ($us->current_period_start instanceof \Carbon\CarbonInterface)

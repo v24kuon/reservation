@@ -45,12 +45,12 @@
 ### 開発ツール
 - **Laravel Herd**: 開発環境として使用
 - **Laravel Boost**: ^1.0
-- **Laravel Pint**: 1.24.0
-- **Laravel Sail**: 1.45.0
+- **Laravel Pint**: ^1.24
+- **Laravel Sail**: ^1.41
 - **Laravel Pail**: ^1.2.2
-- **Pest**: 4.0.4
-- **Livewire**: 3.6.4
-- **Tailwind CSS**: 3.4.17
+- **Pest**: ^4.0
+- **Livewire**: ^3.6
+- **Tailwind CSS**: ^3.1.0
 
 ## システム設計
 
@@ -83,6 +83,10 @@ user_subscriptions (ユーザーの月謝契約) ✅
 ├── リレーション: user, plan, reservations
 ├── 機能: 回数制限管理、プラン切り替え時の残数移行、Webhook同期
 ├── 回数管理仕様: remaining_lessons が真実源（表示・制限判定に使用）
+├── 整合性規約:
+│   ├── remaining_lessons が非NULLのときのみ残数判定に使用し、used_countは派生値
+│   ├── 残数更新はトランザクション内で行う（予約作成/キャンセル）
+│   └── Webhookでのリセット時の順序（reset → reconcile）を規定
 ├── リセットタイミング: invoice.paid イベントで current_month_used_count=0 にリセット
 ├── プラン切替: 残数は新プランの lesson_count に再計算（繰越なし）
 
@@ -114,6 +118,7 @@ notification_templates (通知テンプレート) ✅
       subscription.created, subscription.updated, subscription.deleted,
       payment.succeeded, payment.failed,
       count_limit_warning, count_limit_reached）かつ一意制約
+├── DB制約: MySQL 8.0系なら CHECK 制約または別テーブルによる参照整合を推奨
 ├── 本文: テキストのみ（HTML なし）
 ├── 変数置換: {{users_name}}, {{lessons_name}}, {{stores_name}}, {{lesson_schedules_start_datetime}} など
 ├── 変数管理: システム設定でテーブル別に許可リスト管理、テンプレート作成時は自動適用（手動入力不可）
@@ -136,6 +141,7 @@ plan_switch_logs (プラン切り替えログ) ✅
 ├── 機能: 残数計算の透明性確保、Stripe Checkout Session追跡
 ├── 推奨インデックス: (user_id, created_at DESC)
 ├── 一意制約: stripe_checkout_session_id の一意制約（冪等性）
+├── イベント相関: webhook_events(event_id UNIQUE) で重複処理抑止を推奨
 ```
 
 ### 機能設計
@@ -322,6 +328,10 @@ plan_switch_logs (プラン切り替えログ) ✅
   - [x] 冪等性を保つWebhook処理
   - [x] 回数制限管理とWebhook同期
   - [x] 時刻境界の注意（Stripe period_start 基準、JST表示とのズレ回避）
+  - [x] 運用要件:
+    - [x] Stripe-Signature 検証必須（署名の時刻猶予も指定）
+    - [x] event.id の一意記録で再送対策
+    - [x] stripe-webhooks キューの専用ワーカー/再試行ポリシー（最大試行、バックオフ）
 - [x] サブスクリプション管理
   - [x] 回数制限管理機能（remaining_lessons、current_month_used_count）
   - [x] 月次リセット（invoice.paid で current_month_used_count=0 にリセット）
@@ -493,11 +503,12 @@ plan_switch_logs (プラン切り替えログ) ✅
 - **サブスク更新通知**: Stripeからの通知 + アプリからの通知
 
 ### 通知テンプレート管理
-- **テンプレート種別**: 固定集合
+- **テンプレート種別**: 固定集合（ドット区切り推奨）
   - reservation_confirmation, reminder, cancellation, subscription_update,
     subscription.created, subscription.updated, subscription.deleted,
     payment.succeeded, payment.failed,
     count_limit_warning, count_limit_reached
+- **命名ポリシー**: subscription_update は非推奨（subscription.* に統一）
 - **変数管理**: システム設定でテーブル別に許可リスト管理
 - **動的変数取得**: データベーススキーマから自動取得、機密カラムは除外
 - **テンプレート作成**: 変数は自動適用、手動入力不可
