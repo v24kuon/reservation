@@ -11,6 +11,7 @@ use App\Models\UserSubscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Bus;
 
 uses(RefreshDatabase::class);
 
@@ -22,18 +23,34 @@ afterEach(function () {
     Carbon::setTestNow(); // reset
 });
 
-it('creates or updates user subscription on checkout.session.completed (new subscription)', function (): void {
-    Carbon::setTestNow(Carbon::parse('2025-01-01 00:00:00'));
-
-    $user = User::factory()->create();
-    $plan = SubscriptionPlan::create([
+function makeStripePlan(array $overrides = []): SubscriptionPlan
+{
+    $defaults = [
         'name' => 'Basic',
         'price' => 1200,
         'lesson_count' => 3,
         'allowed_category_ids' => [],
+        'stripe_product_id' => 'prod_test',
+        'stripe_price_id' => 'price_test',
+        'is_active' => true,
+    ];
+
+    return SubscriptionPlan::create(array_intersect_key(
+        array_merge($defaults, $overrides),
+        $defaults
+    ));
+}
+
+it('creates or updates user subscription on checkout.session.completed (new subscription)', function (): void {
+    Carbon::setTestNow(Carbon::parse('2025-01-01 00:00:00'));
+
+    $user = User::factory()->create();
+    $plan = makeStripePlan([
+        'name' => 'Basic',
+        'price' => 1200,
+        'lesson_count' => 3,
         'stripe_product_id' => 'prod_basic',
         'stripe_price_id' => 'price_basic',
-        'is_active' => true,
     ]);
 
     $payload = [
@@ -66,14 +83,12 @@ it('transfers remaining lessons hint on plan switch at checkout.session.complete
     Carbon::setTestNow(Carbon::parse('2025-02-01 00:00:00'));
 
     $user = User::factory()->create();
-    $plan = SubscriptionPlan::create([
+    $plan = makeStripePlan([
         'name' => 'Plus',
         'price' => 2200,
         'lesson_count' => 4,
-        'allowed_category_ids' => [],
         'stripe_product_id' => 'prod_plus',
         'stripe_price_id' => 'price_plus',
-        'is_active' => true,
     ]);
 
     $payload = [
@@ -108,14 +123,12 @@ it('transfers remaining lessons hint on plan switch at checkout.session.complete
 
 it('updates status and period on customer.subscription.updated', function (): void {
     $user = User::factory()->create();
-    $plan = SubscriptionPlan::create([
+    $plan = makeStripePlan([
         'name' => 'Pro',
         'price' => 3500,
         'lesson_count' => 6,
-        'allowed_category_ids' => [],
         'stripe_product_id' => 'prod_pro',
         'stripe_price_id' => 'price_pro',
-        'is_active' => true,
     ]);
 
     UserSubscription::create([
@@ -155,14 +168,12 @@ it('updates status and period on customer.subscription.updated', function (): vo
 
 it('sets canceled and failed on customer.subscription.deleted', function (): void {
     $user = User::factory()->create();
-    $plan = SubscriptionPlan::create([
+    $plan = makeStripePlan([
         'name' => 'Lite',
         'price' => 900,
         'lesson_count' => 2,
-        'allowed_category_ids' => [],
         'stripe_product_id' => 'prod_lite',
         'stripe_price_id' => 'price_lite',
-        'is_active' => true,
     ]);
 
     UserSubscription::create([
@@ -195,14 +206,12 @@ it('sets canceled and failed on customer.subscription.deleted', function (): voi
 
 it('resets usage and marks paid on invoice.payment_succeeded', function (): void {
     $user = User::factory()->create();
-    $plan = SubscriptionPlan::create([
+    $plan = makeStripePlan([
         'name' => 'Gold',
         'price' => 5000,
         'lesson_count' => 8,
-        'allowed_category_ids' => [],
         'stripe_product_id' => 'prod_gold',
         'stripe_price_id' => 'price_gold',
-        'is_active' => true,
     ]);
 
     UserSubscription::create([
@@ -248,14 +257,12 @@ it('resets usage and marks paid on invoice.payment_succeeded', function (): void
 
 it('marks payment failed on invoice.payment_failed', function (): void {
     $user = User::factory()->create();
-    $plan = SubscriptionPlan::create([
+    $plan = makeStripePlan([
         'name' => 'Silver',
         'price' => 3000,
         'lesson_count' => 5,
-        'allowed_category_ids' => [],
         'stripe_product_id' => 'prod_silver',
         'stripe_price_id' => 'price_silver',
-        'is_active' => true,
     ]);
 
     UserSubscription::create([
@@ -283,4 +290,37 @@ it('marks payment failed on invoice.payment_failed', function (): void {
         'stripe_subscription_id' => 'sub_fail',
         'payment_status' => 'failed',
     ]);
+});
+
+it('is idempotent for duplicate checkout.session.completed payloads', function (): void {
+    $user = User::factory()->create();
+    $plan = makeStripePlan([
+        'name' => 'Idem',
+        'price' => 1100,
+        'lesson_count' => 3,
+        'stripe_product_id' => 'prod_idem',
+        'stripe_price_id' => 'price_idem',
+    ]);
+
+    $payload = [
+        'data' => [
+            'object' => [
+                'subscription' => 'sub_dup',
+                'client_reference_id' => (string) $user->id,
+                'metadata' => [
+                    'app_user_id' => (string) $user->id,
+                    'app_plan_id' => (string) $plan->id,
+                ],
+            ],
+        ],
+    ];
+
+    (new ProcessCheckoutSessionCompleted($payload))->handle();
+    (new ProcessCheckoutSessionCompleted($payload))->handle();
+
+    $this->assertDatabaseHas('user_subscriptions', [
+        'stripe_subscription_id' => 'sub_dup',
+        'user_id' => $user->id,
+    ]);
+    $this->assertDatabaseCount('user_subscriptions', 1);
 });
