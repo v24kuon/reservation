@@ -385,7 +385,10 @@
   - File: database/migrations/create_reservations_table.php (new) / ファイル: database/migrations/create_reservations_table.php (新規)
   - Define relationships and business logic methods / リレーションとビジネスロジックメソッドを定義
   - DB constraints: FK(user_id), FK(lesson_schedule_id), FK(user_subscription_id) with ON DELETE CASCADE / DB制約: FK(user_id), FK(lesson_schedule_id), FK(user_subscription_id) with ON DELETE CASCADE
-  - Indexes: (user_id, status), (lesson_schedule_id, status) for search optimization / インデックス: (user_id, status), (lesson_schedule_id, status) for search optimization
+  - Indexes:
+    - (lesson_schedule_id, status, start_datetime)
+    - (user_id, status, created_at)
+    - start_datetime 単独（期間検索最適化）
   - Purpose: Create reservation data model / 目的: 予約データモデルを作成
   - Requirements: 8.1, 8.2 / 要件: 8.1, 8.2
   - Dependencies: None / 依存関係: なし
@@ -404,12 +407,25 @@
   - Dependencies: Task 34 / 依存関係: タスク34
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 36. Create reservation controller / 予約コントローラーを作成
+- [x] 36. Create reservation controller / 予約コントローラーを作成
   - File: app/Http/Controllers/Admin/ReservationController.php (new) / ファイル: app/Http/Controllers/Admin/ReservationController.php (新規)
   - Implement CRUD operations for reservation management / 予約管理用のCRUD操作を実装
   - Add filtering and search functionality / フィルタリングと検索機能を追加
   - Handle reservation status updates with lesson count validation / 回数制限バリデーション付きで予約ステータス更新を処理
   - Enforce lesson count limits before allowing new reservations / 新規予約許可前に回数制限を強制
+  - Authorization / 認可: 管理者専用（Policy or Gate: manage-reservations、ルートは ['auth','verified','can:admin']）
+  - Eager Load / N+1回避: with(['user','lessonSchedule.lesson','userSubscription'])
+  - Filters / フィルタ: user_id, lesson_schedule_id, status, date_from/date_to（基準: schedule.start_datetime）
+  - Sorting / 並び順: start_datetime DESC, id DESC（安定ソート）
+  - Pagination / ページネーション: 50/ページ（設定可能）
+  - Status transitions / 状態遷移:
+    - allowed: pending→confirmed, confirmed→{canceled, completed, no_show}
+    - delete: canceled のみ削除可（翻訳キー: reservation.delete_only_canceled を使用）
+  - Concurrency / 競合対策:
+    - DB::transaction + 対象 LessonSchedule 行に FOR UPDATE
+    - 収容数/締切/回数の再検証（TOCTOU回避）
+    - ステータス更新は冪等（同一入力の多重実行防止用キー検討）
+  - i18n / 国際化: created/updated/canceled/completed/no_show/ status_update_not_supported を定義して使用
   - Purpose: Admin interface for reservation management with count enforcement / 目的: 回数制限付きで予約管理用の管理者インターフェース
   - Requirements: 8.5 / 要件: 8.5
   - Dependencies: Task 34 / 依存関係: タスク34
@@ -695,7 +711,9 @@ Execute in order: 53 → 54 → 55
 - **Webhook security**: Implement signature validation and replay attack prevention
   - **Webhookセキュリティ**: 署名検証とリプレイ攻撃防止を実装
 - **Concurrent booking conflicts**:
-    - Use DB transactions with SELECT ... FOR UPDATE on the target schedule row(s)
+    - Use DB transactions with SELECT ... FOR UPDATE on the target schedule row(s) and affected reservation rows
+    - Status updates/cancel 時も同様にロックし、回数カウンタ更新は同一Tx内で実施
+    - Admin 操作の再送に備え、操作単位の idempotency key を記録
     - Add covering index on (lesson_id, start_datetime, end_datetime)
     - Consider unique constraint to prevent exact-duplicate schedules
     - Record idempotency keys for client retries
@@ -731,6 +749,10 @@ Execute in order: 53 → 54 → 55
   - [ ] カテゴリー別独立サブスクリプション管理が正常に動作
 - [ ] Admin can manage reservations and subscriptions
   - [ ] 管理者は予約とサブスクリプションを管理可能
+- [ ] Admin can filter/search reservations by user/schedule/status/date with p95 < 500ms
+  - [ ] 管理者はユーザー/スケジュール/状態/日付で予約を検索でき、p95 < 500ms を満たす
+- [ ] Routes are scoped and named as 'admin.reservations.*' under proper middleware
+  - [ ] ルートは適切なミドルウェア下で 'admin.reservations.*' に統一
 - [ ] Notifications are sent for all relevant events
   - [ ] 関連する全てのイベントで通知が送信される
 - [ ] Instructor profiles can be created, edited, and managed
