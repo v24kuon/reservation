@@ -115,7 +115,7 @@ class Reservation extends Model
         $cancelHours = (int) ($lesson->cancel_deadline_hours ?? 0);
         $cancelDeadline = $this->lessonSchedule->start_datetime->copy()->subHours($cancelHours);
 
-        return now()->lt($cancelDeadline);
+        return now()->lte($cancelDeadline);
     }
 
     /**
@@ -170,6 +170,19 @@ class Reservation extends Model
     {
         $errors = [];
 
+        // Check duplicate active reservation for the same schedule (UX-friendly pre-check)
+        if ($this->user_id && $this->lesson_schedule_id) {
+            $exists = self::query()
+                ->where('user_id', $this->user_id)
+                ->where('lesson_schedule_id', $this->lesson_schedule_id)
+                ->whereIn('status', [self::STATUS_CONFIRMED])
+                ->exists();
+
+            if ($exists) {
+                $errors[] = '同じレッスン枠に既に予約があります。';
+            }
+        }
+
         // Requirement 8.1: Check subscription status and available slots
         if (! $this->userSubscription || ! $this->userSubscription->canBookLesson()) {
             $errors[] = 'サブスクリプションが無効であるか、利用可能なレッスン回数がありません。';
@@ -219,6 +232,14 @@ class Reservation extends Model
 
                 return ['success' => true, 'reservation' => $reservation];
             });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Unique constraint violation (SQLSTATE 23000)
+            if ((string) $e->getCode() === '23000') {
+                return ['success' => false, 'errors' => ['同じレッスン枠に既に予約があります。']];
+            }
+            report($e);
+
+            return ['success' => false, 'errors' => ['予約処理中にエラーが発生しました。時間をおいて再度お試しください。']];
         } catch (\Throwable $e) {
             report($e);
 

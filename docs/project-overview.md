@@ -14,8 +14,8 @@
 ## 技術スタック
 
 ### バックエンド
-- **PHP**: 8.4.12
-- **Laravel Framework**: 12.26.3
+- **PHP**: ^8.2 (実際の環境: 8.4.12)
+- **Laravel Framework**: ^12.0 (実際のバージョン: 12.26.3)
 - **データベース**:
   - 開発環境: SQLite
   - 本番環境: MySQL
@@ -551,8 +551,8 @@ class ReservationRequest extends FormRequest
 ### 開発環境
 - **Laravel Herd**: 開発環境として使用
 - **GitHub**: バージョン管理・コード共有
-- **PHP**: 8.4.12
-- **Laravel**: 12.26.3
+- **PHP**: ^8.2 (実際の環境: 8.4.12)
+- **Laravel**: ^12.0 (実際のバージョン: 12.26.3)
 - **データベース**: SQLite（開発）
 
 ### 必要なパッケージ
