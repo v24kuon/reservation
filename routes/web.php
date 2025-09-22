@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\LessonScheduleController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
@@ -123,6 +124,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Admin: lesson schedules CRUD
         Route::resource('lesson-schedules', LessonScheduleController::class);
+
+        // Admin: reservations CRUD
+        Route::resource('reservations', AdminReservationController::class);
 
         // Admin: notification templates CRUD
         Route::resource('notification-templates', NotificationTemplateController::class);

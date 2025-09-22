@@ -14,5 +14,13 @@ return [
         'cancel_generic_failure' => 'キャンセル処理中にエラーが発生しました。',
         'reservation_lesson_missing' => '予約対象のレッスンが見つかりません。',
         'subscription_missing' => '有効なサブスクリプションがありません。',
+        'status_update_not_supported' => 'このステータス更新はサポートされていません。',
+        'delete_only_canceled' => '削除はキャンセル済みの予約に対してのみ可能です。',
+    ],
+    'success' => [
+        'created' => '予約を作成しました。',
+        'updated' => '予約を更新しました。',
+        'canceled' => '予約をキャンセルしました。',
+        'deleted' => '予約を削除しました。',
     ],
 ];
