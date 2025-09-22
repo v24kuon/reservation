@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\UserSubscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
+// use Illuminate\Support\Facades\Log;
 
 uses(RefreshDatabase::class);
 
@@ -27,7 +27,7 @@ function createLessonGraph(array $overrides = []): array
         'name' => 'Yoga',
     ]);
 
-    $plan = SubscriptionPlan::create(array_merge([
+    $planDefaults = [
         'name' => 'Basic',
         'price' => 1200,
         'lesson_count' => 3,
@@ -35,7 +35,11 @@ function createLessonGraph(array $overrides = []): array
         'stripe_product_id' => 'prod_basic',
         'stripe_price_id' => 'price_basic',
         'is_active' => true,
-    ], $overrides['plan'] ?? []));
+    ];
+    $plan = SubscriptionPlan::create(array_intersect_key(
+        array_merge($planDefaults, $overrides['plan'] ?? []),
+        $planDefaults
+    ));
 
     $lesson = Lesson::factory()->create(array_merge([
         'category_id' => $category->id,
@@ -224,6 +228,16 @@ it('cancels a reservation and returns counters safely', function (): void {
 
     expect($cancel['success'])->toBeTrue();
 
+    // 予約レコードの状態
+    $this->assertDatabaseHas('reservations', [
+        'id' => $reservation->id,
+        'status' => Reservation::STATUS_CANCELED,
+    ]);
+    $this->assertDatabaseMissing('reservations', [
+        'id' => $reservation->id,
+        'status' => Reservation::STATUS_CONFIRMED,
+    ]);
+
     $this->assertDatabaseHas('lesson_schedules', [
         'id' => $schedule->id,
         'current_bookings' => 0,
@@ -235,9 +249,9 @@ it('cancels a reservation and returns counters safely', function (): void {
     ]);
 });
 
-function makePlanAllowingCategory(LessonCategory $category, array $overrides = []): SubscriptionPlan
+function makePlanForCategory(LessonCategory $category, array $overrides = []): SubscriptionPlan
 {
-    return SubscriptionPlan::create(array_merge([
+    $defaults = [
         'name' => 'Test Plan',
         'price' => 1000,
         'lesson_count' => 2,
@@ -245,16 +259,21 @@ function makePlanAllowingCategory(LessonCategory $category, array $overrides = [
         'stripe_product_id' => 'prod_test',
         'stripe_price_id' => 'price_test',
         'is_active' => true,
-    ], $overrides));
+    ];
+
+    return SubscriptionPlan::create(array_intersect_key(
+        array_merge($defaults, $overrides),
+        $defaults
+    ));
 }
 
-it('creates reservation and updates counters atomically', function (): void {
+it('creates reservation with descendant category and updates counters atomically', function (): void {
     Carbon::setTestNow(Carbon::parse('2025-06-01 10:00:00'));
 
     $user = User::factory()->create();
     $root = LessonCategory::factory()->create(['parent_id' => null]);
     $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
-    $plan = makePlanAllowingCategory($category, ['lesson_count' => 3]);
+    $plan = makePlanForCategory($category, ['lesson_count' => 3]);
 
     $lesson = Lesson::factory()
         ->forCategory($category)
@@ -283,8 +302,8 @@ it('creates reservation and updates counters atomically', function (): void {
 
     $result = Reservation::createWithValidation([
         'user_id' => $user->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscription->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscription->id,
     ]);
 
     expect($result['success'])->toBeTrue();
@@ -305,7 +324,7 @@ it('prevents double booking while confirmed and allows rebook after cancel', fun
     $user = User::factory()->create();
     $root = LessonCategory::factory()->create(['parent_id' => null]);
     $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
-    $plan = makePlanAllowingCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
+    $plan = makePlanForCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
     $lesson = Lesson::factory()->forCategory($category)->state([
         'capacity' => 2,
         'booking_deadline_hours' => 2,
@@ -331,15 +350,15 @@ it('prevents double booking while confirmed and allows rebook after cancel', fun
 
     $ok = Reservation::createWithValidation([
         'user_id' => $user->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscription->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscription->id,
     ]);
     expect($ok['success'])->toBeTrue();
 
     $dup = Reservation::createWithValidation([
         'user_id' => $user->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscription->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscription->id,
     ]);
     expect($dup['success'])->toBeFalse();
     expect($dup['errors'])->toContain('同じレッスン枠に既に予約があります。');
@@ -352,13 +371,28 @@ it('prevents double booking while confirmed and allows rebook after cancel', fun
     // 時刻進行（境界条件の影響排除）
     Carbon::setTestNow(Carbon::now()->addMinute());
 
+    // cancel 後の状態を確認
+    $this->assertDatabaseHas('reservations', [
+        'id' => $res->id,
+        'status' => Reservation::STATUS_CANCELED,
+    ]);
+    $schedule->refresh();
+    expect($schedule->current_bookings)->toBe(0);
+    $subscription->refresh();
+    expect($subscription->remaining_lessons)->toBe(2);
+
     $again = Reservation::createWithValidation([
         'user_id' => $user->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscription->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscription->id,
     ]);
-    Log::info('rebook_result', $again);
     expect($again['success'])->toBeTrue();
+
+    // 再予約後のカウンタ
+    $schedule->refresh();
+    expect($schedule->current_bookings)->toBe(1);
+    $subscription->refresh();
+    expect($subscription->remaining_lessons)->toBe(1);
 });
 
 it('enforces booking deadline', function (): void {
@@ -367,14 +401,14 @@ it('enforces booking deadline', function (): void {
     $user = User::factory()->create();
     $root = LessonCategory::factory()->create(['parent_id' => null]);
     $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
-    $plan = makePlanAllowingCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
+    $plan = makePlanForCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
     $lesson = Lesson::factory()->forCategory($category)->state([
         'capacity' => 2,
         'booking_deadline_hours' => 2,
     ])->create();
     $schedule = LessonSchedule::factory()->state([
         'lesson_id' => $lesson->id,
-        'start_datetime' => Carbon::now()->addHour(), // deadline is now
+        'start_datetime' => Carbon::now()->addHour(), // 締切は1時間前（超過）
         'end_datetime' => Carbon::now()->addHours(2),
         'current_bookings' => 0,
     ])->create();
@@ -392,8 +426,8 @@ it('enforces booking deadline', function (): void {
 
     $res = Reservation::createWithValidation([
         'user_id' => $user->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscription->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscription->id,
     ]);
 
     expect($res['success'])->toBeFalse();
@@ -407,7 +441,7 @@ it('denies owner mismatch of user subscription', function (): void {
     $userB = User::factory()->create();
     $root = LessonCategory::factory()->create(['parent_id' => null]);
     $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
-    $plan = makePlanAllowingCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
+    $plan = makePlanForCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
     $lesson = Lesson::factory()->forCategory($category)->create();
     $schedule = LessonSchedule::factory()->state([
         'lesson_id' => $lesson->id,
@@ -429,32 +463,44 @@ it('denies owner mismatch of user subscription', function (): void {
 
     $res = Reservation::createWithValidation([
         'user_id' => $userA->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscriptionB->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscriptionB->id,
     ]);
 
     expect($res['success'])->toBeFalse();
     expect($res['errors'])->toContain('サブスクリプションの所有者が一致しません。');
 });
 
-it('denies when schedule is full (capacity guard)', function (): void {
+it('denies when schedule becomes full after another booking (capacity guard)', function (): void {
     Carbon::setTestNow(Carbon::parse('2025-06-05 10:00:00'));
 
-    $user = User::factory()->create();
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
     $root = LessonCategory::factory()->create(['parent_id' => null]);
     $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
-    $plan = makePlanAllowingCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
+    $plan = makePlanForCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
     $lesson = Lesson::factory()->forCategory($category)->state(['capacity' => 1])->create();
     $schedule = LessonSchedule::factory()->state([
         'lesson_id' => $lesson->id,
         'start_datetime' => Carbon::now()->addDays(1),
         'end_datetime' => Carbon::now()->addDays(1)->addHour(),
-        'current_bookings' => 1, // already full
+        'current_bookings' => 0,
     ])->create();
-    $subscription = UserSubscription::create([
-        'user_id' => $user->id,
+    $sub1 = UserSubscription::create([
+        'user_id' => $user1->id,
         'plan_id' => $plan->id,
-        'stripe_subscription_id' => 'sub_test_full',
+        'stripe_subscription_id' => 'sub_full_1',
+        'status' => 'active',
+        'payment_status' => 'paid',
+        'current_month_used_count' => 0,
+        'remaining_lessons' => 2,
+        'current_period_start' => Carbon::now()->startOfMonth(),
+        'current_period_end' => Carbon::now()->endOfMonth(),
+    ]);
+    $sub2 = UserSubscription::create([
+        'user_id' => $user2->id,
+        'plan_id' => $plan->id,
+        'stripe_subscription_id' => 'sub_full_2',
         'status' => 'active',
         'payment_status' => 'paid',
         'current_month_used_count' => 0,
@@ -463,12 +509,57 @@ it('denies when schedule is full (capacity guard)', function (): void {
         'current_period_end' => Carbon::now()->endOfMonth(),
     ]);
 
-    $res = Reservation::createWithValidation([
+    // 先に user1 が予約して満席にする
+    $first = Reservation::createWithValidation([
+        'user_id' => $user1->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $sub1->id,
+    ]);
+    expect($first['success'])->toBeTrue();
+
+    // user2 は満席で予約不可
+    $second = Reservation::createWithValidation([
+        'user_id' => $user2->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $sub2->id,
+    ]);
+    expect($second['success'])->toBeFalse();
+    expect($second['errors'])->toContain('このレッスンは満員です。');
+});
+
+it('allows booking exactly at the booking deadline boundary (inclusive spec)', function (): void {
+    Carbon::setTestNow(Carbon::parse('2025-06-03 10:00:00'));
+
+    $user = User::factory()->create();
+    $root = LessonCategory::factory()->create(['parent_id' => null]);
+    $category = LessonCategory::factory()->create(['parent_id' => $root->id]);
+    $plan = makePlanForCategory($category, ['lesson_count' => 2, 'allowed_category_ids' => [$category->id]]);
+
+    $lesson = Lesson::factory()->forCategory($category)->state(['booking_deadline_hours' => 2])->create();
+    // start=12:00, now=10:00 → deadline=10:00 ちょうど
+    $schedule = LessonSchedule::factory()->state([
+        'lesson_id' => $lesson->id,
+        'start_datetime' => Carbon::now()->addHours(2),
+        'end_datetime' => Carbon::now()->addHours(3),
+    ])->create();
+    $subscription = UserSubscription::create([
         'user_id' => $user->id,
-        'lesson_schedule_id' => (int) $schedule->id,
-        'user_subscription_id' => (int) $subscription->id,
+        'plan_id' => $plan->id,
+        'stripe_subscription_id' => 'sub_deadline_boundary',
+        'status' => 'active',
+        'payment_status' => 'paid',
+        'remaining_lessons' => 2,
+        'current_month_used_count' => 0,
+        'current_period_start' => Carbon::now()->startOfMonth(),
+        'current_period_end' => Carbon::now()->endOfMonth(),
     ]);
 
-    expect($res['success'])->toBeFalse();
-    expect($res['errors'])->toContain('このレッスンは満員です。');
+    $res = Reservation::createWithValidation([
+        'user_id' => $user->id,
+        'lesson_schedule_id' => $schedule->id,
+        'user_subscription_id' => $subscription->id,
+    ]);
+
+    // 受付締切は「時間ちょうどまで許可」の仕様（<=）に従い成功
+    expect($res['success'])->toBeTrue();
 });

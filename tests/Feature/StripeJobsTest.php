@@ -55,7 +55,7 @@ it('creates or updates user subscription on checkout.session.completed (new subs
         'stripe_subscription_id' => 'sub_cs_new',
         'user_id' => $user->id,
         'plan_id' => $plan->id,
-        'status' => 'active',
+        'status' => 'incomplete',
         'payment_status' => 'paid',
         'current_month_used_count' => 0,
         'remaining_lessons' => 3,
@@ -101,7 +101,7 @@ it('transfers remaining lessons hint on plan switch at checkout.session.complete
         'plan_id' => $plan->id,
         'remaining_lessons' => 6,
         'current_month_used_count' => 0,
-        'status' => 'active',
+        'status' => 'incomplete',
         'payment_status' => 'paid',
     ]);
 });
