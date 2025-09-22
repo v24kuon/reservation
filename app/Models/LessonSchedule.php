@@ -264,12 +264,12 @@ class LessonSchedule extends Model
     {
         $lesson = $this->lesson;
         if (! $lesson) {
-            return ['success' => false, 'errors' => ['予約対象のレッスンが見つかりません。']];
+            return ['success' => false, 'errors' => [trans('reservation.errors.reservation_lesson_missing')]];
         }
 
         $sub = $subscription ?: $this->findEligibleSubscriptionFor($user);
         if (! $sub) {
-            return ['success' => false, 'errors' => ['有効なサブスクリプションがありません。']];
+            return ['success' => false, 'errors' => [trans('reservation.errors.subscription_missing')]];
         }
 
         return Reservation::createWithValidation([
