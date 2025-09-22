@@ -16,5 +16,3 @@ return [
         'subscription_missing' => '有効なサブスクリプションがありません。',
     ],
 ];
-
-
