@@ -16,6 +16,7 @@
 ### バックエンド
 - **PHP**: ^8.2 (実際の環境: 8.4.12)
 - **Laravel Framework**: ^12.0 (実際のバージョン: 12.26.3)
+  - ※ 基準日: 2025-09-22
 - **データベース**:
   - 開発環境: SQLite
   - 本番環境: MySQL
@@ -336,7 +337,7 @@ plan_switch_logs (プラン切り替えログ) ✅
 ### Phase 3: 予約システム
 - [x] 予約データモデル構築
   - [x] Reservationモデルとマイグレーション作成
-  - [x] 二重予約防止制約（user_id + lesson_schedule_id ユニーク制約）
+  - [x] 二重予約防止制約（user_id + lesson_schedule_id + status のユニーク制約）
   - [x] 予約制約バリデーション機能
   - [x] キャンセル期限チェック機能
   - [x] サーバー側バリデーション強制（UI無効化に加えて）
@@ -492,7 +493,11 @@ plan_switch_logs (プラン切り替えログ) ✅
 - **サブスク更新通知**: Stripeからの通知 + アプリからの通知
 
 ### 通知テンプレート管理
-- **テンプレート種別**: 固定4種類（reservation_confirmation, reminder, cancellation, subscription_update）
+- **テンプレート種別**: 固定集合
+  - reservation_confirmation, reminder, cancellation, subscription_update,
+    subscription.created, subscription.updated, subscription.deleted,
+    payment.succeeded, payment.failed,
+    count_limit_warning, count_limit_reached
 - **変数管理**: システム設定でテーブル別に許可リスト管理
 - **動的変数取得**: データベーススキーマから自動取得、機密カラムは除外
 - **テンプレート作成**: 変数は自動適用、手動入力不可

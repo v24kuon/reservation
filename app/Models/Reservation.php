@@ -22,7 +22,6 @@ class Reservation extends Model
         'user_id',
         'lesson_schedule_id',
         'user_subscription_id',
-        'status',
         'reserved_at',
     ];
 
@@ -150,7 +149,8 @@ class Reservation extends Model
     public function canBeCreated(): bool
     {
         // Check subscription status and available lessons
-        if (! $this->userSubscription || ! $this->userSubscription->canBookLesson()) {
+        $lesson = $this->lessonSchedule?->lesson;
+        if (! $this->userSubscription || ! $lesson || ! $this->userSubscription->canBookLesson($lesson)) {
             return false;
         }
 
@@ -160,7 +160,7 @@ class Reservation extends Model
         }
 
         // Check slot availability (capacity check)
-        return $this->lessonSchedule->hasAvailableSlots();
+        return $this->lessonSchedule->hasAvailableSpots();
     }
 
     /**
@@ -183,19 +183,20 @@ class Reservation extends Model
             }
         }
 
-        // Requirement 8.1: Check subscription status and available slots
-        if (! $this->userSubscription || ! $this->userSubscription->canBookLesson()) {
-            $errors[] = 'サブスクリプションが無効であるか、利用可能なレッスン回数がありません。';
-        }
+        // Use canBeCreated() to check comprehensive validation logic
+        if (! $this->canBeCreated()) {
+            $lesson = $this->lessonSchedule?->lesson;
+            if (! $this->userSubscription || ! $lesson || ! $this->userSubscription->canBookLesson($lesson)) {
+                $errors[] = 'サブスクリプションが無効であるか、利用可能なレッスン回数がありません。';
+            }
 
-        // Requirement 8.2: Check booking deadline
-        if ($this->hasBookingDeadlinePassed()) {
-            $errors[] = '予約受付期限を過ぎています。';
-        }
+            if ($this->hasBookingDeadlinePassed()) {
+                $errors[] = '予約受付期限を過ぎています。';
+            }
 
-        // Requirement 8.1: Check capacity
-        if (! $this->lessonSchedule->hasAvailableSlots()) {
-            $errors[] = 'このレッスンは満員です。';
+            if (! $this->lessonSchedule->hasAvailableSpots()) {
+                $errors[] = 'このレッスンは満員です。';
+            }
         }
 
         return $errors;
@@ -210,22 +211,58 @@ class Reservation extends Model
             return \Illuminate\Support\Facades\DB::transaction(function () use ($attributes) {
                 $reservation = new self($attributes);
 
-                // Validate constraints
+                // Early validation (non-locking, for UX). Will be rechecked under locks.
                 $errors = $reservation->validateReservationConstraints();
                 if (! empty($errors)) {
                     return ['success' => false, 'errors' => $errors];
+                }
+
+                // Acquire locks on related rows to prevent race conditions
+                /** @var \App\Models\LessonSchedule|null $lockedSchedule */
+                $lockedSchedule = \App\Models\LessonSchedule::query()
+                    ->whereKey($reservation->lesson_schedule_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                /** @var \App\Models\UserSubscription|null $lockedSubscription */
+                $lockedSubscription = \App\Models\UserSubscription::query()
+                    ->whereKey($reservation->user_subscription_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $lockedSchedule || ! $lockedSubscription) {
+                    return ['success' => false, 'errors' => ['予約対象のデータが見つかりません。']];
+                }
+
+                $lesson = $lockedSchedule->lesson;
+
+                // Re-validate under locks
+                if (! $lockedSchedule->hasAvailableSpots()) {
+                    return ['success' => false, 'errors' => ['このレッスンは満員です。']];
+                }
+                if (! $lockedSubscription->canBookLesson($lesson)) {
+                    return ['success' => false, 'errors' => ['利用可能なレッスン回数がありません。']];
                 }
 
                 // Set safe defaults if not provided
                 $reservation->status = $reservation->status ?? self::STATUS_CONFIRMED;
                 $reservation->reserved_at = $reservation->reserved_at ?? now();
 
-                // Persist reservation
+                // Persist reservation after successful locked checks
                 $reservation->save();
 
-                // Atomic counters update
-                $reservation->lessonSchedule->incrementCurrentBookings();
-                $reservation->userSubscription->incrementUsedCount();
+                // Atomic counters update under locks
+                $lockedSchedule->increment('current_bookings');
+
+                // Maintain remaining lessons vs used count consistently
+                $rawRemaining = $lockedSubscription->getRawOriginal('remaining_lessons');
+                if ($rawRemaining !== null) {
+                    // remaining_lessons is the source of truth when present
+                    $lockedSubscription->decrement('remaining_lessons');
+                } else {
+                    // fallback to used count tracking
+                    $lockedSubscription->increment('current_month_used_count');
+                }
 
                 // Refresh to sync defaults
                 $reservation->refresh();
@@ -262,11 +299,29 @@ class Reservation extends Model
                 // Update status
                 $this->update(['status' => self::STATUS_CANCELED]);
 
-                // Decrement current bookings
-                $this->lessonSchedule->decrementCurrentBookings();
+                // Lock related rows to avoid race conditions when returning capacity/counts
+                /** @var \App\Models\LessonSchedule|null $lockedSchedule */
+                $lockedSchedule = \App\Models\LessonSchedule::query()
+                    ->whereKey($this->lesson_schedule_id)
+                    ->lockForUpdate()
+                    ->first();
+                /** @var \App\Models\UserSubscription|null $lockedSubscription */
+                $lockedSubscription = \App\Models\UserSubscription::query()
+                    ->whereKey($this->user_subscription_id)
+                    ->lockForUpdate()
+                    ->first();
 
-                // Return lesson count if within deadline
-                $this->userSubscription->decrementUsedCount();
+                if ($lockedSchedule) {
+                    $lockedSchedule->decrement('current_bookings');
+                }
+                if ($lockedSubscription) {
+                    $rawRemaining = $lockedSubscription->getRawOriginal('remaining_lessons');
+                    if ($rawRemaining !== null) {
+                        $lockedSubscription->increment('remaining_lessons');
+                    } else {
+                        $lockedSubscription->decrement('current_month_used_count');
+                    }
+                }
 
                 // Sync any DB defaults
                 $this->refresh();
