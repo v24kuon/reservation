@@ -404,7 +404,7 @@
   - Dependencies: Task 34 / 依存関係: タスク34
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 36. Create reservation controller / 予約コントローラーを作成
+- [x] 36. Create reservation controller / 予約コントローラーを作成
   - File: app/Http/Controllers/Admin/ReservationController.php (new) / ファイル: app/Http/Controllers/Admin/ReservationController.php (新規)
   - Implement CRUD operations for reservation management / 予約管理用のCRUD操作を実装
   - Add filtering and search functionality / フィルタリングと検索機能を追加

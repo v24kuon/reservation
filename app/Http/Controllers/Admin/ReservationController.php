@@ -33,8 +33,12 @@ class ReservationController extends Controller
             $query->where('status', $v['status']);
         }
         // Filter by reservation booked date
-        $from = ! empty($v['reserved_from']) ? \Illuminate\Support\Carbon::parse($v['reserved_from'])->startOfDay() : null;
-        $to = ! empty($v['reserved_to']) ? \Illuminate\Support\Carbon::parse($v['reserved_to'])->endOfDay() : null;
+        $from = ! empty($v['reserved_from'])
+            ? \Illuminate\Support\Carbon::parse($v['reserved_from'], config('app.timezone'))->startOfDay()
+            : null;
+        $to = ! empty($v['reserved_to'])
+            ? \Illuminate\Support\Carbon::parse($v['reserved_to'], config('app.timezone'))->endOfDay()
+            : null;
         if ($from) {
             $query->where('reserved_at', '>=', $from);
         }

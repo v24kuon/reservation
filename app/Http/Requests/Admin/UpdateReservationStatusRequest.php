@@ -11,7 +11,7 @@ class UpdateReservationStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('access-admin') ?? false;
+        return $this->user()->can('access-admin');
     }
 
     /**
