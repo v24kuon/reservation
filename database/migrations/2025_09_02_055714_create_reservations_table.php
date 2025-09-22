@@ -19,6 +19,14 @@ return new class extends Migration
             $table->string('status')->default('confirmed'); // confirmed, canceled, completed, no_show
             $table->dateTime('reserved_at');
             $table->timestamps();
+
+            // Prevent double booking only for active (confirmed) by including status in uniqueness
+            // DB-agnostic approach: include status to allow rebooking after cancellation/completion
+            $table->unique(['user_id', 'lesson_schedule_id', 'status'], 'uniq_user_schedule_status');
+
+            // Index for performance optimization
+            $table->index(['lesson_schedule_id', 'status'], 'idx_lesson_schedule_status');
+            $table->index(['user_id', 'status'], 'idx_user_status');
         });
     }
 
