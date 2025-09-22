@@ -189,7 +189,7 @@ class Reservation extends Model
                 ->exists();
 
             if ($exists) {
-                $errors[] = '同じレッスン枠に既に予約があります。';
+                $errors[] = trans('reservation.errors.duplicate_active_reservation');
             }
         }
 
@@ -197,15 +197,15 @@ class Reservation extends Model
         if (! $this->canBeCreated()) {
             $lesson = $this->lessonSchedule?->lesson;
             if (! $this->userSubscription || ! $lesson || ! $this->userSubscription->canBookLesson($lesson)) {
-                $errors[] = 'サブスクリプションが無効であるか、利用可能なレッスン回数がありません。';
+                $errors[] = trans('reservation.errors.subscription_invalid_or_no_remaining');
             }
 
             if ($this->hasBookingDeadlinePassed()) {
-                $errors[] = '予約受付期限を過ぎています。';
+                $errors[] = trans('reservation.errors.booking_deadline_passed');
             }
 
             if (! $this->lessonSchedule || ! $this->lessonSchedule->hasAvailableSpots()) {
-                $errors[] = 'このレッスンは満員です。';
+                $errors[] = trans('reservation.errors.lesson_full');
             }
         }
 
@@ -241,29 +241,29 @@ class Reservation extends Model
                     ->first();
 
                 if (! $lockedSchedule || ! $lockedSubscription) {
-                    return ['success' => false, 'errors' => ['予約対象のデータが見つかりません。']];
+                    return ['success' => false, 'errors' => [trans('reservation.errors.target_not_found')]];
                 }
 
                 $lesson = $lockedSchedule->lesson;
 
                 // 所有者整合（他人のサブスク悪用防止）
                 if ((int) $lockedSubscription->user_id !== (int) $reservation->user_id) {
-                    return ['success' => false, 'errors' => ['サブスクリプションの所有者が一致しません。']];
+                    return ['success' => false, 'errors' => [trans('reservation.errors.subscription_owner_mismatch')]];
                 }
 
                 // ロック下での受付期限再確認
                 $bookingHours = max(0, (int) ($lesson->booking_deadline_hours ?? 0));
                 $bookingDeadline = $lockedSchedule->start_datetime->copy()->subHours($bookingHours);
                 if (now()->gt($bookingDeadline)) {
-                    return ['success' => false, 'errors' => ['予約受付期限を過ぎています。']];
+                    return ['success' => false, 'errors' => [trans('reservation.errors.booking_deadline_passed')]];
                 }
 
                 // Re-validate under locks
                 if (! $lockedSchedule->hasAvailableSpots()) {
-                    return ['success' => false, 'errors' => ['このレッスンは満員です。']];
+                    return ['success' => false, 'errors' => [trans('reservation.errors.lesson_full')]];
                 }
                 if (! $lockedSubscription->canBookLesson($lesson)) {
-                    return ['success' => false, 'errors' => ['利用可能なレッスン回数がありません。']];
+                    return ['success' => false, 'errors' => [trans('reservation.errors.no_remaining_lessons')]];
                 }
 
                 // Set safe defaults if not provided
@@ -294,15 +294,15 @@ class Reservation extends Model
         } catch (\Illuminate\Database\QueryException $e) {
             // Unique constraint violation (SQLSTATE 23000)
             if ((string) $e->getCode() === '23000') {
-                return ['success' => false, 'errors' => ['同じレッスン枠に既に予約があります。']];
+                return ['success' => false, 'errors' => [trans('reservation.errors.duplicate_active_reservation')]];
             }
             report($e);
 
-            return ['success' => false, 'errors' => ['予約処理中にエラーが発生しました。時間をおいて再度お試しください。']];
+            return ['success' => false, 'errors' => [trans('reservation.errors.generic_failure')]];
         } catch (\Throwable $e) {
             report($e);
 
-            return ['success' => false, 'errors' => ['予約処理中にエラーが発生しました。時間をおいて再度お試しください。']];
+            return ['success' => false, 'errors' => [trans('reservation.errors.generic_failure')]];
         }
     }
 
@@ -315,7 +315,7 @@ class Reservation extends Model
             return \Illuminate\Support\Facades\DB::transaction(function () {
                 // Requirement 8.4: Check cancel deadline and permissions
                 if (! $this->canBeCanceled()) {
-                    return ['success' => false, 'error' => 'キャンセル期限を過ぎているため、キャンセルできません。'];
+                    return ['success' => false, 'error' => trans('reservation.errors.cancel_deadline_passed')];
                 }
 
                 // Update status (avoid mass-assignment; status is not fillable)
@@ -370,7 +370,7 @@ class Reservation extends Model
         } catch (\Throwable $e) {
             report($e);
 
-            return ['success' => false, 'error' => 'キャンセル処理中にエラーが発生しました。'];
+            return ['success' => false, 'error' => trans('reservation.errors.cancel_generic_failure')];
         }
     }
 }

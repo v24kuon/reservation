@@ -391,7 +391,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 35. Extend LessonSchedule model / LessonScheduleモデルを拡張
+- [x] 35. Extend LessonSchedule model / LessonScheduleモデルを拡張
   - File: app/Models/LessonSchedule.php (modify) / ファイル: app/Models/LessonSchedule.php (修正)
   - Add reservations relationship / 予約リレーションを追加
   - Add availability checking methods / 空き状況チェックメソッドを追加

@@ -166,4 +166,117 @@ class LessonSchedule extends Model
             ->overlapping($startAt, $endAt)
             ->exists();
     }
+
+    /**
+     * Get the capacity for this schedule (delegated from the lesson).
+     */
+    public function capacity(): int
+    {
+        return (int) ($this->lesson?->capacity ?? 0);
+    }
+
+    /**
+     * Calculate the booking deadline datetime based on the lesson's policy.
+     */
+    public function bookingDeadlineAt(): ?Carbon
+    {
+        if (! $this->lesson) {
+            return null;
+        }
+
+        $hours = max(0, (int) ($this->lesson->booking_deadline_hours ?? 0));
+
+        return $this->start_datetime?->copy()->subHours($hours);
+    }
+
+    /**
+     * Determine whether the booking deadline has already passed.
+     */
+    public function hasBookingDeadlinePassed(): bool
+    {
+        $deadline = $this->bookingDeadlineAt();
+        if ($deadline === null) {
+            // 関連欠損時は安全側で締切とみなす
+            return true;
+        }
+
+        return now()->gt($deadline);
+    }
+
+    /**
+     * Determine whether a given subscription can book this schedule.
+     */
+    public function canBookWithSubscription(UserSubscription $subscription): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->hasBookingDeadlinePassed()) {
+            return false;
+        }
+
+        if (! $this->hasAvailableSpots()) {
+            return false;
+        }
+
+        $lesson = $this->lesson;
+        if (! $lesson) {
+            return false;
+        }
+
+        return $subscription->canBookLesson($lesson);
+    }
+
+    /**
+     * Find an eligible active & paid subscription of the user that allows this schedule's lesson category.
+     */
+    public function findEligibleSubscriptionFor(User $user): ?UserSubscription
+    {
+        $lesson = $this->lesson;
+        if (! $lesson) {
+            return null;
+        }
+
+        return $user->getActiveSubscriptionForCategory((int) $lesson->category_id);
+    }
+
+    /**
+     * Check if the given user can book this schedule (using their best eligible subscription).
+     */
+    public function canUserBook(User $user): bool
+    {
+        $subscription = $this->findEligibleSubscriptionFor($user);
+        if (! $subscription) {
+            return false;
+        }
+
+        return $this->canBookWithSubscription($subscription);
+    }
+
+    /**
+     * Atomically create a reservation for the given user and optional subscription.
+     * Uses Reservation::createWithValidation() which performs locking and counters update.
+     *
+     * @return array{success:bool, reservation?:\App\Models\Reservation, errors?:list<string>}
+     */
+    public function createReservationForUser(User $user, ?UserSubscription $subscription = null): array
+    {
+        $lesson = $this->lesson;
+        if (! $lesson) {
+            return ['success' => false, 'errors' => [trans('reservation.errors.reservation_lesson_missing')]];
+        }
+
+        $sub = $subscription ?: $this->findEligibleSubscriptionFor($user);
+        if (! $sub) {
+            return ['success' => false, 'errors' => [trans('reservation.errors.subscription_missing')]];
+        }
+
+        return Reservation::createWithValidation([
+            'user_id' => $user->getKey(),
+            'lesson_schedule_id' => $this->getKey(),
+            'user_subscription_id' => $sub->getKey(),
+            // reserved_at はメソッド側で now() セット（省略可）
+        ]);
+    }
 }
