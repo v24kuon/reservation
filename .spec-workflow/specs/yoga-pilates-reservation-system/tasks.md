@@ -431,7 +431,7 @@
   - Dependencies: Task 34 / 依存関係: タスク34
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 37. Add reservation routes / 予約ルートを追加
+- [x] 37. Add reservation routes / 予約ルートを追加
   - File: routes/web.php (modify) / ファイル: routes/web.php (修正)
   - Add admin routes for reservation management / 予約管理用の管理者ルートを追加
   - Add user routes for lesson booking with count limit validation / 回数制限バリデーション付きでレッスン予約用のユーザールートを追加
