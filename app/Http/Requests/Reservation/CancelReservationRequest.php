@@ -9,10 +9,11 @@ class CancelReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        /** @var Reservation $reservation */
+        /** @var Reservation|null $reservation */
         $reservation = $this->route('reservation');
 
-        return $this->user() && $reservation && (int) $reservation->user_id === (int) $this->user()->getKey();
+        return $reservation !== null
+            && $this->user()?->can('cancel', $reservation) === true;
     }
 
     public function rules(): array

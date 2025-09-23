@@ -7,6 +7,7 @@ use App\Http\Requests\Reservation\StoreReservationRequest;
 use App\Models\LessonSchedule;
 use App\Models\Reservation;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
 
 class ReservationController extends Controller
 {
@@ -17,13 +18,17 @@ class ReservationController extends Controller
     {
         $user = $request->user();
 
-        $subscription = $request->validated()['user_subscription'] ?? null;
+        $subscriptionId = $request->validated()['user_subscription_id'] ?? null;
+        $subscription = null;
+        if ($subscriptionId) {
+            $subscription = $user->userSubscriptions()->find($subscriptionId);
+        }
 
         $result = $lessonSchedule->createReservationForUser($user, $subscription);
 
-        if (! $result['success']) {
+        if (! ($result['success'] ?? false)) {
             return back()
-                ->withErrors(['reservation' => $result['errors'] ?? [trans('reservation.errors.generic_failure')]])
+                ->withErrors(['reservation' => Arr::wrap($result['errors'] ?? trans('reservation.errors.generic_failure'))])
                 ->withInput();
         }
 
@@ -35,12 +40,13 @@ class ReservationController extends Controller
      */
     public function destroy(CancelReservationRequest $request, Reservation $reservation): RedirectResponse
     {
+        // ensure FormRequest side-effects (authorize/validation) are executed and silence unused param warning
+        $request->validated();
         $result = $reservation->cancelWithValidation();
 
         if (! ($result['success'] ?? false)) {
-            $error = $result['error'] ?? trans('reservation.errors.cancel_generic_failure');
-
-            return back()->withErrors(['reservation' => [$error]]);
+            $error = $result['errors'] ?? ($result['error'] ?? trans('reservation.errors.cancel_generic_failure'));
+            return back()->withErrors(['reservation' => \Illuminate\Support\Arr::wrap($error)]);
         }
 
         return back()->with('status', trans('reservation.success.canceled'));

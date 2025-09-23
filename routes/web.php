@@ -97,8 +97,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // User reservation actions
     Route::post('/lesson-schedules/{lessonSchedule}/reservations', [ReservationController::class, 'store'])
+        ->middleware('throttle:20,1')
         ->name('reservations.store');
     Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
+        ->middleware('throttle:30,1')
         ->name('reservations.destroy');
 
     // Instructor self profile
