@@ -34,12 +34,16 @@ it('can create user as admin', function () {
         'name' => 'テストユーザー',
         'email' => 'new-user@example.com',
         'password' => 'password123',
+        'password_confirmation' => 'password123',
     ];
 
     post(route('admin.users.store'), $payload)
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
 
-    expect(User::query()->where('email', $payload['email'])->exists())->toBeTrue();
+    $created = User::query()->where('email', $payload['email'])->first();
+    expect($created)->not->toBeNull();
+    expect($created->role)->toBe(User::ROLE_USER);
 });
 
 it('can update general user as admin (role unchanged)', function () {
@@ -53,7 +57,8 @@ it('can update general user as admin (role unchanged)', function () {
     ];
 
     patch(route('admin.users.update', $target), $payload)
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
 
     $target->refresh();
     expect($target->name)->toBe('更新後ユーザー')

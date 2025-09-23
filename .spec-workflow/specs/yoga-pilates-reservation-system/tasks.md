@@ -446,10 +446,10 @@
 - [x] 38. Create user management interface / ユーザー管理画面を作成
   - File: app/Http/Controllers/Admin/UserController.php (new) / ファイル: app/Http/Controllers/Admin/UserController.php (新規)
   - File: resources/views/admin/users/ (new directory) / ファイル: resources/views/admin/users/ (新規ディレクトリ)
-  - Implement user CRUD operations with role management / ロール管理付きユーザーCRUD操作を実装
-  - Add user search and filtering (name, email, role, registration date) / ユーザー検索・フィルタリング機能を追加（名前、メール、ロール、登録日）
+  - Implement user CRUD operations for general users (no role change on this screen) / 一般ユーザー向けCRUD（本画面ではロール変更不可）
+  - Add user search and filtering (name, email, registration date) / ユーザー検索・フィルタリング機能を追加（名前、メール、登録日）
   - Add user status management (active/inactive) / ユーザーステータス管理を追加（アクティブ/非アクティブ）
-  - Implement role change functionality with audit logging / 監査ログ付きロール変更機能を実装
+  - (Out of scope) Role change is not supported on this screen to avoid privilege mistakes / （対象外）権限誤操作回避のため本画面でのロール変更は非対応
   - Add user subscription overview in user detail view / ユーザー詳細画面にサブスクリプション概要を追加
   - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
   - Purpose: Comprehensive user management for administrators / 目的: 管理者向け包括的なユーザー管理
@@ -520,6 +520,13 @@
   - Dependencies: Task 41 / 依存関係: タスク41
   - Estimated time: 30 minutes / 推定時間: 30分
 
+- [x] 43. Implement role-based redirect for authenticated access to /login / 認証済みの /login アクセス時のロール別リダイレクトを実装
+  - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
+  - Behavior: User → /home, Admin/Instructor → /dashboard / 挙動: ユーザー → /home、管理者/インストラクター → /dashboard
+  - Tests: Feature tests for redirect behavior / リダイレクト挙動のFeatureテスト
+  - Purpose: Align login UX with user roles / 目的: ロールに応じたログインUX整合
+  - Dependencies: None / 依存関係: なし
+  - Estimated time: 10 minutes / 推定時間: 10分
 
 - [ ] 44. Create store listing and detail pages / 店舗一覧・詳細ページを作成
   - File: resources/views/stores/index.blade.php (new) / ファイル: resources/views/stores/index.blade.php (新規)
@@ -855,8 +862,8 @@ Execute in order: 34 → 35 → 36 → 37
 
 ### Phase 2B: Admin Management Interfaces (Tasks 38-41)
 ### フェーズ2B: 管理画面インターフェース (タスク38-41)
-Execute in order: 38 → 39 → 40 → 41
-順次実行: 38 → 39 → 40 → 41
+Execute in order: 38 → 39 → 40 → 41 (Note: 39-41 can be parallel after 38)
+順次実行: 38 → 39 → 40 → 41 (注: 38完了後、39-41は並列実行可能)
 
 ### Phase 2C: User Interface Development (Tasks 42-49)
 ### フェーズ2C: ユーザーインターフェース開発 (タスク42-49)
