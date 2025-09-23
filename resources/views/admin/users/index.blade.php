@@ -42,7 +42,7 @@
                                     <td class="px-4 py-2">{{ $user->created_at?->format('Y-m-d') }}</td>
                                     <td class="px-4 py-2 space-x-2">
                                         <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600">編集</a>
-                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm({{ Js::from('削除しますか？') }});">
+                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm(@js('削除しますか？')); ">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600">削除</button>
@@ -50,6 +50,11 @@
                                     </td>
                                 </tr>
                             @endforeach
+                            @if($users->isEmpty())
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-gray-500">該当するユーザーがいません</td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
 

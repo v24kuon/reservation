@@ -34,7 +34,6 @@ it('can create user as admin', function () {
         'name' => 'テストユーザー',
         'email' => 'new-user@example.com',
         'password' => 'password123',
-        'role' => User::ROLE_USER,
     ];
 
     post(route('admin.users.store'), $payload)
@@ -51,7 +50,6 @@ it('can update general user as admin (role unchanged)', function () {
     $payload = [
         'name' => '更新後ユーザー',
         'email' => 'updated-user@example.com',
-        'password' => '', // optional; role cannot be changed here
     ];
 
     patch(route('admin.users.update', $target), $payload)

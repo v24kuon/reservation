@@ -73,6 +73,8 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
+        // Manage only general users; hide others
+        abort_unless($user->role === User::ROLE_USER, 404);
         $data = $request->validated();
 
         $user->name = $data['name'];

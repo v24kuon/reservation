@@ -443,7 +443,7 @@
 ### Admin Management Interface Tasks
 ### 管理画面インターフェースタスク
 
-- [ ] 38. Create user management interface / ユーザー管理画面を作成
+- [x] 38. Create user management interface / ユーザー管理画面を作成
   - File: app/Http/Controllers/Admin/UserController.php (new) / ファイル: app/Http/Controllers/Admin/UserController.php (新規)
   - File: resources/views/admin/users/ (new directory) / ファイル: resources/views/admin/users/ (新規ディレクトリ)
   - Implement user CRUD operations with role management / ロール管理付きユーザーCRUD操作を実装
