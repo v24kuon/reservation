@@ -32,6 +32,22 @@ test('admins are redirected to dashboard after login', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+test('authenticated general user visiting login is redirected to home', function () {
+    $user = User::factory()->create(['role' => 'user']);
+
+    $response = $this->actingAs($user)->get('/login');
+
+    $response->assertRedirect(route('home', absolute: false));
+});
+
+test('authenticated admin visiting login is redirected to dashboard', function () {
+    $user = User::factory()->create(['role' => 'admin']);
+
+    $response = $this->actingAs($user)->get('/login');
+
+    $response->assertRedirect(route('dashboard', absolute: false));
+});
+
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 

@@ -14,6 +14,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             '/stripe/webhook',
         ]);
+
+        // When accessing guest-only routes (e.g., /login) while authenticated,
+        // redirect users based on their role: privileged → dashboard, others → home.
+        $middleware->redirectUsersTo(function () {
+            $user = auth()->user();
+            if ($user && method_exists($user, 'hasPrivilegedRole') && $user->hasPrivilegedRole()) {
+                return route('dashboard', absolute: false);
+            }
+            return route('home', absolute: false);
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
