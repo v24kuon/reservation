@@ -11,6 +11,9 @@
     <x-admin.sidebar-link href="{{ route('admin.subscription-plans.index') }}" :active="request()->routeIs('admin.subscription-plans.*')">月謝プラン</x-admin.sidebar-link>
     <x-admin.sidebar-link href="{{ route('admin.settings.edit') }}" :active="request()->routeIs('admin.settings.*')">システム設定</x-admin.sidebar-link>
 
+    <div class="pt-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">ユーザー管理</div>
+    <x-admin.sidebar-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">ユーザー</x-admin.sidebar-link>
+
     <div class="pt-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">アカウント</div>
     <form method="POST" action="{{ route('logout') }}">
         @csrf

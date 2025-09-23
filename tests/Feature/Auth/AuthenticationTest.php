@@ -21,7 +21,7 @@ test('users can authenticate using the login screen', function () {
 });
 
 test('admins are redirected to dashboard after login', function () {
-    $user = User::factory()->create(['role' => 'admin']);
+    $user = User::factory()->create(['role' => User::ROLE_ADMIN]);
 
     $response = $this->post('/login', [
         'email' => $user->email,
@@ -29,6 +29,30 @@ test('admins are redirected to dashboard after login', function () {
     ]);
 
     $this->assertAuthenticatedAs($user);
+    $response->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('authenticated general user visiting login is redirected to home', function () {
+    $user = User::factory()->create(['role' => User::ROLE_USER]);
+
+    $response = $this->actingAs($user)->get('/login');
+
+    $response->assertRedirect(route('home', absolute: false));
+});
+
+test('authenticated admin visiting login is redirected to dashboard', function () {
+    $user = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
+    $response = $this->actingAs($user)->get('/login');
+
+    $response->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('authenticated instructor visiting login is redirected to dashboard', function () {
+    $user = User::factory()->create(['role' => User::ROLE_INSTRUCTOR]);
+
+    $response = $this->actingAs($user)->get('/login');
+
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 

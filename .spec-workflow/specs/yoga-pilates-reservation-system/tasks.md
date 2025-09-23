@@ -440,41 +440,225 @@
   - Dependencies: Task 36 / 依存関係: タスク36
   - Estimated time: 10 minutes / 推定時間: 10分
 
+### Admin Management Interface Tasks
+### 管理画面インターフェースタスク
+
+- [x] 38. Create user management interface / ユーザー管理画面を作成
+  - File: app/Http/Controllers/Admin/UserController.php (new) / ファイル: app/Http/Controllers/Admin/UserController.php (新規)
+  - File: resources/views/admin/users/ (new directory) / ファイル: resources/views/admin/users/ (新規ディレクトリ)
+  - Implement user CRUD operations for general users (no role change on this screen) / 一般ユーザー向けCRUD（本画面ではロール変更不可）
+  - Add user search and filtering (name, email, registration date) / ユーザー検索・フィルタリング機能を追加（名前、メール、登録日）
+  - Add user status management (active/inactive) / ユーザーステータス管理を追加（アクティブ/非アクティブ）
+  - (Out of scope) Role change is not supported on this screen to avoid privilege mistakes / （対象外）権限誤操作回避のため本画面でのロール変更は非対応
+  - Add user subscription overview in user detail view / ユーザー詳細画面にサブスクリプション概要を追加
+  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
+  - Purpose: Comprehensive user management for administrators / 目的: 管理者向け包括的なユーザー管理
+  - Requirements: User Management / 要件: ユーザー管理
+  - Dependencies: Task 37 / 依存関係: タスク37
+  - Estimated time: 45 minutes / 推定時間: 45分
+
+- [ ] 39. Create subscription management interface / サブスクリプション管理画面を作成
+  - File: app/Http/Controllers/Admin/SubscriptionController.php (new) / ファイル: app/Http/Controllers/Admin/SubscriptionController.php (新規)
+  - File: resources/views/admin/subscriptions/ (new directory) / ファイル: resources/views/admin/subscriptions/ (新規ディレクトリ)
+  - Implement subscription CRUD operations / サブスクリプションCRUD操作を実装
+  - Add subscription search and filtering (user, plan, status, payment status) / サブスクリプション検索・フィルタリング機能を追加（ユーザー、プラン、ステータス、支払いステータス）
+  - Add subscription status management (active, canceled, past_due, etc.) / サブスクリプションステータス管理を追加（アクティブ、キャンセル済み、支払い遅延など）
+  - Implement manual subscription operations (cancel, reactivate) / 手動サブスクリプション操作を実装（キャンセル、再アクティブ化）
+  - Add payment history and billing information display / 支払い履歴と請求情報表示を追加
+  - Add lesson count usage tracking and remaining lessons display / レッスン回数使用状況追跡と残り回数表示を追加
+  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
+  - Purpose: Comprehensive subscription management for administrators / 目的: 管理者向け包括的なサブスクリプション管理
+  - Requirements: Subscription Management / 要件: サブスクリプション管理
+  - Dependencies: Task 38 / 依存関係: タスク38
+  - Estimated time: 50 minutes / 推定時間: 50分
+
+- [ ] 40. Create group lesson reservation management interface / グループレッスン予約管理画面を作成
+  - File: app/Http/Controllers/Admin/GroupReservationController.php (new) / ファイル: app/Http/Controllers/Admin/GroupReservationController.php (新規)
+  - File: resources/views/admin/reservations/group/ (new directory) / ファイル: resources/views/admin/reservations/group/ (新規ディレクトリ)
+  - Implement group lesson reservation CRUD operations / グループレッスン予約CRUD操作を実装
+  - Add reservation search and filtering (store, date, instructor, status) / 予約検索・フィルタリング機能を追加（店舗、日付、インストラクター、ステータス）
+  - Add store-based filtering with store selection tabs / 店舗選択タブ付き店舗ベースフィルタリングを追加
+  - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
+  - Add instructor-based filtering / インストラクターベースフィルタリングを追加
+  - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
+  - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
+  - Add lesson capacity monitoring and waitlist management / レッスン定員監視とウェイトリスト管理を追加
+  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
+  - Purpose: Specialized group lesson reservation management / 目的: グループレッスン予約の専門管理
+  - Requirements: Group Reservation Management / 要件: グループレッスン予約管理
+  - Dependencies: Task 39 / 依存関係: タスク39
+  - Estimated time: 55 minutes / 推定時間: 55分
+
+- [ ] 41. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
+  - File: app/Http/Controllers/Admin/PersonalReservationController.php (new) / ファイル: app/Http/Controllers/Admin/PersonalReservationController.php (新規)
+  - File: resources/views/admin/reservations/personal/ (new directory) / ファイル: resources/views/admin/reservations/personal/ (新規ディレクトリ)
+  - Implement personal lesson reservation CRUD operations / パーソナルレッスン予約CRUD操作を実装
+  - Add reservation search and filtering (instructor, date, status) / 予約検索・フィルタリング機能を追加（インストラクター、日付、ステータス）
+  - Add instructor-based filtering with instructor selection tabs / インストラクター選択タブ付きインストラクターベースフィルタリングを追加
+  - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
+  - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
+  - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
+  - Add instructor schedule management and availability tracking / インストラクタースケジュール管理と空き状況追跡を追加
+  - Add personal lesson capacity monitoring (1-on-1 sessions) / パーソナルレッスン定員監視を追加（1対1セッション）
+  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
+  - Purpose: Specialized personal lesson reservation management / 目的: パーソナルレッスン予約の専門管理
+  - Requirements: Personal Reservation Management / 要件: パーソナルレッスン予約管理
+  - Dependencies: Task 40 / 依存関係: タスク40
+  - Estimated time: 55 minutes / 推定時間: 55分
+
+### User Interface Development Tasks
+### ユーザーインターフェース開発タスク
+
+- [ ] 42. Create user top page / ユーザートップページを作成
+  - File: resources/views/home.blade.php (modify) / ファイル: resources/views/home.blade.php (修正)
+  - File: app/Http/Controllers/HomeController.php (new) / ファイル: app/Http/Controllers/HomeController.php (新規)
+  - Display reservation status overview / 予約状況の概要を表示
+  - Show upcoming reservations and subscription status / 今後の予約とサブスクリプション状況を表示
+  - Add quick access to reservation pages / 予約ページへのクイックアクセスを追加
+  - Purpose: Main landing page for authenticated users / 目的: 認証済みユーザー向けメインページ
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 41 / 依存関係: タスク41
+  - Estimated time: 30 minutes / 推定時間: 30分
+
+- [x] 43. Implement role-based redirect for authenticated access to /login / 認証済みの /login アクセス時のロール別リダイレクトを実装
+  - File: bootstrap/app.php (modify) / ファイル: bootstrap/app.php (修正)
+  - Behavior: User → /home, Admin/Instructor → /dashboard / 挙動: ユーザー → /home、管理者/インストラクター → /dashboard
+  - Tests: Feature tests for redirect behavior / リダイレクト挙動のFeatureテスト
+  - Purpose: Align login UX with user roles / 目的: ロールに応じたログインUX整合
+  - Dependencies: None / 依存関係: なし
+  - Estimated time: 10 minutes / 推定時間: 10分
+
+- [ ] 44. Create store listing and detail pages / 店舗一覧・詳細ページを作成
+  - File: resources/views/stores/index.blade.php (new) / ファイル: resources/views/stores/index.blade.php (新規)
+  - File: resources/views/stores/show.blade.php (new) / ファイル: resources/views/stores/show.blade.php (新規)
+  - File: app/Http/Controllers/StoreController.php (new) / ファイル: app/Http/Controllers/StoreController.php (新規)
+  - Display store information and details / 店舗情報・詳細を表示
+  - Add access information and parking details / アクセス情報・駐車場情報を追加
+  - Add store-based lesson schedule display / 店舗ベースのレッスンスケジュール表示を追加
+  - Purpose: Store information and access details for users / 目的: ユーザー向け店舗情報・アクセス詳細
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 43 / 依存関係: タスク43
+  - Estimated time: 40 minutes / 推定時間: 40分
+
+- [ ] 45. Create instructor listing and detail pages / インストラクター一覧・詳細ページを作成
+  - File: resources/views/instructors/index.blade.php (new) / ファイル: resources/views/instructors/index.blade.php (新規)
+  - File: resources/views/instructors/show.blade.php (new) / ファイル: resources/views/instructors/show.blade.php (新規)
+  - File: app/Http/Controllers/InstructorController.php (new) / ファイル: app/Http/Controllers/InstructorController.php (新規)
+  - Display instructor information and profiles / インストラクター情報・プロフィールを表示
+  - Add qualifications and bio information / 資格・経歴情報を追加
+  - Add instructor-based lesson schedule display / インストラクターベースのレッスンスケジュール表示を追加
+  - Purpose: Instructor information and profile details for users / 目的: ユーザー向けインストラクター情報・プロフィール詳細
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 44 / 依存関係: タスク44
+  - Estimated time: 40 minutes / 推定時間: 40分
+
+- [ ] 46. Create user profile page / ユーザープロフィールページを作成
+  - File: resources/views/profile/index.blade.php (new) / ファイル: resources/views/profile/index.blade.php (新規)
+  - File: app/Http/Controllers/ProfileController.php (new) / ファイル: app/Http/Controllers/ProfileController.php (新規)
+  - Display detailed reservation history / 詳細な予約履歴を表示
+  - Show subscription status and remaining lesson counts / サブスクリプション状況・残り回数を表示
+  - Add profile editing functionality / プロフィール編集機能を追加
+  - Add quick access to subscription management / サブスクリプション管理へのクイックアクセスを追加
+  - Purpose: Comprehensive user profile and account management / 目的: 包括的なユーザープロフィール・アカウント管理
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 45 / 依存関係: タスク45
+  - Estimated time: 45 minutes / 推定時間: 45分
+
+- [ ] 47. Create reservation history page / 予約履歴ページを作成
+  - File: resources/views/reservations/history.blade.php (new) / ファイル: resources/views/reservations/history.blade.php (新規)
+  - File: app/Http/Controllers/Reservation/HistoryController.php (new) / ファイル: app/Http/Controllers/Reservation/HistoryController.php (新規)
+  - Display past reservation history / 過去の予約履歴を表示
+  - Show upcoming reservations list / 今後の予約一覧を表示
+  - Add filtering by date range and status / 日付範囲・ステータス別フィルタリングを追加
+  - Add reservation detail view and cancellation options / 予約詳細表示・キャンセルオプションを追加
+  - Purpose: Detailed reservation history and management for users / 目的: ユーザー向け詳細な予約履歴・管理
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 46 / 依存関係: タスク46
+  - Estimated time: 35 minutes / 推定時間: 35分
+
+- [ ] 48. Create subscription management page / サブスクリプション管理ページを作成
+  - File: resources/views/subscriptions/manage.blade.php (new) / ファイル: resources/views/subscriptions/manage.blade.php (新規)
+  - File: app/Http/Controllers/Subscription/ManageController.php (new) / ファイル: app/Http/Controllers/Subscription/ManageController.php (新規)
+  - Display current plan status and details / 現在のプラン状況・詳細を表示
+  - Add plan change and cancellation functionality / プラン変更・キャンセル機能を追加
+  - Show payment history and billing information / 支払い履歴・請求情報を表示
+  - Add remaining lesson count display and usage tracking / 残り回数表示・使用状況追跡を追加
+  - Purpose: Comprehensive subscription management for users / 目的: ユーザー向け包括的なサブスクリプション管理
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 47 / 依存関係: タスク47
+  - Estimated time: 40 minutes / 推定時間: 40分
+
+- [ ] 49. Create favorites management page / お気に入り管理ページを作成
+  - File: resources/views/favorites/index.blade.php (new) / ファイル: resources/views/favorites/index.blade.php (新規)
+  - File: app/Http/Controllers/FavoriteController.php (new) / ファイル: app/Http/Controllers/FavoriteController.php (新規)
+  - Manage favorite stores and instructors / お気に入り店舗・インストラクターを管理
+  - Add favorite/unfavorite functionality / お気に入り追加・削除機能を追加
+  - Display favorite-based lesson recommendations / お気に入りベースのレッスン推奨を表示
+  - Add quick access to favorite stores/instructors from reservation pages / 予約ページからお気に入り店舗・インストラクターへのクイックアクセスを追加
+  - Purpose: User preference management and personalized experience / 目的: ユーザー設定管理・パーソナライズ体験
+  - Requirements: User Experience / 要件: ユーザーエクスペリエンス
+  - Dependencies: Task 48 / 依存関係: タスク48
+  - Estimated time: 35 minutes / 推定時間: 35分
+
 ### Livewire Component Development Tasks
 ### Livewireコンポーネント開発タスク
 
-- [ ] 38. Create reservation booking Livewire component / 予約Livewireコンポーネントを作成
+- [ ] 50. Create reservation booking Livewire component / 予約Livewireコンポーネントを作成
   - File: app/Livewire/ReservationBooking.php (new) / ファイル: app/Livewire/ReservationBooking.php (新規)
-  - Display available lessons and handle booking / 利用可能なレッスンを表示し予約を処理
-  - Add subscription validation with lesson count limits / 回数制限付きサブスクリプション検証を追加
-  - Display remaining lesson count and limit warnings / 残り回数と制限警告を表示
-  - Enforce lesson count limits before allowing new reservations / 新規予約許可前に回数制限を強制
-  - Purpose: User interface for lesson reservation with count limit management / 目的: 回数制限管理付きでレッスン予約用のユーザーインターフェース
-  - Requirements: 8.1, 8.2 / 要件: 8.1, 8.2
-  - Dependencies: Tasks 34, 35 / 依存関係: タスク34, 35
-  - Estimated time: 45 minutes / 推定時間: 45分
+  - File: resources/views/livewire/reservation-booking.blade.php (new) / ファイル: resources/views/livewire/reservation-booking.blade.php (新規)
+  - **Group Lesson Reservation Features / グループレッスン予約機能**:
+    - Implement LAVA app-style filtering interface / LAVAアプリ風フィルタリングインターフェースを実装
+    - Add store selection tabs (favorites, all stores, combination conditions) / 店舗選択タブを追加（お気に入り、全店舗、組み合わせ条件）
+    - Add horizontal scrollable store buttons / 横スクロール可能な店舗ボタンを追加
+    - Add date selection with calendar display and weekly navigation / カレンダー表示・週単位ナビゲーション付き日付選択を追加
+    - Add time slot display (6:00-12:00 etc. vertical axis) / 時間帯表示を追加（6時〜12時などの縦軸）
+    - Display lesson list with maximum 15 items / 最大15個のレッスン一覧を表示
+    - Group lessons by time slots / 時間帯別にレッスンをグループ化
+    - Add lesson cards with detailed information and action buttons / 詳細情報・アクションボタン付きレッスンカードを追加
+    - Add availability status display (orange: available, red: full/waitlist) / 空き状況表示を追加（オレンジ：空きあり、赤：満員/キャンセル待ち）
+  - **Personal Lesson Reservation Features / パーソナルレッスン予約機能**:
+    - Implement LAVA app-style filtering interface / LAVAアプリ風フィルタリングインターフェースを実装
+    - Add instructor selection tabs (favorites, all instructors, combination conditions) / インストラクター選択タブを追加（お気に入り、全インストラクター、組み合わせ条件）
+    - Add horizontal scrollable instructor buttons / 横スクロール可能なインストラクターボタンを追加
+    - Add date selection with calendar display and weekly navigation / カレンダー表示・週単位ナビゲーション付き日付選択を追加
+    - Add time slot display (6:00-12:00 etc. vertical axis) / 時間帯表示を追加（6時〜12時などの縦軸）
+    - Display lesson list with maximum 15 items / 最大15個のレッスン一覧を表示
+    - Group lessons by time slots / 時間帯別にレッスンをグループ化
+    - Add lesson cards with detailed information and action buttons / 詳細情報・アクションボタン付きレッスンカードを追加
+    - Add availability status display (orange: available, red: full/waitlist) / 空き状況表示を追加（オレンジ：空きあり、赤：満員/キャンセル待ち）
+  - **Core Reservation Features / コア予約機能**:
+    - Display available lessons and handle booking / 利用可能なレッスンを表示し予約を処理
+    - Add subscription validation with lesson count limits / 回数制限付きサブスクリプション検証を追加
+    - Display remaining lesson count and limit warnings / 残り回数と制限警告を表示
+    - Enforce lesson count limits before allowing new reservations / 新規予約許可前に回数制限を強制
+    - Add real-time availability updates / リアルタイム空き状況更新を追加
+    - Add dynamic filtering without page reload / ページリロードなしの動的フィルタリングを追加
+  - Purpose: Unified Livewire component for both group and personal lesson reservations with LAVA app-style UX / 目的: LAVAアプリ風UXでグループ・パーソナルレッスン予約を統合したLivewireコンポーネント
+  - Requirements: User Experience, 8.1, 8.2 / 要件: ユーザーエクスペリエンス, 8.1, 8.2
+  - Dependencies: Task 49 / 依存関係: タスク49
+  - Estimated time: 90 minutes / 推定時間: 90分
 
-- [ ] 39. Create reservation cancellation component / 予約キャンセルコンポーネントを作成
+- [ ] 51. Create reservation cancellation component / 予約キャンセルコンポーネントを作成
   - File: app/Livewire/ReservationCancellation.php (new) / ファイル: app/Livewire/ReservationCancellation.php (新規)
   - Handle reservation cancellation logic / 予約キャンセルロジックを処理
   - Check cancellation deadlines and permissions / キャンセル期限と権限をチェック
   - Update lesson count when cancellation is within deadline / 期限前キャンセル時に回数を更新
   - Purpose: User interface for reservation cancellation with count management / 目的: 回数管理付きで予約キャンセル用のユーザーインターフェース
   - Requirements: 8.4 / 要件: 8.4
-  - Dependencies: Task 38 / 依存関係: タスク38
+  - Dependencies: Task 50 / 依存関係: タスク50
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 40. Create reservation history component / 予約履歴コンポーネントを作成
+- [ ] 52. Create reservation history component / 予約履歴コンポーネントを作成
   - File: app/Livewire/ReservationHistory.php (new) / ファイル: app/Livewire/ReservationHistory.php (新規)
   - Display user's reservation history / ユーザーの予約履歴を表示
   - Show upcoming and past reservations / 今後の予約と過去の予約を表示
   - Display lesson count usage and remaining lessons / 回数使用状況と残り回数を表示
   - Purpose: User interface for reservation history with count tracking / 目的: 回数追跡付きで予約履歴用のユーザーインターフェース
   - Requirements: 8.5 / 要件: 8.5
-  - Dependencies: Task 38 / 依存関係: タスク38
+  - Dependencies: Task 50 / 依存関係: タスク50
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 40.1. Implement detailed error handling for reservation operations / 予約操作の詳細エラーハンドリングを実装
+- [ ] 53. Implement detailed error handling for reservation operations / 予約操作の詳細エラーハンドリングを実装
   - File: app/Http/Controllers/ReservationController.php (modify), app/Http/Controllers/Admin/ReservationController.php (modify) / ファイル: app/Http/Controllers/ReservationController.php (修正), app/Http/Controllers/Admin/ReservationController.php (修正)
   - Define specific error messages for reservation creation blocking scenarios / 予約作成ブロックシナリオ用の具体的なエラーメッセージを定義
   - Define specific error messages for reservation cancellation scenarios / 予約キャンセルシナリオ用の具体的なエラーメッセージを定義
@@ -483,13 +667,13 @@
   - Add reservation deadline validation and messaging / 予約期限バリデーションとメッセージングを追加
   - Purpose: Provide clear user feedback for reservation operations with count limits / 目的: 回数制限付きで予約操作に対する明確なユーザーフィードバックを提供
   - Requirements: 8.3, 8.4, 8.5 / 要件: 8.3, 8.4, 8.5
-  - Dependencies: Task 40 / 依存関係: タスク40
+  - Dependencies: Task 52 / 依存関係: タスク52
   - Estimated time: 25 minutes / 推定時間: 25分
 
 ### Notification System Implementation Tasks
 ### 通知システム実装タスク
 
-- [ ] 41. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
+- [ ] 54. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
   - File: app/Models/NotificationTemplate.php (modify) / ファイル: app/Models/NotificationTemplate.php (修正)
   - Add template type constants and validation / テンプレートタイプ定数とバリデーションを追加
   - Add subscription event notification types (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント通知タイプを追加（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
@@ -499,7 +683,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 42. Create notification service / 通知サービスを作成
+- [ ] 55. Create notification service / 通知サービスを作成
   - File: app/Services/NotificationService.php (new) / ファイル: app/Services/NotificationService.php (新規)
   - Implement email sending with template substitution / テンプレート置換でメール送信を実装
   - Add methods for subscription event notifications (sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed) / サブスクリプションイベント通知メソッドを追加（sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed）
@@ -508,10 +692,10 @@
   - Add rate limiting: throttle notification frequency per user/type to prevent spam / レート制限追加: ユーザー/タイプ別の通知頻度を制限してスパムを防止
   - Purpose: Centralized notification handling including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む集中化された通知処理
   - Requirements: 10.3, 10.4 / 要件: 10.3, 10.4
-  - Dependencies: Task 41 / 依存関係: タスク41
+  - Dependencies: Task 54 / 依存関係: タスク54
   - Estimated time: 45 minutes / 推定時間: 45分
 
-- [ ] 43. Implement notification templates / 通知テンプレートを実装
+- [ ] 56. Implement notification templates / 通知テンプレートを実装
   - File: database/seeders/NotificationTemplateSeeder.php (new) / ファイル: database/seeders/NotificationTemplateSeeder.php (新規)
   - Create templates for reservation confirmation, reminders, cancellations / 予約確認、リマインダー、キャンセル用のテンプレートを作成
   - Create templates for subscription events (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント用テンプレートを作成（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
@@ -520,20 +704,20 @@
   - Ensure template variables match allowed whitelist from database schema / テンプレート変数がデータベーススキーマの許可ホワイトリストと一致することを確認
   - Purpose: Populate notification templates including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む通知テンプレートを投入
   - Requirements: 10.1 / 要件: 10.1
-  - Dependencies: Task 41 / 依存関係: タスク41
+  - Dependencies: Task 54 / 依存関係: タスク54
   - Estimated time: 35 minutes / 推定時間: 35分
 
 ### Security Enhancement Tasks (Phase 2 Final)
 ### セキュリティ強化タスク (フェーズ2最終)
 
-- [ ] 44. Implement comprehensive input validation / 包括的な入力バリデーションを実装
+- [ ] 57. Implement comprehensive input validation / 包括的な入力バリデーションを実装
   - File: app/Http/Requests/ (review and enhance all) / ファイル: app/Http/Requests/ (すべてをレビュー・強化)
   - Purpose: Strengthen data validation across all forms / 目的: すべてのフォームでデータバリデーションを強化
   - Requirements: Security requirements / 要件: セキュリティ要件
   - Dependencies: None / 依存関係: なし
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 45. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
+- [ ] 58. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
   - File: app/Http/Kernel.php (modify) / ファイル: app/Http/Kernel.php (修正)
   - Apply throttle:login to auth, custom throttle to reservation create/cancel / 認証にloginスロットル、予約作成/取消に専用スロットル
   - Exclude Stripe webhook route from throttling / Webhookはスロットル除外
@@ -542,7 +726,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 46. Implement CSRF protection verification / CSRF保護検証を実装
+- [ ] 59. Implement CSRF protection verification / CSRF保護検証を実装
   - File: resources/views/ (review all forms) / ファイル: resources/views/ (すべてのフォームをレビュー)
   - Verify admin blade forms include @csrf and method spoofing as needed / 管理画面フォームで@csrfとHTTPメソッド疑似化を確認
   - Purpose: Ensure all forms have proper CSRF tokens / 目的: すべてのフォームに適切なCSRFトークンがあることを保証
@@ -553,7 +737,7 @@
 ### Testing Implementation Tasks
 ### テスト実装タスク
 
-- [ ] 47. Create instructor profile model tests / インストラクタープロフィールモデルテストを作成
+- [ ] 60. Create instructor profile model tests / インストラクタープロフィールモデルテストを作成
   - File: tests/Unit/Models/InstructorProfileTest.php (new) / ファイル: tests/Unit/Models/InstructorProfileTest.php (新規)
   - Test instructor profile validation, relationships, and accessors / インストラクタープロフィールのバリデーション、リレーション、アクセサーをテスト
   - Purpose: Ensure instructor profile model reliability / 目的: インストラクタープロフィールモデルの信頼性を保証
@@ -561,7 +745,7 @@
   - Dependencies: Task 5 / 依存関係: タスク5
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 48. Create instructor profile feature tests / インストラクタープロフィール機能テストを作成
+- [ ] 61. Create instructor profile feature tests / インストラクタープロフィール機能テストを作成
   - File: tests/Feature/InstructorProfileTest.php (new) / ファイル: tests/Feature/InstructorProfileTest.php (新規)
   - Test complete instructor profile workflow (create, edit, delete) / 完全なインストラクタープロフィールワークフロー（作成、編集、削除）をテスト
   - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
@@ -572,7 +756,7 @@
   - Dependencies: Task 8 / 依存関係: タスク8
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 49. Create subscription model tests / サブスクリプションモデルテストを作成
+- [ ] 62. Create subscription model tests / サブスクリプションモデルテストを作成
   - File: tests/Unit/Models/SubscriptionPlanTest.php (new) / ファイル: tests/Unit/Models/SubscriptionPlanTest.php (新規)
   - Test subscription plan validation and relationships / サブスクリプションプランのバリデーションとリレーションをテスト
   - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複。
@@ -583,7 +767,7 @@
   - Dependencies: Task 23 / 依存関係: タスク23
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 50. Create reservation model tests / 予約モデルテストを作成
+- [ ] 63. Create reservation model tests / 予約モデルテストを作成
   - File: tests/Unit/Models/ReservationTest.php (new) / ファイル: tests/Unit/Models/ReservationTest.php (新規)
   - Test reservation validation and relationships / 予約のバリデーションとリレーションをテスト
   - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
@@ -594,7 +778,7 @@
   - Dependencies: Task 34 / 依存関係: タスク34
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 51. Create webhook controller tests / Webhookコントローラーテストを作成
+- [ ] 64. Create webhook controller tests / Webhookコントローラーテストを作成
   - File: tests/Feature/WebhookTest.php (new) / ファイル: tests/Feature/WebhookTest.php (新規)
   - Test Stripe webhook processing / Stripe Webhook処理をテスト
   - Purpose: Ensure webhook reliability / 目的: Webhookの信頼性を保証
@@ -602,18 +786,18 @@
   - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 52. Create reservation feature tests / 予約機能テストを作成
+- [ ] 65. Create reservation feature tests / 予約機能テストを作成
   - File: tests/Feature/ReservationTest.php (new) / ファイル: tests/Feature/ReservationTest.php (新規)
   - Test complete reservation workflow / 完全な予約ワークフローをテスト
   - Purpose: Ensure end-to-end reservation functionality / 目的: エンドツーエンドの予約機能を保証
   - Requirements: 8.1-8.5 / 要件: 8.1-8.5
-  - Dependencies: Tasks 34, 38 / 依存関係: タスク34, 38
+  - Dependencies: Tasks 34, 50 / 依存関係: タスク34, 50
   - Estimated time: 30 minutes / 推定時間: 30分
 
 ### Final Integration and Cleanup Tasks
 ### 最終統合・クリーンアップタスク
 
-- [ ] 53. Update project overview documentation / プロジェクト概要ドキュメントを更新
+- [ ] 66. Update project overview documentation / プロジェクト概要ドキュメントを更新
   - File: docs/project-overview.md (modify) / ファイル: docs/project-overview.md (修正)
   - Update Phase 2 and 3 completion status / フェーズ2と3の完了状況を更新
   - Add implemented features to documentation / 実装された機能をドキュメントに追加
@@ -622,14 +806,14 @@
   - Dependencies: All completed tasks / 依存関係: すべての完了したタスク
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 54. Run code formatting and linting / コードフォーマットとリンティングを実行
+- [ ] 67. Run code formatting and linting / コードフォーマットとリンティングを実行
   - Command: `vendor/bin/pint` / コマンド: `vendor/bin/pint`
   - Purpose: Ensure code quality and consistency / 目的: コード品質と一貫性を保証
   - Requirements: All / 要件: すべて
   - Dependencies: All tasks / 依存関係: すべてのタスク
   - Estimated time: 5 minutes / 推定時間: 5分
 
-- [ ] 55. Final testing and validation / 最終テストと検証
+- [ ] 68. Final testing and validation / 最終テストと検証
   - Run all tests: `php artisan test` / すべてのテストを実行: `php artisan test`
   - Manual testing of key user flows / 主要ユーザーフローの手動テスト
   - Performance validation / パフォーマンス検証
@@ -676,30 +860,40 @@ Execute in order: 31 → 32 → 33
 Execute in order: 34 → 35 → 36 → 37
 順次実行: 34 → 35 → 36 → 37
 
-### Phase 2B: Livewire Components (Tasks 38-40)
-### フェーズ2B: Livewireコンポーネント (タスク38-40)
-Execute in order: 38 → 39 → 40
-順次実行: 38 → 39 → 40
+### Phase 2B: Admin Management Interfaces (Tasks 38-41)
+### フェーズ2B: 管理画面インターフェース (タスク38-41)
+Execute in order: 38 → 39 → 40 → 41 (Note: 39-41 can be parallel after 38)
+順次実行: 38 → 39 → 40 → 41 (注: 38完了後、39-41は並列実行可能)
 
-### Phase 2C: Notifications (Tasks 41-43)
-### フェーズ2C: 通知 (タスク41-43)
-Execute in order: 41 → 42 → 43
-順次実行: 41 → 42 → 43
+### Phase 2C: User Interface Development (Tasks 42-49)
+### フェーズ2C: ユーザーインターフェース開発 (タスク42-49)
+Execute in order: 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49
+順次実行: 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49
 
-### Phase 2D: Security Enhancement (Tasks 44-46)
-### フェーズ2D: セキュリティ強化 (タスク44-46)
-Execute in order: 44 → 45 → 46
-順次実行: 44 → 45 → 46
+### Phase 2D: Livewire Components (Tasks 50-53)
+### フェーズ2D: Livewireコンポーネント (タスク50-53)
+Execute in order: 50 → 51 → 52 → 53
+順次実行: 50 → 51 → 52 → 53
 
-### Phase 3: Testing (Tasks 47-52)
-### フェーズ3: テスト (タスク47-52)
+### Phase 2E: Notifications (Tasks 54-56)
+### フェーズ2E: 通知 (タスク54-56)
+Execute in order: 54 → 55 → 56
+順次実行: 54 → 55 → 56
+
+### Phase 2F: Security Enhancement (Tasks 57-59)
+### フェーズ2F: セキュリティ強化 (タスク57-59)
+Execute in order: 57 → 58 → 59
+順次実行: 57 → 58 → 59
+
+### Phase 3: Testing (Tasks 60-65)
+### フェーズ3: テスト (タスク60-65)
 Can be executed in parallel after respective features are complete
 対応する機能完了後に並列実行可能
 
-### Phase 4: Finalization (Tasks 53-55)
-### フェーズ4: 最終化 (タスク53-55)
-Execute in order: 53 → 54 → 55
-順次実行: 53 → 54 → 55
+### Phase 4: Finalization (Tasks 66-68)
+### フェーズ4: 最終化 (タスク66-68)
+Execute in order: 66 → 67 → 68
+順次実行: 66 → 67 → 68
 
 ## Risk Mitigation
 ## リスク軽減
