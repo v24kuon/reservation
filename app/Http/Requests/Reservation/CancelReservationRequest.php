@@ -12,8 +12,7 @@ class CancelReservationRequest extends FormRequest
         /** @var Reservation|null $reservation */
         $reservation = $this->route('reservation');
 
-        return $reservation !== null
-            && $this->user()?->can('cancel', $reservation) === true;
+        return $reservation && $this->user()?->can('cancel', $reservation);
     }
 
     public function rules(): array

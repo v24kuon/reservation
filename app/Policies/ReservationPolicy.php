@@ -13,7 +13,7 @@ class ReservationPolicy
      */
     public function cancel(User $user, Reservation $reservation): bool
     {
-        return (string) $reservation->user_id === (string) $user->getKey();
+        return $reservation->user_id === $user->getKey();
     }
 
     /**
