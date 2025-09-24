@@ -12,6 +12,36 @@ class UserSubscription extends Model
 {
     use HasFactory;
 
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_TRIALING = 'trialing';
+
+    public const STATUS_CANCELED = 'canceled';
+
+    public const STATUS_PAST_DUE = 'past_due';
+
+    public const PAYMENT_STATUS_PAID = 'paid';
+
+    public const PAYMENT_STATUS_UNPAID = 'unpaid';
+
+    public const PAYMENT_STATUS_FAILED = 'failed';
+
+    public const PAYMENT_STATUS_PENDING = 'pending';
+
+    public const ALLOWED_STATUSES = [
+        self::STATUS_ACTIVE,
+        self::STATUS_TRIALING,
+        self::STATUS_CANCELED,
+        self::STATUS_PAST_DUE,
+    ];
+
+    public const ALLOWED_PAYMENT_STATUSES = [
+        self::PAYMENT_STATUS_PAID,
+        self::PAYMENT_STATUS_UNPAID,
+        self::PAYMENT_STATUS_FAILED,
+        self::PAYMENT_STATUS_PENDING,
+    ];
+
     protected $fillable = [
         'user_id',
         'plan_id',

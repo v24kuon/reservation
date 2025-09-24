@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ReservationController as AdminReservationControll
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
+use App\Http\Controllers\Admin\SubscriptionController as AdminUserSubscriptionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstructorProfileController;
 use App\Http\Controllers\ProfileController;
@@ -150,6 +151,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('subscription-plans/price-lookup', [SubscriptionPlanController::class, 'priceLookup'])
             ->name('subscription-plans.price-lookup')
             ->middleware('throttle:30,1');
+
+        // Admin: subscriptions CRUD
+        Route::resource('subscriptions', AdminUserSubscriptionController::class);
 
         // Admin: system settings
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
