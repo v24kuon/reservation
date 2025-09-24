@@ -457,7 +457,7 @@
   - Dependencies: Task 37 / 依存関係: タスク37
   - Estimated time: 45 minutes / 推定時間: 45分
 
-- [ ] 39. Create subscription management interface / サブスクリプション管理画面を作成
+- [x] 39. Create subscription management interface / サブスクリプション管理画面を作成
   - File: app/Http/Controllers/Admin/SubscriptionController.php (new) / ファイル: app/Http/Controllers/Admin/SubscriptionController.php (新規)
   - File: resources/views/admin/subscriptions/ (new directory) / ファイル: resources/views/admin/subscriptions/ (新規ディレクトリ)
   - Implement subscription CRUD operations / サブスクリプションCRUD操作を実装
@@ -472,7 +472,7 @@
   - Dependencies: Task 38 / 依存関係: タスク38
   - Estimated time: 50 minutes / 推定時間: 50分
 
-- [ ] 40. Create group lesson reservation management interface / グループレッスン予約管理画面を作成
+- [x] 40. Create group lesson reservation management interface / グループレッスン予約管理画面を作成
   - File: app/Http/Controllers/Admin/GroupReservationController.php (new) / ファイル: app/Http/Controllers/Admin/GroupReservationController.php (新規)
   - File: resources/views/admin/reservations/group/ (new directory) / ファイル: resources/views/admin/reservations/group/ (新規ディレクトリ)
   - Implement group lesson reservation CRUD operations / グループレッスン予約CRUD操作を実装
@@ -480,6 +480,7 @@
   - Add store-based filtering with store selection tabs / 店舗選択タブ付き店舗ベースフィルタリングを追加
   - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
   - Add instructor-based filtering / インストラクターベースフィルタリングを追加
+  - Allow searching by user name/email (per admin feedback) / 管理画面要望に合わせユーザー名・メール検索を許可
   - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
   - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
   - Add lesson capacity monitoring and waitlist management / レッスン定員監視とウェイトリスト管理を追加

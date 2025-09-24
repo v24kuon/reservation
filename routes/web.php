@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoreController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminUserSubscriptionController;
+use App\Http\Controllers\Admin\GroupReservationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstructorProfileController;
 use App\Http\Controllers\ProfileController;
@@ -138,6 +139,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Admin: reservations CRUD
         Route::resource('reservations', AdminReservationController::class);
+
+        // Admin: group lesson reservations index
+        Route::resource('group-reservations', GroupReservationController::class)->only(['index']);
 
         // Admin: notification templates CRUD
         Route::resource('notification-templates', NotificationTemplateController::class);
