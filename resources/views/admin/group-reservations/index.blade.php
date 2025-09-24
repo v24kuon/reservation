@@ -45,6 +45,7 @@
                             <label for="filter_status" class="text-sm text-gray-700 dark:text-gray-300">状態</label>
                             <select id="filter_status" name="status" class="border rounded p-2">
                                 <option value="">すべて</option>
+                                <option value="pending" @selected(($filters['status'] ?? '') == 'pending')>pending</option>
                                 <option value="confirmed" @selected(($filters['status'] ?? '') == 'confirmed')>confirmed</option>
                                 <option value="canceled" @selected(($filters['status'] ?? '') == 'canceled')>canceled</option>
                                 <option value="completed" @selected(($filters['status'] ?? '') == 'completed')>completed</option>
@@ -84,7 +85,17 @@
                                     <td class="px-4 py-2">{{ $r->lessonSchedule?->lesson?->instructor?->name ?? '-' }}</td>
                                     <td class="px-4 py-2">{{ $r->user?->name ?? '-' }} ({{ $r->user?->email ?? '' }})</td>
                                     <td class="px-4 py-2">
-                                        <span class="px-2 py-1 text-xs font-medium rounded {{ $r->status === 'confirmed' ? 'bg-green-100 text-green-800' : ($r->status === 'canceled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800') }}">
+                                        @php
+                                            $badgeClass = match ($r->status) {
+                                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                                'confirmed' => 'bg-green-100 text-green-800',
+                                                'canceled' => 'bg-red-100 text-red-800',
+                                                'completed' => 'bg-blue-100 text-blue-800',
+                                                'no_show' => 'bg-orange-100 text-orange-800',
+                                                default => 'bg-gray-100 text-gray-800',
+                                            };
+                                        @endphp
+                                        <span class="px-2 py-1 text-xs font-medium rounded {{ $badgeClass }}">
                                             {{ $r->status }}
                                         </span>
                                     </td>

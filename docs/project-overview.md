@@ -443,9 +443,16 @@ plan_switch_logs (プラン切り替えログ) ✅
 6. **月謝プラン管理** (`/admin/subscription-plans`)（Phase 2で実装予定）
 7. **通知テンプレート管理** (`/admin/notification-templates`) ✅
 8. **ユーザー管理** (`/admin/users`)
-9. **予約管理** (`/admin/reservations`)
-10. **サブスクリプション管理** (`/admin/subscriptions`)
-11. **システム設定** (`/admin/settings`) ✅
+9. **グループ予約管理** (`/admin/group-reservations`)
+   - グループレッスン予約のCRUD操作（店舗運営向け）
+   - 店舗・インストラクター・日時・ステータスでのフィルタリング
+   - 予約状況の監視・管理
+10. **パーソナル予約管理** (`/admin/personal-reservations`)
+    - パーソナルレッスン予約のCRUD操作（個人指導向け）
+    - インストラクター・日時・ステータスでのフィルタリング
+    - 予約状況の監視・管理
+11. **サブスクリプション管理** (`/admin/subscriptions`)
+12. **システム設定** (`/admin/settings`) ✅
 
 #### インストラクター専用ページ
 1. **インストラクターダッシュボード** (`/instructor/dashboard`)

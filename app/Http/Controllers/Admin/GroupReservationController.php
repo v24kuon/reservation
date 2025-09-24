@@ -48,17 +48,19 @@ class GroupReservationController extends Controller
         }
 
         if (! empty($filters['date_from'])) {
-            $query->whereDate('reserved_at', '>=', $filters['date_from']);
+            $dateFrom = $filters['date_from'];
+            $query->whereHas('lessonSchedule', fn ($q) => $q->whereDate('start_datetime', '>=', $dateFrom));
         }
         if (! empty($filters['date_to'])) {
-            $query->whereDate('reserved_at', '<=', $filters['date_to']);
+            $dateTo = $filters['date_to'];
+            $query->whereHas('lessonSchedule', fn ($q) => $q->whereDate('start_datetime', '<=', $dateTo));
         }
 
-        $reservations = $query->orderByDesc('reserved_at')->paginate(50)->withQueryString();
+        $reservations = $query->orderByDesc('reserved_at')->orderByDesc('id')->paginate(50)->withQueryString();
 
         $stores = Store::query()->orderBy('name')->get(['id', 'name']);
         $instructors = User::query()->where('role', User::ROLE_INSTRUCTOR)->orderBy('name')->get(['id', 'name']);
-        $lessons = Lesson::query()->orderBy('name')->get(['id', 'name']);
+        $lessons = Lesson::query()->whereHas('store')->orderBy('name')->get(['id', 'name']);
 
         return view('admin.group-reservations.index', compact('reservations', 'filters', 'stores', 'instructors', 'lessons'));
     }

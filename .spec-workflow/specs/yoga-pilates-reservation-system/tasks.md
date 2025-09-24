@@ -474,9 +474,9 @@
 
 - [x] 40. Create group lesson reservation management interface / グループレッスン予約管理画面を作成
   - File: app/Http/Controllers/Admin/GroupReservationController.php (new) / ファイル: app/Http/Controllers/Admin/GroupReservationController.php (新規)
-  - File: resources/views/admin/reservations/group/ (new directory) / ファイル: resources/views/admin/reservations/group/ (新規ディレクトリ)
+  - File: resources/views/admin/group-reservations/ (new directory) / ファイル: resources/views/admin/group-reservations/ (新規ディレクトリ)
   - Implement group lesson reservation CRUD operations / グループレッスン予約CRUD操作を実装
-  - Add reservation search and filtering (store, date, instructor, status) / 予約検索・フィルタリング機能を追加（店舗、日付、インストラクター、ステータス）
+  - Add reservation search and filtering (store, date, instructor, status=pending|confirmed|canceled|completed|no_show) / 予約検索・フィルタリング機能を追加（店舗、日付、インストラクター、ステータス=pending|confirmed|canceled|completed|no_show）
   - Add store-based filtering with store selection tabs / 店舗選択タブ付き店舗ベースフィルタリングを追加
   - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
   - Add instructor-based filtering / インストラクターベースフィルタリングを追加
@@ -671,10 +671,47 @@
   - Dependencies: Task 52 / 依存関係: タスク52
   - Estimated time: 25 minutes / 推定時間: 25分
 
+### Admin Management Interface Tasks (Continued)
+### 管理画面インターフェースタスク（続き）
+
+- [ ] 54. Create group lesson reservation management interface / グループレッスン予約管理画面を作成
+  - File: app/Http/Controllers/Admin/GroupReservationController.php (new) / ファイル: app/Http/Controllers/Admin/GroupReservationController.php (新規)
+  - File: resources/views/admin/group-reservations/ (new directory) / ファイル: resources/views/admin/group-reservations/ (新規ディレクトリ)
+  - Implement group lesson reservation CRUD operations / グループレッスン予約CRUD操作を実装
+  - Add reservation search and filtering (store, date, instructor, status) / 予約検索・フィルタリング機能を追加（店舗、日付、インストラクター、ステータス）
+  - Add store-based filtering with store selection tabs / 店舗選択タブ付き店舗ベースフィルタリングを追加
+  - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
+  - Add instructor-based filtering / インストラクターベースフィルタリングを追加
+  - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
+  - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
+  - Add lesson capacity monitoring and waitlist management / レッスン定員監視とウェイトリスト管理を追加
+  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
+  - Purpose: Specialized group lesson reservation management / 目的: グループレッスン予約の専門管理
+  - Requirements: Group Reservation Management / 要件: グループレッスン予約管理
+  - Dependencies: Task 40 / 依存関係: タスク40
+  - Estimated time: 55 minutes / 推定時間: 55分
+
+- [ ] 55. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
+  - File: app/Http/Controllers/Admin/PersonalReservationController.php (new) / ファイル: app/Http/Controllers/Admin/PersonalReservationController.php (新規)
+  - File: resources/views/admin/personal-reservations/ (new directory) / ファイル: resources/views/admin/personal-reservations/ (新規ディレクトリ)
+  - Implement personal lesson reservation CRUD operations / パーソナルレッスン予約CRUD操作を実装
+  - Add reservation search and filtering (instructor, date, status) / 予約検索・フィルタリング機能を追加（インストラクター、日付、ステータス）
+  - Add instructor-based filtering with instructor selection tabs / インストラクター選択タブ付きインストラクターベースフィルタリングを追加
+  - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
+  - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
+  - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
+  - Add instructor schedule management and availability tracking / インストラクタースケジュール管理と空き状況追跡を追加
+  - Add personal lesson capacity monitoring (1-on-1 sessions) / パーソナルレッスン定員監視を追加（1対1セッション）
+  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
+  - Purpose: Specialized personal lesson reservation management / 目的: パーソナルレッスン予約の専門管理
+  - Requirements: Personal Reservation Management / 要件: パーソナルレッスン予約管理
+  - Dependencies: Task 54 / 依存関係: タスク54
+  - Estimated time: 55 minutes / 推定時間: 55分
+
 ### Notification System Implementation Tasks
 ### 通知システム実装タスク
 
-- [ ] 54. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
+- [ ] 56. Extend NotificationTemplate model / NotificationTemplateモデルを拡張
   - File: app/Models/NotificationTemplate.php (modify) / ファイル: app/Models/NotificationTemplate.php (修正)
   - Add template type constants and validation / テンプレートタイプ定数とバリデーションを追加
   - Add subscription event notification types (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント通知タイプを追加（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
@@ -684,7 +721,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 55. Create notification service / 通知サービスを作成
+- [ ] 57. Create notification service / 通知サービスを作成
   - File: app/Services/NotificationService.php (new) / ファイル: app/Services/NotificationService.php (新規)
   - Implement email sending with template substitution / テンプレート置換でメール送信を実装
   - Add methods for subscription event notifications (sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed) / サブスクリプションイベント通知メソッドを追加（sendSubscriptionCreated, sendSubscriptionUpdated, sendSubscriptionDeleted, sendPaymentSucceeded, sendPaymentFailed）
@@ -693,10 +730,10 @@
   - Add rate limiting: throttle notification frequency per user/type to prevent spam / レート制限追加: ユーザー/タイプ別の通知頻度を制限してスパムを防止
   - Purpose: Centralized notification handling including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む集中化された通知処理
   - Requirements: 10.3, 10.4 / 要件: 10.3, 10.4
-  - Dependencies: Task 54 / 依存関係: タスク54
+  - Dependencies: Task 56 / 依存関係: タスク56
   - Estimated time: 45 minutes / 推定時間: 45分
 
-- [ ] 56. Implement notification templates / 通知テンプレートを実装
+- [ ] 58. Implement notification templates / 通知テンプレートを実装
   - File: database/seeders/NotificationTemplateSeeder.php (new) / ファイル: database/seeders/NotificationTemplateSeeder.php (新規)
   - Create templates for reservation confirmation, reminders, cancellations / 予約確認、リマインダー、キャンセル用のテンプレートを作成
   - Create templates for subscription events (subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed) / サブスクリプションイベント用テンプレートを作成（subscription.created, subscription.updated, subscription.deleted, payment.succeeded, payment.failed）
@@ -705,20 +742,20 @@
   - Ensure template variables match allowed whitelist from database schema / テンプレート変数がデータベーススキーマの許可ホワイトリストと一致することを確認
   - Purpose: Populate notification templates including subscription events and count limit warnings / 目的: サブスクリプションイベントと回数制限警告を含む通知テンプレートを投入
   - Requirements: 10.1 / 要件: 10.1
-  - Dependencies: Task 54 / 依存関係: タスク54
+  - Dependencies: Task 56 / 依存関係: タスク56
   - Estimated time: 35 minutes / 推定時間: 35分
 
 ### Security Enhancement Tasks (Phase 2 Final)
 ### セキュリティ強化タスク (フェーズ2最終)
 
-- [ ] 57. Implement comprehensive input validation / 包括的な入力バリデーションを実装
+- [ ] 59. Implement comprehensive input validation / 包括的な入力バリデーションを実装
   - File: app/Http/Requests/ (review and enhance all) / ファイル: app/Http/Requests/ (すべてをレビュー・強化)
   - Purpose: Strengthen data validation across all forms / 目的: すべてのフォームでデータバリデーションを強化
   - Requirements: Security requirements / 要件: セキュリティ要件
   - Dependencies: None / 依存関係: なし
   - Estimated time: 30 minutes / 推定時間: 30分
 
-- [ ] 58. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
+- [ ] 60. Add rate limiting for critical endpoints / 重要なエンドポイントにレート制限を追加
   - File: app/Http/Kernel.php (modify) / ファイル: app/Http/Kernel.php (修正)
   - Apply throttle:login to auth, custom throttle to reservation create/cancel / 認証にloginスロットル、予約作成/取消に専用スロットル
   - Exclude Stripe webhook route from throttling / Webhookはスロットル除外
@@ -727,7 +764,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 15 minutes / 推定時間: 15分
 
-- [ ] 59. Implement CSRF protection verification / CSRF保護検証を実装
+- [ ] 61. Implement CSRF protection verification / CSRF保護検証を実装
   - File: resources/views/ (review all forms) / ファイル: resources/views/ (すべてのフォームをレビュー)
   - Verify admin blade forms include @csrf and method spoofing as needed / 管理画面フォームで@csrfとHTTPメソッド疑似化を確認
   - Purpose: Ensure all forms have proper CSRF tokens / 目的: すべてのフォームに適切なCSRFトークンがあることを保証
@@ -738,7 +775,7 @@
 ### Testing Implementation Tasks
 ### テスト実装タスク
 
-- [ ] 60. Create instructor profile model tests / インストラクタープロフィールモデルテストを作成
+- [ ] 62. Create instructor profile model tests / インストラクタープロフィールモデルテストを作成
   - File: tests/Unit/Models/InstructorProfileTest.php (new) / ファイル: tests/Unit/Models/InstructorProfileTest.php (新規)
   - Test instructor profile validation, relationships, and accessors / インストラクタープロフィールのバリデーション、リレーション、アクセサーをテスト
   - Purpose: Ensure instructor profile model reliability / 目的: インストラクタープロフィールモデルの信頼性を保証
@@ -746,7 +783,7 @@
   - Dependencies: Task 5 / 依存関係: タスク5
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 61. Create instructor profile feature tests / インストラクタープロフィール機能テストを作成
+- [ ] 63. Create instructor profile feature tests / インストラクタープロフィール機能テストを作成
   - File: tests/Feature/InstructorProfileTest.php (new) / ファイル: tests/Feature/InstructorProfileTest.php (新規)
   - Test complete instructor profile workflow (create, edit, delete) / 完全なインストラクタープロフィールワークフロー（作成、編集、削除）をテスト
   - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
@@ -757,7 +794,7 @@
   - Dependencies: Task 8 / 依存関係: タスク8
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 62. Create subscription model tests / サブスクリプションモデルテストを作成
+- [ ] 64. Create subscription model tests / サブスクリプションモデルテストを作成
   - File: tests/Unit/Models/SubscriptionPlanTest.php (new) / ファイル: tests/Unit/Models/SubscriptionPlanTest.php (新規)
   - Test subscription plan validation and relationships / サブスクリプションプランのバリデーションとリレーションをテスト
   - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複。
@@ -768,7 +805,7 @@
   - Dependencies: Task 23 / 依存関係: タスク23
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 63. Create reservation model tests / 予約モデルテストを作成
+- [ ] 65. Create reservation model tests / 予約モデルテストを作成
   - File: tests/Unit/Models/ReservationTest.php (new) / ファイル: tests/Unit/Models/ReservationTest.php (新規)
   - Test reservation validation and relationships / 予約のバリデーションとリレーションをテスト
   - Tests: end == next.start 非重複, start == existing.end 非重複, 部分重なりは重複
@@ -779,7 +816,7 @@
   - Dependencies: Task 34 / 依存関係: タスク34
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 64. Create webhook controller tests / Webhookコントローラーテストを作成
+- [ ] 66. Create webhook controller tests / Webhookコントローラーテストを作成
   - File: tests/Feature/WebhookTest.php (new) / ファイル: tests/Feature/WebhookTest.php (新規)
   - Test Stripe webhook processing / Stripe Webhook処理をテスト
   - Purpose: Ensure webhook reliability / 目的: Webhookの信頼性を保証
@@ -787,7 +824,7 @@
   - Dependencies: Task 31 / 依存関係: タスク31
   - Estimated time: 25 minutes / 推定時間: 25分
 
-- [ ] 65. Create reservation feature tests / 予約機能テストを作成
+- [ ] 67. Create reservation feature tests / 予約機能テストを作成
   - File: tests/Feature/ReservationTest.php (new) / ファイル: tests/Feature/ReservationTest.php (新規)
   - Test complete reservation workflow / 完全な予約ワークフローをテスト
   - Purpose: Ensure end-to-end reservation functionality / 目的: エンドツーエンドの予約機能を保証
@@ -798,7 +835,7 @@
 ### Final Integration and Cleanup Tasks
 ### 最終統合・クリーンアップタスク
 
-- [ ] 66. Update project overview documentation / プロジェクト概要ドキュメントを更新
+- [ ] 68. Update project overview documentation / プロジェクト概要ドキュメントを更新
   - File: docs/project-overview.md (modify) / ファイル: docs/project-overview.md (修正)
   - Update Phase 2 and 3 completion status / フェーズ2と3の完了状況を更新
   - Add implemented features to documentation / 実装された機能をドキュメントに追加
@@ -807,14 +844,14 @@
   - Dependencies: All completed tasks / 依存関係: すべての完了したタスク
   - Estimated time: 20 minutes / 推定時間: 20分
 
-- [ ] 67. Run code formatting and linting / コードフォーマットとリンティングを実行
+- [ ] 69. Run code formatting and linting / コードフォーマットとリンティングを実行
   - Command: `vendor/bin/pint` / コマンド: `vendor/bin/pint`
   - Purpose: Ensure code quality and consistency / 目的: コード品質と一貫性を保証
   - Requirements: All / 要件: すべて
   - Dependencies: All tasks / 依存関係: すべてのタスク
   - Estimated time: 5 minutes / 推定時間: 5分
 
-- [ ] 68. Final testing and validation / 最終テストと検証
+- [ ] 70. Final testing and validation / 最終テストと検証
   - Run all tests: `php artisan test` / すべてのテストを実行: `php artisan test`
   - Manual testing of key user flows / 主要ユーザーフローの手動テスト
   - Performance validation / パフォーマンス検証
@@ -861,10 +898,10 @@ Execute in order: 31 → 32 → 33
 Execute in order: 34 → 35 → 36 → 37
 順次実行: 34 → 35 → 36 → 37
 
-### Phase 2B: Admin Management Interfaces (Tasks 38-41)
-### フェーズ2B: 管理画面インターフェース (タスク38-41)
-Execute in order: 38 → 39 → 40 → 41 (Note: 39-41 can be parallel after 38)
-順次実行: 38 → 39 → 40 → 41 (注: 38完了後、39-41は並列実行可能)
+### Phase 2B: Admin Management Interfaces (Tasks 38-55)
+### フェーズ2B: 管理画面インターフェース (タスク38-55)
+Execute in order: 38 → 39 → 40 → 54 → 55 (Note: 39-40 can be parallel after 38)
+順次実行: 38 → 39 → 40 → 54 → 55 (注: 38完了後、39-40は並列実行可能)
 
 ### Phase 2C: User Interface Development (Tasks 42-49)
 ### フェーズ2C: ユーザーインターフェース開発 (タスク42-49)
@@ -876,25 +913,25 @@ Execute in order: 42 → 43 → 44 → 45 → 46 → 47 → 48 → 49
 Execute in order: 50 → 51 → 52 → 53
 順次実行: 50 → 51 → 52 → 53
 
-### Phase 2E: Notifications (Tasks 54-56)
-### フェーズ2E: 通知 (タスク54-56)
-Execute in order: 54 → 55 → 56
-順次実行: 54 → 55 → 56
+### Phase 2E: Notifications (Tasks 56-58)
+### フェーズ2E: 通知 (タスク56-58)
+Execute in order: 56 → 57 → 58
+順次実行: 56 → 57 → 58
 
-### Phase 2F: Security Enhancement (Tasks 57-59)
-### フェーズ2F: セキュリティ強化 (タスク57-59)
-Execute in order: 57 → 58 → 59
-順次実行: 57 → 58 → 59
+### Phase 2F: Security Enhancement (Tasks 59-61)
+### フェーズ2F: セキュリティ強化 (タスク59-61)
+Execute in order: 59 → 60 → 61
+順次実行: 59 → 60 → 61
 
-### Phase 3: Testing (Tasks 60-65)
-### フェーズ3: テスト (タスク60-65)
+### Phase 3: Testing (Tasks 62-67)
+### フェーズ3: テスト (タスク62-67)
 Can be executed in parallel after respective features are complete
 対応する機能完了後に並列実行可能
 
-### Phase 4: Finalization (Tasks 66-68)
-### フェーズ4: 最終化 (タスク66-68)
-Execute in order: 66 → 67 → 68
-順次実行: 66 → 67 → 68
+### Phase 4: Finalization (Tasks 68-70)
+### フェーズ4: 最終化 (タスク68-70)
+Execute in order: 68 → 69 → 70
+順次実行: 68 → 69 → 70
 
 ## Risk Mitigation
 ## リスク軽減

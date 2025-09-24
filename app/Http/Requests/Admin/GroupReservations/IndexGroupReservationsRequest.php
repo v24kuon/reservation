@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\GroupReservations;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,12 +17,12 @@ class IndexGroupReservationsRequest extends FormRequest
     {
         return [
             'store_id' => ['nullable', 'integer', 'exists:stores,id'],
-            'instructor_id' => ['nullable', 'integer', 'exists:users,id'],
+            'instructor_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('role', User::ROLE_INSTRUCTOR)],
             'lesson_id' => ['nullable', 'integer', 'exists:lessons,id'],
             'user' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', 'string', Rule::in(['confirmed', 'canceled', 'completed', 'no_show'])],
-            'date_from' => ['nullable', 'date'],
-            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'status' => ['nullable', 'string', Rule::in(['pending', 'confirmed', 'canceled', 'completed', 'no_show'])],
+            'date_from' => ['nullable', 'date', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:date_from'],
         ];
     }
 }
