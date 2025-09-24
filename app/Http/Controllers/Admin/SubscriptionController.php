@@ -42,13 +42,11 @@ class SubscriptionController extends Controller
         }
 
         if (! empty($filters['period_from'])) {
-            $from = \Illuminate\Support\Carbon::parse($filters['period_from'], config('app.timezone'))->startOfDay();
-            $query->whereDate('current_period_start', '>=', $from);
+            $query->whereDate('current_period_start', '>=', $filters['period_from']);
         }
 
         if (! empty($filters['period_to'])) {
-            $to = \Illuminate\Support\Carbon::parse($filters['period_to'], config('app.timezone'))->endOfDay();
-            $query->whereDate('current_period_end', '<=', $to);
+            $query->whereDate('current_period_end', '<=', $filters['period_to']);
         }
 
         $subscriptions = $query->orderByDesc('id')->paginate(50)->withQueryString();
@@ -122,7 +120,7 @@ class SubscriptionController extends Controller
     public function destroy(UserSubscription $subscription): RedirectResponse
     {
         // Allow delete only if canceled to prevent accidental loss
-        if ($subscription->status !== 'canceled') {
+        if ($subscription->status !== UserSubscription::STATUS_CANCELED) {
             return back()->withErrors(['subscription' => 'キャンセル済みのみ削除可能です']);
         }
 

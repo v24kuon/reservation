@@ -10,11 +10,23 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <form method="GET" class="mb-4 grid grid-cols-1 md:grid-cols-5 gap-3">
-                        <input type="text" name="name" value="{{ $filters['name'] ?? '' }}" placeholder="名前" class="border rounded p-2">
-                        <input type="text" name="email" value="{{ $filters['email'] ?? '' }}" placeholder="メール" class="border rounded p-2">
+                        <div class="flex flex-col">
+                            <label for="filter_name" class="text-sm text-gray-700 dark:text-gray-300">名前</label>
+                            <input id="filter_name" type="text" name="name" value="{{ $filters['name'] ?? '' }}" placeholder="名前" class="border rounded p-2">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="filter_email" class="text-sm text-gray-700 dark:text-gray-300">メール</label>
+                            <input id="filter_email" type="text" name="email" value="{{ $filters['email'] ?? '' }}" placeholder="メール" class="border rounded p-2">
+                        </div>
                         <!-- role filter removed: this page manages only general users -->
-                        <input type="date" name="registered_from" value="{{ $filters['registered_from'] ?? '' }}" class="border rounded p-2">
-                        <input type="date" name="registered_to" value="{{ $filters['registered_to'] ?? '' }}" class="border rounded p-2">
+                        <div class="flex flex-col">
+                            <label for="filter_registered_from" class="text-sm text-gray-700 dark:text-gray-300">登録日(開始)</label>
+                            <input id="filter_registered_from" type="date" name="registered_from" value="{{ $filters['registered_from'] ?? '' }}" class="border rounded p-2">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="filter_registered_to" class="text-sm text-gray-700 dark:text-gray-300">登録日(終了)</label>
+                            <input id="filter_registered_to" type="date" name="registered_to" value="{{ $filters['registered_to'] ?? '' }}" class="border rounded p-2">
+                        </div>
                         <div class="md:col-span-5">
                             <x-primary-button type="submit">検索</x-primary-button>
                             <x-secondary-button as="a" href="{{ route('admin.users.create') }}">新規作成</x-secondary-button>

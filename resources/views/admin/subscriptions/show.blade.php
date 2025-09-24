@@ -45,7 +45,7 @@
                     <div class="pt-4 flex space-x-2">
                         <x-secondary-button href="{{ route('admin.subscriptions.index') }}">一覧へ</x-secondary-button>
                         <x-primary-button as="a" href="{{ route('admin.subscriptions.edit', $subscription) }}">編集</x-primary-button>
-                        <form action="{{ route('admin.subscriptions.destroy', $subscription) }}" method="POST" class="inline" onsubmit="return confirm(@js('削除しますか？キャンセル済のみ削除可能です')); ">
+                <form action="{{ route('admin.subscriptions.destroy', $subscription) }}" method="POST" class="inline" onsubmit="return confirm(@js('削除しますか？キャンセル済みのみ削除可能です')); ">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-600">削除</button>

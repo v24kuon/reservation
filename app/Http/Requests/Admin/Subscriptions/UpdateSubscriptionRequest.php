@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin\Subscriptions;
 
+use App\Models\UserSubscription;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSubscriptionRequest extends FormRequest
 {
@@ -15,8 +17,8 @@ class UpdateSubscriptionRequest extends FormRequest
     {
         return [
             // user_id/plan_id are immutable on this screen
-            'status' => ['required', 'string', 'max:50'],
-            'payment_status' => ['required', 'string', 'max:50'],
+            'status' => ['required', 'string', 'max:50', Rule::in(UserSubscription::ALLOWED_STATUSES)],
+            'payment_status' => ['required', 'string', 'max:50', Rule::in(UserSubscription::ALLOWED_PAYMENT_STATUSES)],
             'failure_reason' => ['nullable', 'string', 'max:2000'],
             'current_period_start' => ['required', 'date'],
             'current_period_end' => ['required', 'date', 'after_or_equal:current_period_start'],
