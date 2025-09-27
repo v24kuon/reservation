@@ -36,8 +36,10 @@ class GroupReservationController extends Controller
         if (! empty($filters['user'])) {
             $term = $filters['user'];
             $query->whereHas('user', function ($uq) use ($term): void {
-                $uq->where('name', 'like', "%{$term}%")
-                    ->orWhere('email', 'like', "%{$term}%");
+                $uq->where(function ($inner) use ($term): void {
+                    $inner->where('name', 'like', "%{$term}%")
+                        ->orWhere('email', 'like', "%{$term}%");
+                });
             });
         }
 
