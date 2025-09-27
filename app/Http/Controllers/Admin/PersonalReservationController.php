@@ -31,9 +31,16 @@ class PersonalReservationController extends Controller
         if (! empty($filters['user'])) {
             $term = $filters['user'];
             $query->whereHas('user', function ($uq) use ($term): void {
-                $uq->where(function ($inner) use ($term): void {
-                    $inner->where('name', 'like', "%{$term}%")
-                        ->orWhere('email', 'like', "%{$term}%");
+                $escape = '!';
+                $pattern = '%'.str_replace([
+                    $escape, '%', '_',
+                ], [
+                    $escape.$escape, $escape.'%', $escape.'_',
+                ], $term).'%';
+
+                $uq->where(function ($inner) use ($pattern, $escape): void {
+                    $inner->whereRaw("name LIKE ? ESCAPE '{$escape}'", [$pattern])
+                        ->orWhereRaw("email LIKE ? ESCAPE '{$escape}'", [$pattern]);
                 });
             });
         }
@@ -59,11 +66,13 @@ class PersonalReservationController extends Controller
             ->paginate(50)
             ->withQueryString();
 
-        $instructors = User::query()->where('role', User::ROLE_INSTRUCTOR)->orderBy('name')->get(['id', 'name']);
+        $instructors = User::query()
+            ->where('role', User::ROLE_INSTRUCTOR)
+            ->whereHas('taughtLessons', fn ($q) => $q->where('capacity', 1))
+            ->orderBy('name')
+            ->get(['id', 'name']);
         $lessons = Lesson::query()->where('capacity', 1)->orderBy('name')->get(['id', 'name']);
 
         return view('admin.personal-reservations.index', compact('reservations', 'filters', 'instructors', 'lessons'));
     }
 }
-
-

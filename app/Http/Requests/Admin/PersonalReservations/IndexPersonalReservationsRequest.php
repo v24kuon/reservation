@@ -30,10 +30,8 @@ class IndexPersonalReservationsRequest extends FormRequest
             'lesson_id' => ['nullable', 'integer', 'exists:lessons,id'],
             'user' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', Rule::in(Reservation::STATUSES)],
-            'date_from' => ['nullable', 'date', 'date_format:Y-m-d'],
-            'date_to' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
         ];
     }
 }
-
-
