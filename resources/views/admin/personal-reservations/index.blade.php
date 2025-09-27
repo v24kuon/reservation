@@ -69,7 +69,7 @@
                         <tbody class="divide-y divide-gray-200">
                             @forelse($reservations as $r)
                                 <tr>
-                                    <td class="px-4 py-2">{{ $r->reserved_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                                    <td class="px-4 py-2">{{ $r->lessonSchedule?->start_datetime?->format('Y-m-d H:i') ?? '-' }}</td>
                                     <td class="px-4 py-2">{{ $r->lessonSchedule?->lesson?->name ?? '-' }}</td>
                                     <td class="px-4 py-2">{{ $r->lessonSchedule?->lesson?->instructor?->name ?? '-' }}</td>
                                     <td class="px-4 py-2">{{ $r->user?->name ?? '-' }} ({{ $r->user?->email ?? '' }})</td>
