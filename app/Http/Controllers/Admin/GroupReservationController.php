@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Carbon;
 
 class GroupReservationController extends Controller
 {
@@ -21,18 +22,15 @@ class GroupReservationController extends Controller
             ->whereHas('lessonSchedule.lesson.store'); // 店舗を持つレッスン＝グループ扱い
 
         if (! empty($filters['store_id'])) {
-            $storeId = (int) $filters['store_id'];
-            $query->whereHas('lessonSchedule.lesson', fn ($q) => $q->where('store_id', $storeId));
+            $query->whereHas('lessonSchedule.lesson', fn ($q) => $q->where('store_id', $filters['store_id']));
         }
 
         if (! empty($filters['instructor_id'])) {
-            $instructorId = (int) $filters['instructor_id'];
-            $query->whereHas('lessonSchedule.lesson', fn ($q) => $q->where('instructor_user_id', $instructorId));
+            $query->whereHas('lessonSchedule.lesson', fn ($q) => $q->where('instructor_user_id', $filters['instructor_id']));
         }
 
         if (! empty($filters['lesson_id'])) {
-            $lessonId = (int) $filters['lesson_id'];
-            $query->whereHas('lessonSchedule', fn ($q) => $q->where('lesson_id', $lessonId));
+            $query->whereHas('lessonSchedule', fn ($q) => $q->where('lesson_id', $filters['lesson_id']));
         }
 
         if (! empty($filters['user'])) {
@@ -48,15 +46,21 @@ class GroupReservationController extends Controller
         }
 
         if (! empty($filters['date_from'])) {
-            $dateFrom = $filters['date_from'];
-            $query->whereHas('lessonSchedule', fn ($q) => $q->whereDate('start_datetime', '>=', $dateFrom));
+            $from = Carbon::createFromFormat('Y-m-d', $filters['date_from'])->startOfDay();
+            $query->whereHas('lessonSchedule', fn ($q) => $q->where('start_datetime', '>=', $from));
         }
         if (! empty($filters['date_to'])) {
-            $dateTo = $filters['date_to'];
-            $query->whereHas('lessonSchedule', fn ($q) => $q->whereDate('start_datetime', '<=', $dateTo));
+            $to = Carbon::createFromFormat('Y-m-d', $filters['date_to'])->endOfDay();
+            $query->whereHas('lessonSchedule', fn ($q) => $q->where('start_datetime', '<=', $to));
         }
 
-        $reservations = $query->orderByDesc('reserved_at')->orderByDesc('id')->paginate(50)->withQueryString();
+        $reservations = $query
+            ->join('lesson_schedules', 'lesson_schedules.id', '=', 'reservations.lesson_schedule_id')
+            ->orderByDesc('lesson_schedules.start_datetime')
+            ->orderByDesc('reservations.id')
+            ->select('reservations.*')
+            ->paginate(50)
+            ->withQueryString();
 
         $stores = Store::query()->orderBy('name')->get(['id', 'name']);
         $instructors = User::query()->where('role', User::ROLE_INSTRUCTOR)->orderBy('name')->get(['id', 'name']);

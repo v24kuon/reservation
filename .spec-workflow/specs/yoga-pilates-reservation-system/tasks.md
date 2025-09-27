@@ -674,39 +674,28 @@
 ### Admin Management Interface Tasks (Continued)
 ### 管理画面インターフェースタスク（続き）
 
-- [ ] 54. Create group lesson reservation management interface / グループレッスン予約管理画面を作成
-  - File: app/Http/Controllers/Admin/GroupReservationController.php (new) / ファイル: app/Http/Controllers/Admin/GroupReservationController.php (新規)
-  - File: resources/views/admin/group-reservations/ (new directory) / ファイル: resources/views/admin/group-reservations/ (新規ディレクトリ)
-  - Implement group lesson reservation CRUD operations / グループレッスン予約CRUD操作を実装
-  - Add reservation search and filtering (store, date, instructor, status) / 予約検索・フィルタリング機能を追加（店舗、日付、インストラクター、ステータス）
-  - Add store-based filtering with store selection tabs / 店舗選択タブ付き店舗ベースフィルタリングを追加
-  - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
-  - Add instructor-based filtering / インストラクターベースフィルタリングを追加
-  - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
-  - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
-  - Add lesson capacity monitoring and waitlist management / レッスン定員監視とウェイトリスト管理を追加
-  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
-  - Purpose: Specialized group lesson reservation management / 目的: グループレッスン予約の専門管理
-  - Requirements: Group Reservation Management / 要件: グループレッスン予約管理
+- [ ] 54. Extend group reservations to full CRUD / グループ予約管理をCRUDへ拡張
+  - Scope: add create, store, show, edit, update, destroy (index is Task 40) / スコープ: create, store, show, edit, update, destroy を追加（index はタスク40）
+  - Routes: add resource routes except index → 'admin.group-reservations.*' / ルート: index を除く resource ルートを追加（'admin.group-reservations.*'）
+  - File: app/Http/Controllers/Admin/GroupReservationController.php（拡張） / resources/views/admin/group-reservations/（create/edit/show/_form 追加）
+  - File: app/Http/Requests/Admin/GroupReservations/StoreGroupReservationRequest.php（新規） / UpdateGroupReservationRequest.php（新規）
+  - Implement: reservation creation/update/cancel, status management, bulk updates / 実装: 予約作成・更新・取消、ステータス管理、一括更新
+  - Validation: capacity/waitlist checks, policy-based authorization / バリデーション: 定員/ウェイトリスト、Policyによる認可
+  - Keep filters/search consistent with Task 40 index / フィルタ・検索はタスク40（index）と整合
+  - Authorization: Admin only with proper middleware / 認可: ミドルウェアで管理者限定
   - Dependencies: Task 40 / 依存関係: タスク40
-  - Estimated time: 55 minutes / 推定時間: 55分
+  - Estimated time: 70 minutes / 推定時間: 70分
 
-- [ ] 55. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
-  - File: app/Http/Controllers/Admin/PersonalReservationController.php (new) / ファイル: app/Http/Controllers/Admin/PersonalReservationController.php (新規)
-  - File: resources/views/admin/personal-reservations/ (new directory) / ファイル: resources/views/admin/personal-reservations/ (新規ディレクトリ)
-  - Implement personal lesson reservation CRUD operations / パーソナルレッスン予約CRUD操作を実装
-  - Add reservation search and filtering (instructor, date, status) / 予約検索・フィルタリング機能を追加（インストラクター、日付、ステータス）
-  - Add instructor-based filtering with instructor selection tabs / インストラクター選択タブ付きインストラクターベースフィルタリングを追加
-  - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
-  - Add reservation status management (pending, confirmed, canceled, completed, no_show) / 予約ステータス管理を追加（保留中、確定、キャンセル済み、完了、無断欠席）
-  - Add bulk operations for reservation status updates / 予約ステータス更新の一括操作を追加
-  - Add instructor schedule management and availability tracking / インストラクタースケジュール管理と空き状況追跡を追加
-  - Add personal lesson capacity monitoring (1-on-1 sessions) / パーソナルレッスン定員監視を追加（1対1セッション）
-  - Authorization: Admin only access with proper middleware / 認可: 適切なミドルウェアで管理者専用アクセス
-  - Purpose: Specialized personal lesson reservation management / 目的: パーソナルレッスン予約の専門管理
-  - Requirements: Personal Reservation Management / 要件: パーソナルレッスン予約管理
-  - Dependencies: Task 54 / 依存関係: タスク54
-  - Estimated time: 55 minutes / 推定時間: 55分
+- [ ] 55. Create personal reservations full CRUD interface / パーソナル予約管理のCRUD画面を作成
+  - Routes: add resource routes → 'admin.personal-reservations.*' / ルート: resource ルートを追加（'admin.personal-reservations.*'）
+  - File: app/Http/Controllers/Admin/PersonalReservationController.php（新規） / resources/views/admin/personal-reservations/（新規）
+  - File: app/Http/Requests/Admin/PersonalReservations/StorePersonalReservationRequest.php（新規） / UpdatePersonalReservationRequest.php（新規）
+  - Implement: reservation creation/update/cancel, status management, bulk updates / 実装: 予約作成・更新・取消、ステータス管理、一括更新
+  - Filters: instructor, date range, status, user name/email / フィルタ: インストラクター、日付範囲、状態、ユーザー名/メール
+  - Capacity: enforce 1-on-1 capacity and availability / 定員: 1対1の定員・空き状況を強制
+  - Authorization: Admin only with proper middleware / 認可: ミドルウェアで管理者限定
+  - Dependencies: Task 40 / 依存関係: タスク40
+  - Estimated time: 80 minutes / 推定時間: 80分
 
 ### Notification System Implementation Tasks
 ### 通知システム実装タスク

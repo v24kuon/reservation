@@ -440,7 +440,7 @@ plan_switch_logs (プラン切り替えログ) ✅
    - 階層表示・並び順変更（ドラッグ&ドロップ）
 4. **レッスン管理** (`/admin/lessons`)
 5. **レッスンスケジュール管理** (`/admin/lesson-schedules`)
-6. **月謝プラン管理** (`/admin/subscription-plans`)（Phase 2で実装予定）
+6. **月謝プラン管理** (`/admin/subscription-plans`) ✅
 7. **通知テンプレート管理** (`/admin/notification-templates`) ✅
 8. **ユーザー管理** (`/admin/users`)
 9. **グループ予約管理** (`/admin/group-reservations`)

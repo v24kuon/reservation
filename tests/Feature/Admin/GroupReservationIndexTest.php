@@ -24,6 +24,8 @@ class GroupReservationIndexTest extends TestCase
         ]);
         $this->actingAs($admin);
 
+        Carbon::setTestNow(Carbon::create(2025, 9, 24, 9, 0, 0));
+
         $this->get(route('admin.group-reservations.index'))
             ->assertOk();
     }
@@ -94,13 +96,13 @@ class GroupReservationIndexTest extends TestCase
         $sub1 = UserSubscription::factory()->for($user1)->active()->withRemainingLessons(5)->create();
         $sub2 = UserSubscription::factory()->for($user2)->active()->withRemainingLessons(5)->create();
 
-        $resA = Reservation::factory()->create([
+        Reservation::factory()->create([
             'user_id' => $user1->id,
             'user_subscription_id' => $sub1->id,
             'lesson_schedule_id' => $scheduleA->id,
             'status' => 'pending',
         ]);
-        $resB = Reservation::factory()->create([
+        Reservation::factory()->create([
             'user_id' => $user2->id,
             'user_subscription_id' => $sub2->id,
             'lesson_schedule_id' => $scheduleB->id,
