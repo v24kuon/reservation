@@ -490,7 +490,7 @@
   - Dependencies: Task 39 / 依存関係: タスク39
   - Estimated time: 55 minutes / 推定時間: 55分
 
-- [ ] 41. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
+- [x] 41. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
   - File: app/Http/Controllers/Admin/PersonalReservationController.php (new) / ファイル: app/Http/Controllers/Admin/PersonalReservationController.php (新規)
   - File: resources/views/admin/reservations/personal/ (new directory) / ファイル: resources/views/admin/reservations/personal/ (新規ディレクトリ)
   - Implement personal lesson reservation CRUD operations / パーソナルレッスン予約CRUD操作を実装
