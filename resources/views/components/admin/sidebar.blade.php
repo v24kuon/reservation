@@ -12,9 +12,10 @@
     <x-admin.sidebar-link href="{{ route('admin.settings.edit') }}" :active="request()->routeIs('admin.settings.*')">システム設定</x-admin.sidebar-link>
 
     <div class="pt-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">ユーザー管理</div>
-    <x-admin.sidebar-link href="{{ route('admin.group-reservations.index') }}" :active="request()->routeIs('admin.group-reservations.*')">グループ予約</x-admin.sidebar-link>
-    <x-admin.sidebar-link href="{{ route('admin.subscriptions.index') }}" :active="request()->routeIs('admin.subscriptions.*')">サブスクリプション</x-admin.sidebar-link>
+        <x-admin.sidebar-link href="{{ route('admin.group-reservations.index') }}" :active="request()->routeIs('admin.group-reservations.*')">グループ予約</x-admin.sidebar-link>
+        <x-admin.sidebar-link href="{{ route('admin.personal-reservations.index') }}" :active="request()->routeIs('admin.personal-reservations.*')">パーソナル予約</x-admin.sidebar-link>
     <x-admin.sidebar-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">ユーザー</x-admin.sidebar-link>
+    <x-admin.sidebar-link href="{{ route('admin.subscriptions.index') }}" :active="request()->routeIs('admin.subscriptions.*')">サブスクリプション</x-admin.sidebar-link>
 
     <div class="pt-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">アカウント</div>
     <form method="POST" action="{{ route('logout') }}">

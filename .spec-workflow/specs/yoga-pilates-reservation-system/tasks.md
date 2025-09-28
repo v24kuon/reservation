@@ -490,10 +490,10 @@
   - Dependencies: Task 39 / 依存関係: タスク39
   - Estimated time: 55 minutes / 推定時間: 55分
 
-- [ ] 41. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
+- [x] 41. Create personal lesson reservation management interface / パーソナルレッスン予約管理画面を作成
   - File: app/Http/Controllers/Admin/PersonalReservationController.php (new) / ファイル: app/Http/Controllers/Admin/PersonalReservationController.php (新規)
-  - File: resources/views/admin/reservations/personal/ (new directory) / ファイル: resources/views/admin/reservations/personal/ (新規ディレクトリ)
-  - Implement personal lesson reservation CRUD operations / パーソナルレッスン予約CRUD操作を実装
+  - File: resources/views/admin/personal-reservations/ (new directory) / ファイル: resources/views/admin/personal-reservations/ (新規ディレクトリ)
+  - Implement index (filterable listing). Full CRUD is Task 55. / index（フィルタ付き一覧）を実装。CRUD 全量はタスク55。
   - Add reservation search and filtering (instructor, date, status) / 予約検索・フィルタリング機能を追加（インストラクター、日付、ステータス）
   - Add instructor-based filtering with instructor selection tabs / インストラクター選択タブ付きインストラクターベースフィルタリングを追加
   - Add date range filtering with calendar picker / カレンダーピッカー付き日付範囲フィルタリングを追加
