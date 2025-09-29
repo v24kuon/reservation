@@ -16,19 +16,19 @@ class HomeController extends Controller
     {
         $user = $request->user();
 
-        // Get current reservations (confirmed status, future dates)
+        // Get next reservations (today or later), confirmed, limit 2
         $currentReservations = Reservation::query()
-            ->with(['lessonSchedule.lesson.store', 'lessonSchedule.lesson.category'])
+            ->with(['lessonSchedule.lesson.store', 'lessonSchedule.lesson.category', 'lessonSchedule.lesson.instructor'])
             ->where('user_id', $user->id)
             ->confirmed()
             ->whereHas('lessonSchedule', function ($query) {
-                $query->where('start_datetime', '>', now());
+                $query->whereDate('start_datetime', '>=', now()->toDateString());
             })
             ->orderBy('reserved_at', 'desc')
-            ->limit(5)
+            ->limit(2)
             ->get();
 
-        // Get active subscriptions
+        // Get active subscriptions (all currently valid)
         $activeSubscriptions = UserSubscription::query()
             ->with('plan')
             ->where('user_id', $user->id)
