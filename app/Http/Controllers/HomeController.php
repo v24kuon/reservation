@@ -16,19 +16,19 @@ class HomeController extends Controller
     {
         $user = $request->user();
 
-        // Get next reservations (today or later), confirmed, limit 2
+        // Get next reservations (start time from now, soonest first), confirmed, limit 2
         $currentReservations = Reservation::query()
+            ->select('reservations.*')
+            ->join('lesson_schedules', 'lesson_schedules.id', '=', 'reservations.lesson_schedule_id')
             ->with([
                 'lessonSchedule.lesson.store',
                 'lessonSchedule.lesson.category.parent',
                 'lessonSchedule.lesson.instructor',
             ])
-            ->where('user_id', $user->id)
+            ->where('reservations.user_id', $user->id)
             ->confirmed()
-            ->whereHas('lessonSchedule', function ($query) {
-                $query->whereDate('start_datetime', '>=', now()->toDateString());
-            })
-            ->orderBy('reserved_at', 'desc')
+            ->where('lesson_schedules.start_datetime', '>=', now())
+            ->orderBy('lesson_schedules.start_datetime', 'asc')
             ->limit(2)
             ->get();
 
