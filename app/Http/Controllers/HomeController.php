@@ -18,7 +18,11 @@ class HomeController extends Controller
 
         // Get next reservations (today or later), confirmed, limit 2
         $currentReservations = Reservation::query()
-            ->with(['lessonSchedule.lesson.store', 'lessonSchedule.lesson.category', 'lessonSchedule.lesson.instructor'])
+            ->with([
+                'lessonSchedule.lesson.store',
+                'lessonSchedule.lesson.category.parent',
+                'lessonSchedule.lesson.instructor',
+            ])
             ->where('user_id', $user->id)
             ->confirmed()
             ->whereHas('lessonSchedule', function ($query) {

@@ -20,23 +20,27 @@
                             <div class="w-20 h-20 rounded-2xl bg-indigo-200 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.4),0_4px_8px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center">
                                 <div class="text-base font-bold">{{ $reservation->lessonSchedule?->start_datetime?->format('n月') }}</div>
                                 <div class="text-base font-bold mt-1">{{ $reservation->lessonSchedule?->start_datetime?->format('j日') }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">{{ $reservation->lessonSchedule?->start_datetime?->format('H:i') }}</div>
                             </div>
                         </div>
                         <div class="ml-6 flex-1">
                             <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ $reservation->lessonSchedule?->lesson?->name }}</h4>
                             <div class="mt-1 text-gray-600 dark:text-gray-400 text-sm">
                                 @php
-                                    $categoryName = $reservation->lessonSchedule?->lesson?->category?->name;
+                                    $category   = $reservation->lessonSchedule?->lesson?->category;
+                                    $rootName   = $category?->parent?->name ?? $category?->name; // 親が無ければ自身
+                                    $isPersonal = $rootName === 'パーソナルレッスン';
+                                    $categoryName = $category?->name;
                                 @endphp
-                                @if($categoryName === 'パーソナルレッスン')
+                                @if($isPersonal)
                                     担当: {{ $reservation->lessonSchedule?->lesson?->instructor?->name ?? '未設定' }}
                                 @else
                                     {{ $reservation->lessonSchedule?->lesson?->store?->name }}
                                 @endif
                             </div>
                             <div class="mt-3">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold {{ ($categoryName === 'パーソナルレッスン') ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' }}">
-                                    {{ $categoryName === 'パーソナルレッスン' ? 'プライベート' : 'グループ' }}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold {{ $isPersonal ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' }}">
+                                    {{ $isPersonal ? 'プライベート' : 'グループ' }}
                                 </span>
                             </div>
                         </div>
@@ -82,13 +86,13 @@
         <div class="bg-white dark:bg-gray-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_1px_3px_0_rgba(0,0,0,0.3),0_1px_2px_-1px_rgba(0,0,0,0.3)] rounded-xl p-6 sm:p-8 text-center mt-4">
             <div class="flex gap-1 sm:gap-2 md:gap-3 lg:gap-4 flex-nowrap justify-center">
                     <!-- Group Lessons Button -->
-                <a href="{{ route('reservations.group') }}"
+                <a href="{{ route('reservations.group') }}" aria-label="グループレッスン一覧へ"
                    class="flex-1 max-w-none lg:max-w-sm xl:max-w-md 2xl:max-w-lg mx-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 sm:py-4 px-2 sm:px-6 rounded-lg shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_2px_4px_0_rgba(0,0,0,0.1)] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_1px_2px_0_rgba(0,0,0,0.15)] transition-all duration-200">
                     <span class="text-sm sm:text-lg whitespace-nowrap">グループレッスン</span>
                     </a>
 
                     <!-- Personal Lessons Button -->
-                <a href="{{ route('reservations.personal') }}"
+                <a href="{{ route('reservations.personal') }}" aria-label="パーソナルレッスン一覧へ"
                    class="flex-1 max-w-none lg:max-w-sm xl:max-w-md 2xl:max-w-lg mx-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 sm:py-4 px-2 sm:px-6 rounded-lg shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_2px_4px_0_rgba(0,0,0,0.1)] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15),0_1px_2px_0_rgba(0,0,0,0.15)] transition-all duration-200">
                     <span class="text-sm sm:text-lg whitespace-nowrap">パーソナルレッスン</span>
                 </a>
