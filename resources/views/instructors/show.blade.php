@@ -35,8 +35,8 @@
                                 <p class="text-gray-900 dark:text-gray-100 font-medium">{{ $schedule->lesson?->name ?? '未設定' }}</p>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">店舗: {{ $schedule->lesson?->store?->name ?? '未設定' }}</p>
                             </div>
-                            <time datetime="{{ $schedule->start_datetime?->toIso8601String() }}" class="text-sm text-gray-700 dark:text-gray-300">
-                                {{ $schedule->start_datetime?->format('n月j日 H:i') }}
+                            <time datetime="{{ $schedule->start_datetime?->toIso8601String() ?? '' }}" class="text-sm text-gray-700 dark:text-gray-300">
+                                {{ $schedule->start_datetime?->format('n月j日 H:i') ?? '未設定' }}
                             </time>
                         </li>
                     @endforeach

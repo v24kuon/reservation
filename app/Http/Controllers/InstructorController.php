@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\LessonSchedule;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class InstructorController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
         $instructors = User::query()
             ->where('role', User::ROLE_INSTRUCTOR)
