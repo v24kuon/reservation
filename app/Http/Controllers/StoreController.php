@@ -16,13 +16,14 @@ class StoreController extends Controller
         $stores = Store::query()
             ->where('is_active', true)
             ->orderBy('name')
-            ->paginate(12);
+            ->paginate(config('pagination.stores', 12));
 
         // preload favorite store ids for current user
         $favoriteStoreIds = $user
             ? $user->favorites()
-                ->where('favoritable_type', Store::class)
+                ->stores()
                 ->pluck('favoritable_id')
+                ->map(fn ($id) => (int) $id)
                 ->all()
             : [];
 
@@ -32,7 +33,7 @@ class StoreController extends Controller
         ]);
     }
 
-    public function show(Store $store, Request $request): View
+    public function show(Store $store): View
     {
         abort_unless($store->is_active, 404);
 
@@ -50,7 +51,7 @@ class StoreController extends Controller
             ->whereHas('lesson', fn ($q) => $q->where('store_id', $store->id))
             ->where('start_datetime', '>=', now())
             ->orderBy('start_datetime')
-            ->limit(10)
+            ->limit(config('pagination.upcoming_schedules', 10))
             ->get();
 
         return view('stores.show', compact('store', 'upcomingSchedules', 'mapUrl'));
