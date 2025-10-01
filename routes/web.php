@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PersonalReservationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\InstructorProfileController;
+use App\Http\Controllers\InstructorController as PublicInstructorController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
     Route::get('/stores/{store}', [StoreController::class, 'show'])->name('stores.show');
     Route::post('/stores/{store}/favorite/toggle', [FavoriteController::class, 'toggleStore'])->name('stores.favorite.toggle');
+
+    // Instructors (user-facing)
+    Route::get('/instructors', [PublicInstructorController::class, 'index'])->name('instructors.index');
+    Route::get('/instructors/{instructor}', [PublicInstructorController::class, 'show'])->name('instructors.show');
 });
 
 Route::get('/dashboard', function () {
