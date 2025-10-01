@@ -510,7 +510,7 @@
 ### User Interface Development Tasks
 ### ユーザーインターフェース開発タスク
 
-- [ ] 42. Create user top page / ユーザートップページを作成
+- [x] 42. Create user top page / ユーザートップページを作成
   - File: resources/views/home.blade.php (modify) / ファイル: resources/views/home.blade.php (修正)
   - File: app/Http/Controllers/HomeController.php (new) / ファイル: app/Http/Controllers/HomeController.php (新規)
   - Display reservation status overview / 予約状況の概要を表示
@@ -529,7 +529,7 @@
   - Dependencies: None / 依存関係: なし
   - Estimated time: 10 minutes / 推定時間: 10分
 
-- [ ] 44. Create store listing and detail pages / 店舗一覧・詳細ページを作成
+- [x] 44. Create store listing and detail pages / 店舗一覧・詳細ページを作成
   - File: resources/views/stores/index.blade.php (new) / ファイル: resources/views/stores/index.blade.php (新規)
   - File: resources/views/stores/show.blade.php (new) / ファイル: resources/views/stores/show.blade.php (新規)
   - File: app/Http/Controllers/StoreController.php (new) / ファイル: app/Http/Controllers/StoreController.php (新規)

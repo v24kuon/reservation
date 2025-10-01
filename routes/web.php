@@ -8,13 +8,15 @@ use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\StoreController;
+use App\Http\Controllers\Admin\StoreController as AdminStoreController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminUserSubscriptionController;
 use App\Http\Controllers\Admin\GroupReservationController;
 use App\Http\Controllers\Admin\PersonalReservationController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\InstructorProfileController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\SubscriptionController;
@@ -22,6 +24,13 @@ use App\Models\LessonSchedule;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
+
+// Stores (user-facing)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
+    Route::get('/stores/{store}', [StoreController::class, 'show'])->name('stores.show');
+    Route::post('/stores/{store}/favorite/toggle', [FavoriteController::class, 'toggleStore'])->name('stores.favorite.toggle');
+});
 
 Route::get('/dashboard', function () {
     $adminStats = null;
@@ -117,7 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin: stores CRUD
     Route::prefix('admin')->as('admin.')->middleware('can:access-admin')->group(function () {
-        Route::resource('stores', StoreController::class);
+        Route::resource('stores', AdminStoreController::class);
 
         // Admin: lesson categories CRUD
         Route::resource('lesson-categories', LessonCategoryController::class);
