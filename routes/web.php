@@ -20,6 +20,7 @@ use App\Http\Controllers\InstructorController as PublicInstructorController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\Reservation\HistoryController as ReservationHistoryController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\LessonSchedule;
 use Illuminate\Support\Facades\Route;
@@ -113,6 +114,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Reservation pages (placeholder views)
     Route::view('/reservations/group', 'reservations.group')->name('reservations.group');
     Route::view('/reservations/personal', 'reservations.personal')->name('reservations.personal');
+
+    // Reservation history
+    Route::get('/reservations/history', [ReservationHistoryController::class, 'index'])->name('reservations.history');
 
     // User reservation actions
     Route::post('/lesson-schedules/{lessonSchedule}/reservations', [ReservationController::class, 'store'])

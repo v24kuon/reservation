@@ -9,7 +9,7 @@
         <!-- Current Reservations Section -->
         <div class="flex items-center justify-between mt-4 mb-2">
             <h3 class="text-xl font-extrabold text-gray-900 dark:text-gray-100">予定一覧</h3>
-            <a href="#" class="text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:underline">すべて表示</a>
+            <a href="{{ route('reservations.history') }}" class="text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:underline">すべて表示</a>
         </div>
 
         <div class="bg-white dark:bg-gray-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_1px_3px_0_rgba(0,0,0,0.3),0_1px_2px_-1px_rgba(0,0,0,0.3)] rounded-xl p-6 mb-4">
