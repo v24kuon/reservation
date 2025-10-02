@@ -12,4 +12,8 @@ return [
 
     // Instructor detail upcoming schedules limit
     'instructor_upcoming_schedules' => 10,
+
+    // Profile page lists
+    'profile_subscriptions' => 10,
+    'profile_reservations' => 10,
 ];

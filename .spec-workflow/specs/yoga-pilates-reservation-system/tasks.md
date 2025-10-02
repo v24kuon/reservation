@@ -553,7 +553,7 @@
   - Dependencies: Task 44 / 依存関係: タスク44
   - Estimated time: 40 minutes / 推定時間: 40分
 
-- [ ] 46. Create user profile page / ユーザープロフィールページを作成
+- [x] 46. Create user profile page / ユーザープロフィールページを作成
   - File: resources/views/profile/index.blade.php (new) / ファイル: resources/views/profile/index.blade.php (新規)
   - File: app/Http/Controllers/ProfileController.php (new) / ファイル: app/Http/Controllers/ProfileController.php (新規)
   - Display detailed reservation history / 詳細な予約履歴を表示
