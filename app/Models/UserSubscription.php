@@ -222,4 +222,18 @@ class UserSubscription extends Model
 
         return "{$start} ～ {$end}";
     }
+
+    /**
+     * Human readable status label in Japanese.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_ACTIVE => '有効',
+            self::STATUS_CANCELED => 'キャンセル済み',
+            self::STATUS_PAST_DUE => '支払い遅延',
+            self::STATUS_TRIALING => 'トライアル中',
+            default => (string) $this->status,
+        };
+    }
 }

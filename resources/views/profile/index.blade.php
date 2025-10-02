@@ -18,7 +18,7 @@
                                 <p class="text-gray-900 dark:text-gray-100 font-medium">{{ $sub->plan?->name ?? '未設定' }}</p>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">次回支払日: {{ $sub->current_period_end?->format('Y年n月j日') ?? '未設定' }}</p>
                             </div>
-                            <span class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ $sub->status }}</span>
+                            <span class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ $sub->status_label }}</span>
                         </li>
                     @endforeach
                 </ul>
