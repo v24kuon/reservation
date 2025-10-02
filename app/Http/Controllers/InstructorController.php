@@ -23,6 +23,9 @@ class InstructorController extends Controller
     {
         abort_unless($instructor->role === User::ROLE_INSTRUCTOR, 404);
 
+        // Eager load profile to avoid additional queries in the view
+        $instructor->load('instructorProfile');
+
         $upcomingSchedules = LessonSchedule::query()
             ->with(['lesson.store'])
             ->whereHas('lesson', fn ($q) => $q->where('instructor_user_id', $instructor->id))
