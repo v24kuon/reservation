@@ -541,7 +541,7 @@
   - Dependencies: Task 43 / 依存関係: タスク43
   - Estimated time: 40 minutes / 推定時間: 40分
 
-- [ ] 45. Create instructor listing and detail pages / インストラクター一覧・詳細ページを作成
+- [x] 45. Create instructor listing and detail pages / インストラクター一覧・詳細ページを作成
   - File: resources/views/instructors/index.blade.php (new) / ファイル: resources/views/instructors/index.blade.php (新規)
   - File: resources/views/instructors/show.blade.php (new) / ファイル: resources/views/instructors/show.blade.php (新規)
   - File: app/Http/Controllers/InstructorController.php (new) / ファイル: app/Http/Controllers/InstructorController.php (新規)
