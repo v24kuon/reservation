@@ -12,6 +12,7 @@ class InstructorController extends Controller
     {
         $instructors = User::query()
             ->where('role', User::ROLE_INSTRUCTOR)
+            ->with('instructorProfile')
             ->orderBy('name')
             ->paginate(config('pagination.instructors', 12));
 
