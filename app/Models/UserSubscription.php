@@ -229,10 +229,10 @@ class UserSubscription extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            self::STATUS_ACTIVE => '有効',
-            self::STATUS_CANCELED => 'キャンセル済み',
-            self::STATUS_PAST_DUE => '支払い遅延',
-            self::STATUS_TRIALING => 'トライアル中',
+            self::STATUS_ACTIVE => __('subscription.status.active'),
+            self::STATUS_CANCELED => __('subscription.status.canceled'),
+            self::STATUS_PAST_DUE => __('subscription.status.past_due'),
+            self::STATUS_TRIALING => __('subscription.status.trialing'),
             default => (string) $this->status,
         };
     }
