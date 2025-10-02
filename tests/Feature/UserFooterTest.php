@@ -20,16 +20,21 @@ class UserFooterTest extends TestCase
     {
         $user = $this->createUser();
 
-        // Visit home
         $this->actingAs($user)
             ->get('/')
             ->assertSee('bg-blue-50', false)
             ->assertSee('ホーム', false);
+    }
 
-        // Visit mypage where home must not be active
+    /** @test */
+    public function home_link_is_not_active_on_mypage(): void
+    {
+        $user = $this->createUser();
+
         $this->actingAs($user)
             ->get('/mypage')
-            ->assertDontSee('bg-blue-50', false);
+            ->assertSee('マイページ', false)
+            ->assertSee('bg-blue-50', false);
     }
 
     /** @test */

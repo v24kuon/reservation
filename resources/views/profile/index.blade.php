@@ -38,9 +38,13 @@
                                 <p class="text-gray-900 dark:text-gray-100 font-medium">{{ $reservation->lessonSchedule?->lesson?->name ?? '未設定' }}</p>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">店舗: {{ $reservation->lessonSchedule?->lesson?->store?->name ?? '未設定' }}</p>
                             </div>
-                            <time datetime="{{ $reservation->lessonSchedule?->start_datetime?->toIso8601String() ?? '' }}" class="text-sm text-gray-700 dark:text-gray-300">
-                                {{ $reservation->lessonSchedule?->start_datetime?->format('Y/m/d H:i') ?? '未設定' }}
-                            </time>
+                            @if($reservation->lessonSchedule?->start_datetime)
+                                <time datetime="{{ $reservation->lessonSchedule->start_datetime->toIso8601String() }}" class="text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $reservation->lessonSchedule->start_datetime->format('Y/m/d H:i') }}
+                                </time>
+                            @else
+                                <span class="text-sm text-gray-700 dark:text-gray-300">未設定</span>
+                            @endif
                         </li>
                     @endforeach
                 </ul>
