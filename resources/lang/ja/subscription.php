@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'status' => [
+        'active' => '有効',
+        'canceled' => 'キャンセル済み',
+        'past_due' => '支払い遅延',
+        'trialing' => 'トライアル中',
+    ],
     'errors' => [
         'count_limit_reached' => 'ご利用可能な回数が上限に達しました。次回の期間開始後にお試しください。',
         'reservation_blocked' => '現在のサブスクリプション状態では予約できません。',

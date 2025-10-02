@@ -106,6 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])
         ->name('subscription.cancel');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/mypage', [ProfileController::class, 'index'])->name('profile.index');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
