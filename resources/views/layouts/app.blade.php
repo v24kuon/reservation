@@ -51,11 +51,7 @@
             </main>
 
             @auth
-                @cannot('access-admin')
-                    @cannot('access-instructor')
-                        @include('layouts.user-footer')
-                    @endcannot
-                @endcannot
+                @include('layouts.user-footer')
             @endauth
         </div>
         @livewireScripts

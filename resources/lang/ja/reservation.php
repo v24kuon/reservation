@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'status' => [
+        'pending' => '保留',
+        'confirmed' => '予約済み',
+        'canceled' => 'キャンセル済み',
+        'completed' => '完了',
+        'no_show' => '欠席',
+    ],
     'errors' => [
         'duplicate_active_reservation' => '同じレッスン枠に既に予約があります。',
         'subscription_invalid_or_no_remaining' => 'サブスクリプションが無効であるか、利用可能なレッスン回数がありません。',
