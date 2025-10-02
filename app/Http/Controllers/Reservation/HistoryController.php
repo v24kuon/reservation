@@ -25,7 +25,7 @@ class HistoryController extends Controller
         $to = $filters['to'] ?? null;
 
         $applyFilters = function ($query) use ($status, $from, $to) {
-            if ($status) {
+            if ($status !== null && $status !== '') {
                 $query->where('reservations.status', $status);
             }
             if ($from) {
