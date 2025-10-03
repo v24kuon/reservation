@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SubscriptionPlan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -14,11 +13,12 @@ class SubscriptionController extends Controller
     /**
      * Create a Stripe Checkout Session for the given plan and redirect user.
      */
-    public function createCheckoutSession(Request $request, int $planId): RedirectResponse
+    public function createCheckoutSession(Request $request, \App\Models\SubscriptionPlan $plan): RedirectResponse
     {
         $user = $request->user();
 
-        $plan = SubscriptionPlan::query()->active()->findOrFail($planId);
+        // Ensure plan is active
+        abort_unless((bool) $plan->is_active, 404);
 
         // 既存の同一プラン（同一Price）への重複加入を抑止
         if (method_exists($user, 'subscribedToPrice') && $user->subscribedToPrice($plan->stripe_price_id)) {
@@ -47,10 +47,12 @@ class SubscriptionController extends Controller
         }
 
         try {
-            // 同一ユーザー×プランの短期的な二重発行を抑止
-            // フロント付与のIdempotency-Keyを優先。無ければセッションID由来の安定キーを生成
-            $idemKey = $request->header('Idempotency-Key')
-                ?? ('checkout:'.hash('sha256', $user->getKey().':'.$plan->getKey().':'.$request->session()->getId()));
+            // フロント付与の Idempotency-Key がある場合のみ Stripe に伝播する
+            // 既定では毎回新規 Checkout Session を作成し、完了/失効済みセッションの再利用を避ける
+            $createOpts = [];
+            if ($request->hasHeader('Idempotency-Key')) {
+                $createOpts['idempotency_key'] = $request->header('Idempotency-Key');
+            }
             $session = $this->stripe()->checkout->sessions->create([
                 'mode' => 'subscription',
                 'customer' => $user->stripe_id,
@@ -74,9 +76,7 @@ class SubscriptionController extends Controller
                 ],
                 // Optional: enable promotion codes in future if needed
                 // 'allow_promotion_codes' => true,
-            ], [
-                'idempotency_key' => $idemKey,
-            ]);
+            ], $createOpts);
         } catch (\Throwable $e) {
             report($e);
             if ($e instanceof \Stripe\Exception\ApiErrorException) {
@@ -129,7 +129,6 @@ class SubscriptionController extends Controller
 
         $client = new StripeClient([
             'api_key' => $secret,
-            'max_network_retries' => 2,
         ]);
 
         return $client;

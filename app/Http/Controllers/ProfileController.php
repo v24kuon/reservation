@@ -48,8 +48,15 @@ class ProfileController extends Controller
             ->pluck('favoritable')
             ->filter();
 
+        // Cancel flags are now persisted via webhooks; no runtime Stripe calls required
+
         return view('profile.index', compact('user', 'subscriptions', 'reservations', 'favoriteStores', 'favoriteInstructors'));
     }
+
+    /**
+     * Append Stripe cancel flags for paginator items.
+     */
+    // appendStripeCancelFlags removed
     /**
      * Display the user's profile form.
      */

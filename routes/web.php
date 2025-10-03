@@ -1,26 +1,28 @@
 <?php
 
+use App\Http\Controllers\Admin\GroupReservationController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\LessonCategoryController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\LessonScheduleController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\PersonalReservationController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StoreController as AdminStoreController;
-use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminUserSubscriptionController;
-use App\Http\Controllers\Admin\GroupReservationController;
-use App\Http\Controllers\Admin\PersonalReservationController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\StoreController;
-use App\Http\Controllers\InstructorProfileController;
-use App\Http\Controllers\InstructorController as PublicInstructorController;
+use App\Http\Controllers\Admin\SubscriptionPlanController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InstructorController as PublicInstructorController;
+use App\Http\Controllers\InstructorProfileController;
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Reservation\HistoryController as ReservationHistoryController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\StoreController;
+use App\Http\Controllers\Stripe\WebhookController as StripeWebhookController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\LessonSchedule;
 use Illuminate\Support\Facades\Route;
@@ -106,6 +108,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('subscription.success');
     Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])
         ->name('subscription.cancel');
+
+    // Subscription manage (Task 48)
+    Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
+        // 管理ページ
+        Route::get('/manage', [\App\Http\Controllers\Subscription\ManageController::class, 'index'])
+            ->name('manage');
+        // プラン切替
+        Route::post('/switch', [\App\Http\Controllers\Subscription\ManageController::class, 'switch'])
+            ->name('switch');
+        // 解約（期末）
+        Route::post('/cancel', [\App\Http\Controllers\Subscription\ManageController::class, 'cancel'])
+            ->name('cancel');
+    });
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/mypage', [ProfileController::class, 'index'])->name('profile.index');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -117,6 +132,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Reservation history
     Route::get('/reservations/history', [ReservationHistoryController::class, 'index'])->name('reservations.history');
+
+    // Public plans index (user-facing)
+    Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
 
     // User reservation actions
     Route::post('/lesson-schedules/{lessonSchedule}/reservations', [ReservationController::class, 'store'])
@@ -195,3 +213,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Stripe Webhook (no auth, CSRF exempt via route middleware group in bootstrap/app.php or middleware alias)
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');

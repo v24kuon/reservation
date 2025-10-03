@@ -42,9 +42,42 @@ class HomeController extends Controller
             ->orderBy('current_period_end', 'asc')
             ->get();
 
+        // Enrich with Stripe cancel flags for display
+        $this->appendStripeCancelFlagsToCollection($activeSubscriptions);
+
         return view('home', [
             'currentReservations' => $currentReservations,
             'activeSubscriptions' => $activeSubscriptions,
         ]);
+    }
+
+    /**
+     * Append Stripe cancel flags to a collection of subscriptions for UI display.
+     *
+     * @param  \Illuminate\Support\Collection<int, \App\Models\UserSubscription>  $items
+     */
+    private function appendStripeCancelFlagsToCollection($items): void
+    {
+        $secret = config('services.stripe.secret');
+        if (empty($secret)) {
+            return;
+        }
+
+        $client = new \Stripe\StripeClient($secret);
+        foreach ($items as $sub) {
+            $sid = (string) ($sub->stripe_subscription_id ?? '');
+            if ($sid === '') {
+                continue;
+            }
+            try {
+                $remote = $client->subscriptions->retrieve($sid, []);
+                $sub->cancel_at_period_end = (bool) ($remote->cancel_at_period_end ?? false);
+                $sub->cancel_at = isset($remote->cancel_at)
+                    ? \Carbon\Carbon::createFromTimestamp((int) $remote->cancel_at)
+                    : null;
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
     }
 }

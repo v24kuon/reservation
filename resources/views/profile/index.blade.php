@@ -7,26 +7,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div class="rounded-xl bg-white dark:bg-gray-800 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_3px_rgba(0,0,0,0.3)]">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">契約中のプラン</h3>
-            @if($subscriptions->isEmpty())
-                <p class="text-sm text-gray-600 dark:text-gray-400">契約中のプランはありません。</p>
-            @else
-                <ul class="space-y-3">
-                    @foreach($subscriptions as $sub)
-                        <li class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-900 dark:text-gray-100 font-medium">{{ $sub->plan?->name ?? '未設定' }}</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">次回支払日: {{ $sub->current_period_end?->format('Y年n月j日') ?? '未設定' }}</p>
-                            </div>
-                            <span class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">{{ $sub->status_label }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-                <div class="mt-4">{{ $subscriptions->links() }}</div>
-            @endif
-        </div>
-
-        <div class="rounded-xl bg-white dark:bg-gray-800 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_3px_rgba(0,0,0,0.3)]">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">予約履歴</h3>
                 <a href="{{ route('reservations.history') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">すべて表示 →</a>
@@ -55,6 +35,25 @@
             @endif
         </div>
 
+        <div class="rounded-xl bg-white dark:bg-gray-800 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_3px_rgba(0,0,0,0.3)]">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">契約中のプラン</h3>
+                <a href="{{ route('subscriptions.manage') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">すべて表示 →</a>
+            </div>
+            @if($subscriptions->isEmpty())
+                <p class="text-sm text-gray-600 dark:text-gray-400">契約中のプランはありません。</p>
+            @else
+                <ul class="space-y-3">
+                    @foreach($subscriptions as $sub)
+                        <li>
+                            <x-subscription.simple-card :subscription="$sub" />
+                        </li>
+                    @endforeach
+                </ul>
+                <div class="mt-4">{{ $subscriptions->links() }}</div>
+            @endif
+        </div>
+
         {{-- Favorites Section --}}
         <div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">お気に入り一覧</h3>
@@ -73,9 +72,15 @@
                         <ul class="space-y-2 sm:space-y-3">
                             @foreach($favoriteStores as $store)
                                 <li>
-                                    <a href="{{ route('stores.show', $store) }}" class="block hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition">
-                                        <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium">{{ $store->name }}</p>
-                                        <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{{ $store->address }}</p>
+                                    <a href="{{ route('stores.show', $store) }}" class="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.99] overflow-hidden">
+                                        <span class="pointer-events-none absolute inset-0 group-active:bg-gray-200/30 dark:group-active:bg-white/10 transition"></span>
+                                        <div class="py-1 sm:py-0 flex-1">
+                                            <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium group-hover:underline">{{ $store->name }}</p>
+                                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{{ $store->address }}</p>
+                                        </div>
+                                        <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </a>
                                 </li>
                             @endforeach
@@ -97,11 +102,17 @@
                         <ul class="space-y-2 sm:space-y-3">
                             @foreach($favoriteInstructors as $instructor)
                                 <li>
-                                    <a href="{{ route('instructors.show', $instructor) }}" class="block hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition">
-                                        <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium">{{ $instructor->name }}</p>
-                                        @if($instructor->instructorProfile?->bio)
-                                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{{ $instructor->instructorProfile->bio }}</p>
-                                        @endif
+                                    <a href="{{ route('instructors.show', $instructor) }}" class="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.99] overflow-hidden">
+                                        <span class="pointer-events-none absolute inset-0 group-active:bg-gray-200/30 dark:group-active:bg-white/10 transition"></span>
+                                        <div class="py-1 sm:py-0 flex-1">
+                                            <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium group-hover:underline">{{ $instructor->name }}</p>
+                                            @if($instructor->instructorProfile?->bio)
+                                                <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{{ $instructor->instructorProfile->bio }}</p>
+                                            @endif
+                                        </div>
+                                        <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </a>
                                 </li>
                             @endforeach
