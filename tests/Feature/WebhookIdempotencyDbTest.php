@@ -23,7 +23,7 @@ it('enforces unique event id in stripe_webhook_events', function (): void {
             'received_at' => now(),
         ]);
         // if no exception thrown, force fail
-        expect(true)->toBeFalse();
+        $this->fail('Expected unique constraint violation but none was thrown');
     } catch (Throwable $e) {
         // expected unique constraint violation
         expect(DB::table('stripe_webhook_events')->where('event_id', $eventId)->count())->toBe(1);

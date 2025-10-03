@@ -20,10 +20,7 @@ class PlanController extends Controller
             $activeSubs = $user->userSubscriptions()
                 ->active()
                 ->paid()
-                ->where(function ($q) {
-                    $q->whereNull('current_period_end')
-                        ->orWhere('current_period_end', '>=', now());
-                })
+                ->notExpired()
                 ->with('plan')
                 ->get();
             $activePriceIds = $activeSubs->pluck('plan.stripe_price_id')->filter()->values()->all();

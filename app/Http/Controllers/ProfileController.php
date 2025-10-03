@@ -18,15 +18,19 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        // Show only up to 3 latest subscriptions for the dashboard
         $subscriptions = $user->userSubscriptions()
             ->with('plan')
             ->orderByDesc('current_period_end')
-            ->paginate(config('pagination.profile_subscriptions', 10), ['*'], 'subscriptions_page');
+            ->limit(3)
+            ->get();
 
+        // Show only up to 3 recent reservations for the dashboard
         $reservations = $user->reservations()
             ->with(['lessonSchedule.lesson.store'])
             ->orderByDesc('created_at')
-            ->paginate(config('pagination.profile_reservations', 10), ['*'], 'reservations_page');
+            ->limit(3)
+            ->get();
 
         // Fetch favorite stores
         $favoriteStores = $user->favorites()

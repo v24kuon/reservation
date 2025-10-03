@@ -122,6 +122,17 @@ class UserSubscription extends Model
     }
 
     /**
+     * Scope a query to subscriptions that are not yet expired (no end or end in future).
+     */
+    public function scopeNotExpired(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q): void {
+            $q->whereNull('current_period_end')
+                ->orWhere('current_period_end', '>=', now());
+        });
+    }
+
+    /**
      * Scope by lesson category allowed by the plan.
      */
     public function scopeForCategory(Builder $query, int $categoryId): Builder
@@ -247,37 +258,17 @@ class UserSubscription extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        $keyFor = static fn (string $k): string => "subscription.status.$k";
-
-        $label = match ($this->status) {
-            self::STATUS_ACTIVE => __($keyFor(self::STATUS_ACTIVE)),
-            self::STATUS_CANCELED => __($keyFor(self::STATUS_CANCELED)),
-            self::STATUS_PAST_DUE => __($keyFor(self::STATUS_PAST_DUE)),
-            self::STATUS_TRIALING => __($keyFor(self::STATUS_TRIALING)),
-            self::STATUS_INCOMPLETE => __($keyFor(self::STATUS_INCOMPLETE)),
-            self::STATUS_INCOMPLETE_EXPIRED => __($keyFor(self::STATUS_INCOMPLETE_EXPIRED)),
-            self::STATUS_UNPAID => __($keyFor(self::STATUS_UNPAID)),
-            self::STATUS_PAUSED => __($keyFor(self::STATUS_PAUSED)),
-            self::STATUS_UNKNOWN => __($keyFor(self::STATUS_UNKNOWN)),
+        return match ($this->status) {
+            self::STATUS_ACTIVE => __('subscription.status.active'),
+            self::STATUS_CANCELED => __('subscription.status.canceled'),
+            self::STATUS_PAST_DUE => __('subscription.status.past_due'),
+            self::STATUS_TRIALING => __('subscription.status.trialing'),
+            self::STATUS_INCOMPLETE => __('subscription.status.incomplete'),
+            self::STATUS_INCOMPLETE_EXPIRED => __('subscription.status.incomplete_expired'),
+            self::STATUS_UNPAID => __('subscription.status.unpaid'),
+            self::STATUS_PAUSED => __('subscription.status.paused'),
+            self::STATUS_UNKNOWN => __('subscription.status.unknown'),
             default => (string) $this->status,
         };
-
-        // Fallback: if translation not found, __() returns the key itself
-        if (is_string($label) && str_starts_with($label, 'subscription.status.')) {
-            return match ($this->status) {
-                self::STATUS_ACTIVE => '有効',
-                self::STATUS_CANCELED => 'キャンセル済み',
-                self::STATUS_PAST_DUE => '支払い遅延',
-                self::STATUS_TRIALING => 'トライアル中',
-                self::STATUS_INCOMPLETE => '未完了',
-                self::STATUS_INCOMPLETE_EXPIRED => '未完了（期限切れ）',
-                self::STATUS_UNPAID => '未払い',
-                self::STATUS_PAUSED => '一時停止',
-                self::STATUS_UNKNOWN => '不明',
-                default => (string) $this->status,
-            };
-        }
-
-        return $label;
     }
 }

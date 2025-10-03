@@ -50,6 +50,19 @@ class SubscriptionService
             ]);
         }
 
+        // Guard: prevent switching to a plan the user already has active and paid (not expired)
+        $alreadyHasTarget = $user->userSubscriptions()
+            ->where('plan_id', $to->getKey())
+            ->active()
+            ->paid()
+            ->notExpired()
+            ->exists();
+        if ($alreadyHasTarget) {
+            throw ValidationException::withMessages([
+                'subscription' => '既に切替先の有効なサブスクリプションをお持ちです。',
+            ]);
+        }
+
         // Calculate remaining lessons (hint only). Final value is recalculated at webhook time.
         $remaining = max(0, (int) $from->lesson_count - (int) $current->current_month_used_count);
 

@@ -62,7 +62,6 @@ class WebhookController extends Controller
         try {
             switch ($type) {
                 case 'checkout.session.completed':
-                    $sessionId = (string) ($event->data->object->id ?? '');
                     $subscriptionId = (string) ($event->data->object->subscription ?? '');
                     $customerId = (string) ($event->data->object->customer ?? '');
                     if ($subscriptionId !== '' && $customerId !== '') {

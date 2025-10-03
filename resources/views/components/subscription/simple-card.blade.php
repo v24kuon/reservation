@@ -13,7 +13,7 @@
             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 次回支払日
                 <span class="ml-2 font-medium">
-                    @if(isset($subscription->cancel_at_period_end) && $subscription->cancel_at_period_end === true)
+                    @if((bool) ($subscription->cancel_at_period_end ?? false))
                         解約のため無し
                     @else
                         {{ $subscription->current_period_end?->format('Y年m月d日') ?? '未定' }}

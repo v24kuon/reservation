@@ -22,18 +22,19 @@ it('prevents duplicate user-subscription pairs by unique constraint', function (
         'current_period_end' => now()->addDay(),
     ]);
 
-    try {
-        UserSubscription::create([
-            'user_id' => $user->id,
-            'plan_id' => $plan->id,
-            'stripe_subscription_id' => $stripeId,
-            'status' => UserSubscription::STATUS_ACTIVE,
-            'payment_status' => UserSubscription::PAYMENT_STATUS_PAID,
-            'current_period_start' => now(),
-            'current_period_end' => now()->addDay(),
-        ]);
-        expect(true)->toBeFalse();
-    } catch (Throwable $e) {
-        expect(UserSubscription::query()->where('user_id', $user->id)->where('stripe_subscription_id', $stripeId)->count())->toBe(1);
-    }
+    expect(fn () => UserSubscription::create([
+        'user_id' => $user->id,
+        'plan_id' => $plan->id,
+        'stripe_subscription_id' => $stripeId,
+        'status' => UserSubscription::STATUS_ACTIVE,
+        'payment_status' => UserSubscription::PAYMENT_STATUS_PAID,
+        'current_period_start' => now(),
+        'current_period_end' => now()->addDay(),
+    ]))->toThrow(\Illuminate\Database\QueryException::class);
+
+    expect(UserSubscription::query()
+        ->where('user_id', $user->id)
+        ->where('stripe_subscription_id', $stripeId)
+        ->count()
+    )->toBe(1);
 });

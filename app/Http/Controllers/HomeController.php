@@ -16,7 +16,7 @@ class HomeController extends Controller
     {
         $user = $request->user();
 
-        // Get next reservations (start time from now, soonest first), confirmed, limit 2
+        // Get next reservations (start time from now, soonest first), confirmed, limit 3
         $currentReservations = Reservation::query()
             ->select('reservations.*')
             ->join('lesson_schedules', 'lesson_schedules.id', '=', 'reservations.lesson_schedule_id')
@@ -29,17 +29,18 @@ class HomeController extends Controller
             ->confirmed()
             ->where('lesson_schedules.start_datetime', '>=', now())
             ->orderBy('lesson_schedules.start_datetime', 'asc')
-            ->limit(2)
+            ->limit(3)
             ->get();
 
-        // Get active subscriptions (all currently valid)
+        // Get active subscriptions (all currently valid), limit 3
         $activeSubscriptions = UserSubscription::query()
             ->with('plan')
             ->where('user_id', $user->id)
-            ->where('status', 'active')
-            ->where('payment_status', 'paid')
-            ->where('current_period_end', '>', now())
+            ->active()
+            ->paid()
+            ->notExpired()
             ->orderBy('current_period_end', 'asc')
+            ->limit(3)
             ->get();
 
         // Enrich with Stripe cancel flags for display

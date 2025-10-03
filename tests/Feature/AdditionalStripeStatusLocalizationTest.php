@@ -23,7 +23,7 @@ it('shows Japanese labels for additional statuses', function (): void {
         $sub = UserSubscription::create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
-            'stripe_subscription_id' => 'sub_'.uniqid(),
+            'stripe_subscription_id' => (string) Str::uuid(),
             'status' => $status,
             'payment_status' => UserSubscription::PAYMENT_STATUS_PAID,
             'current_period_start' => now(),

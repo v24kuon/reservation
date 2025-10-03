@@ -22,8 +22,8 @@ it('renders reservation history section before current subscriptions on mypage',
         ->assertOk()
         ->getContent();
 
-    $posHistory = mb_strpos($html, '予約履歴');
-    $posSubs = mb_strpos($html, '契約中のプラン');
+    $posHistory = mb_strpos($html, 'data-testid="reservation-history"');
+    $posSubs = mb_strpos($html, 'data-testid="current-subscriptions"');
 
     expect($posHistory)->toBeLessThan($posSubs);
 });
