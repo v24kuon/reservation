@@ -577,7 +577,7 @@
   - Dependencies: Task 46 / 依存関係: タスク46
   - Estimated time: 35 minutes / 推定時間: 35分
 
-- [ ] 48. Create subscription management page / サブスクリプション管理ページを作成
+- [x] 48. Create subscription management page / サブスクリプション管理ページを作成
   - File: resources/views/subscriptions/manage.blade.php (new) / ファイル: resources/views/subscriptions/manage.blade.php (新規)
   - File: app/Http/Controllers/Subscription/ManageController.php (new) / ファイル: app/Http/Controllers/Subscription/ManageController.php (新規)
   - Display current plan status and details / 現在のプラン状況・詳細を表示

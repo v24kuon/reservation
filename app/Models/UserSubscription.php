@@ -20,6 +20,16 @@ class UserSubscription extends Model
 
     public const STATUS_PAST_DUE = 'past_due';
 
+    public const STATUS_INCOMPLETE = 'incomplete';
+
+    public const STATUS_INCOMPLETE_EXPIRED = 'incomplete_expired';
+
+    public const STATUS_UNPAID = 'unpaid';
+
+    public const STATUS_PAUSED = 'paused';
+
+    public const STATUS_UNKNOWN = 'unknown';
+
     public const PAYMENT_STATUS_PAID = 'paid';
 
     public const PAYMENT_STATUS_UNPAID = 'unpaid';
@@ -33,6 +43,11 @@ class UserSubscription extends Model
         self::STATUS_TRIALING,
         self::STATUS_CANCELED,
         self::STATUS_PAST_DUE,
+        self::STATUS_INCOMPLETE,
+        self::STATUS_INCOMPLETE_EXPIRED,
+        self::STATUS_UNPAID,
+        self::STATUS_PAUSED,
+        self::STATUS_UNKNOWN,
     ];
 
     public const ALLOWED_PAYMENT_STATUSES = [
@@ -53,6 +68,8 @@ class UserSubscription extends Model
         'current_period_end',
         'current_month_used_count',
         'remaining_lessons',
+        'cancel_at_period_end',
+        'cancel_at',
     ];
 
     protected $casts = [
@@ -60,6 +77,8 @@ class UserSubscription extends Model
         'current_period_end' => 'datetime',
         'current_month_used_count' => 'integer',
         'remaining_lessons' => 'integer',
+        'cancel_at_period_end' => 'boolean',
+        'cancel_at' => 'datetime',
     ];
 
     /**
@@ -100,6 +119,17 @@ class UserSubscription extends Model
     public function scopePaid(Builder $query): Builder
     {
         return $query->where('payment_status', 'paid');
+    }
+
+    /**
+     * Scope a query to subscriptions that are not yet expired (no end or end in future).
+     */
+    public function scopeNotExpired(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q): void {
+            $q->whereNull('current_period_end')
+                ->orWhere('current_period_end', '>=', now());
+        });
     }
 
     /**
@@ -233,6 +263,11 @@ class UserSubscription extends Model
             self::STATUS_CANCELED => __('subscription.status.canceled'),
             self::STATUS_PAST_DUE => __('subscription.status.past_due'),
             self::STATUS_TRIALING => __('subscription.status.trialing'),
+            self::STATUS_INCOMPLETE => __('subscription.status.incomplete'),
+            self::STATUS_INCOMPLETE_EXPIRED => __('subscription.status.incomplete_expired'),
+            self::STATUS_UNPAID => __('subscription.status.unpaid'),
+            self::STATUS_PAUSED => __('subscription.status.paused'),
+            self::STATUS_UNKNOWN => __('subscription.status.unknown'),
             default => (string) $this->status,
         };
     }

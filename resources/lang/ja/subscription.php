@@ -6,6 +6,11 @@ return [
         'canceled' => 'キャンセル済み',
         'past_due' => '支払い遅延',
         'trialing' => 'トライアル中',
+        'incomplete' => '未完了',
+        'incomplete_expired' => '未完了（期限切れ）',
+        'unpaid' => '未払い',
+        'paused' => '一時停止',
+        'unknown' => '不明',
     ],
     'errors' => [
         'count_limit_reached' => 'ご利用可能な回数が上限に達しました。次回の期間開始後にお試しください。',
@@ -13,6 +18,7 @@ return [
         'payment_failed_grace' => 'お支払いに失敗しました。3日間の猶予期間中にお手続きをお願いします。',
         'plan_switch_invalid' => 'プラン切り替えに失敗しました。条件を確認して再度お試しください。',
         'checkout_failed' => '決済セッションの作成に失敗しました。時間をおいて再度お試しください。',
+        'switch_target_exists' => '既に切替先の有効なサブスクリプションをお持ちです。',
     ],
     'success' => [
         'reservation_canceled_refund' => '期限前キャンセルのため回数を戻しました。',

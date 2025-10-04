@@ -53,29 +53,14 @@
 
         <!-- Active Subscriptions Section -->
         <div class="flex items-center justify-between mt-4 mb-2">
-            <h3 class="text-xl font-extrabold text-gray-900 dark:text-gray-100">月謝一覧</h3>
-            <a href="#" class="text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:underline">すべて表示</a>
+            <h3 class="text-xl font-extrabold text-gray-900 dark:text-gray-100">プラン一覧</h3>
+            <a href="{{ route('subscriptions.manage') }}" class="text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:underline">すべて表示</a>
         </div>
 
         <div class="bg-white dark:bg-gray-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_1px_3px_0_rgba(0,0,0,0.3),0_1px_2px_-1px_rgba(0,0,0,0.3)] rounded-xl p-6 mt-4">
-                    <div class="space-y-3">
+            <div class="space-y-3">
                 @forelse($activeSubscriptions as $subscription)
-                    <div class="bg-gray-50 dark:bg-gray-700/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_1px_2px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_1px_2px_0_rgba(0,0,0,0.1)] rounded-lg p-4">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $subscription->plan?->name }}</h4>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    残り回数
-                                    <span class="ml-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_1px_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_1px_1px_0_rgba(0,0,0,0.1)]">
-                                        {{ $subscription->remaining_lessons ?? $subscription->plan?->lesson_count }}
-                                    </span>
-                                </p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    次回支払日<span class="ml-2 font-medium">{{ $subscription->current_period_end?->format('Y年m月d日') }}</span>
-                                </p>
-                            </div>
-                    </div>
-                    </div>
+                    <x-subscription.simple-card :subscription="$subscription" />
                 @empty
                     <div class="py-2 text-center text-sm text-gray-500 dark:text-gray-400">契約中のプランはありません</div>
                 @endforelse
