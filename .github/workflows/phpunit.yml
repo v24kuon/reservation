@@ -64,6 +64,18 @@ jobs:
           echo "STRIPE_SECRET=sk_test_dummy_secret_for_ci" >> .env.testing
           echo "STRIPE_WEBHOOK_SECRET=whsec_dummy_webhook_secret_for_ci" >> .env.testing
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build Vite assets
+        run: npm run build
+
       - name: Create SQLite database
         run: |
           mkdir -p database
