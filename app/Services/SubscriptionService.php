@@ -59,7 +59,7 @@ class SubscriptionService
             ->exists();
         if ($alreadyHasTarget) {
             throw ValidationException::withMessages([
-                'subscription' => '既に切替先の有効なサブスクリプションをお持ちです。',
+                'subscription' => trans('subscription.errors.switch_target_exists'),
             ]);
         }
 

@@ -15,17 +15,14 @@ it('enforces unique event id in stripe_webhook_events', function (): void {
         'received_at' => now(),
     ]);
 
-    try {
+    expect(function () use ($eventId) {
         DB::table('stripe_webhook_events')->insert([
             'event_id' => $eventId,
             'type' => 'invoice.payment_succeeded',
             'payload' => json_encode(['id' => $eventId]),
             'received_at' => now(),
         ]);
-        // if no exception thrown, force fail
-        $this->fail('Expected unique constraint violation but none was thrown');
-    } catch (Throwable $e) {
-        // expected unique constraint violation
-        expect(DB::table('stripe_webhook_events')->where('event_id', $eventId)->count())->toBe(1);
-    }
+    })->toThrow(\Illuminate\Database\QueryException::class);
+
+    expect(DB::table('stripe_webhook_events')->where('event_id', $eventId)->count())->toBe(1);
 });

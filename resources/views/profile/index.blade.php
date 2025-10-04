@@ -31,7 +31,6 @@
                         </li>
                     @endforeach
                 </ul>
-                <div class="mt-4">{{ $reservations->links() }}</div>
             @endif
         </div>
 
@@ -50,7 +49,6 @@
                         </li>
                     @endforeach
                 </ul>
-                <div class="mt-4">{{ $subscriptions->links() }}</div>
             @endif
         </div>
 

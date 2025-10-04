@@ -22,15 +22,23 @@ it('prevents duplicate user-subscription pairs by unique constraint', function (
         'current_period_end' => now()->addDay(),
     ]);
 
-    expect(fn () => UserSubscription::create([
-        'user_id' => $user->id,
-        'plan_id' => $plan->id,
-        'stripe_subscription_id' => $stripeId,
-        'status' => UserSubscription::STATUS_ACTIVE,
-        'payment_status' => UserSubscription::PAYMENT_STATUS_PAID,
-        'current_period_start' => now(),
-        'current_period_end' => now()->addDay(),
-    ]))->toThrow(\Illuminate\Database\QueryException::class);
+    $exception = null;
+    try {
+        UserSubscription::create([
+            'user_id' => $user->id,
+            'plan_id' => $plan->id,
+            'stripe_subscription_id' => $stripeId,
+            'status' => UserSubscription::STATUS_ACTIVE,
+            'payment_status' => UserSubscription::PAYMENT_STATUS_PAID,
+            'current_period_start' => now(),
+            'current_period_end' => now()->addDay(),
+        ]);
+    } catch (\Illuminate\Database\QueryException $e) {
+        $exception = $e;
+    }
+
+    expect($exception)->toBeInstanceOf(\Illuminate\Database\QueryException::class);
+    expect($exception->getCode())->toBe('23000'); // Integrity constraint violation
 
     expect(UserSubscription::query()
         ->where('user_id', $user->id)

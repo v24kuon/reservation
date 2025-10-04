@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Models\UserSubscription;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -49,11 +50,15 @@ class WebhookController extends Controller
                 'payload' => $payload,
                 'received_at' => now(),
             ]);
-        } catch (\Throwable $e) {
-            // Unique violation or other error -> if duplicate, skip; else log and skip
-            if (str_contains(strtolower((string) $e->getMessage()), 'unique')) {
+        } catch (QueryException $e) {
+            $state = $e->errorInfo[0] ?? $e->getCode();
+            if (in_array($state, ['23000', '23505'], true)) {
                 return response('ok', 200);
             }
+            report($e);
+
+            return response('ok', 200);
+        } catch (\Throwable $e) {
             report($e);
 
             return response('ok', 200);
@@ -71,6 +76,7 @@ class WebhookController extends Controller
 
                 case 'customer.subscription.created':
                 case 'customer.subscription.updated':
+                case 'customer.subscription.deleted':
                     $subscriptionId = (string) ($event->data->object->id ?? '');
                     $customerId = (string) ($event->data->object->customer ?? '');
                     if ($subscriptionId !== '' && $customerId !== '') {
@@ -158,11 +164,11 @@ class WebhookController extends Controller
 
         // Upsert using unique key on stripe_subscription_id to avoid UNIQUE violations
         $attributes = [
+            'user_id' => $user->id,
             'stripe_subscription_id' => (string) $subscription->id,
         ];
 
         $values = [
-            'user_id' => $user->id,
             'status' => $status,
             'payment_status' => $paymentStatus,
             'current_period_start' => $periodStart,
@@ -178,7 +184,12 @@ class WebhookController extends Controller
             $values['plan_id'] = $plan->id;
         }
 
-        UserSubscription::query()->updateOrCreate($attributes, $values);
+        $row = array_merge($attributes, $values, [
+            'updated_at' => now(),
+            'created_at' => now(),
+        ]);
+        // align with DB unique constraint on (user_id, stripe_subscription_id)
+        UserSubscription::query()->upsert([$row], ['user_id', 'stripe_subscription_id'], array_keys($values) + ['updated_at']);
     }
 
     private function syncSubscriptionByInvoiceId(string $invoiceId): void
@@ -215,7 +226,6 @@ class WebhookController extends Controller
             'incomplete' => UserSubscription::STATUS_INCOMPLETE,
             'incomplete_expired' => UserSubscription::STATUS_INCOMPLETE_EXPIRED,
             'unpaid' => UserSubscription::STATUS_UNPAID,
-            'paused' => UserSubscription::STATUS_PAUSED,
             default => UserSubscription::STATUS_UNKNOWN,
         };
     }
