@@ -53,11 +53,17 @@ class WebhookController extends Controller
         } catch (QueryException $e) {
             $state = $e->errorInfo[0] ?? $e->getCode();
             if (in_array($state, ['23000', '23505'], true)) {
+                // Duplicate event: continue only if not processed yet; otherwise ack
+                $existing = DB::table('stripe_webhook_events')->where('event_id', $eventId)->first();
+                if (! $existing || $existing->processed_at !== null) {
+                    return response('ok', 200);
+                }
+                // fall-through to processing when processed_at is null
+            } else {
+                report($e);
+
                 return response('ok', 200);
             }
-            report($e);
-
-            return response('ok', 200);
         } catch (\Throwable $e) {
             report($e);
 
@@ -98,11 +104,14 @@ class WebhookController extends Controller
             }
         } catch (\Throwable $e) {
             report($e);
-            // still 200 per Stripe recommendations (avoid retries on persistent app errors)
+
+            return response('failed to process', 500);
         }
 
-        // mark processed
-        DB::table('stripe_webhook_events')->where('event_id', $eventId)->update(['processed_at' => now()]);
+        // mark processed on success only
+        DB::table('stripe_webhook_events')
+            ->where('event_id', $eventId)
+            ->update(['processed_at' => now()]);
 
         return response('ok', 200);
     }
