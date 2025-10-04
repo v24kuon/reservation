@@ -70,7 +70,7 @@
                         <ul class="space-y-2 sm:space-y-3">
                             @foreach($favoriteStores as $store)
                                 <li>
-                                    <a href="{{ route('stores.show', $store) }}" class="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.99] overflow-hidden">
+                                    <a href="{{ route('stores.show', $store) }}" aria-label="{{ $store->name }}の詳細を見る" class="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.99] overflow-hidden">
                                         <span class="pointer-events-none absolute inset-0 group-active:bg-gray-200/30 dark:group-active:bg-white/10 transition"></span>
                                         <div class="py-1 sm:py-0 flex-1">
                                             <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium group-hover:underline">{{ $store->name }}</p>
@@ -100,7 +100,7 @@
                         <ul class="space-y-2 sm:space-y-3">
                             @foreach($favoriteInstructors as $instructor)
                                 <li>
-                                    <a href="{{ route('instructors.show', $instructor) }}" class="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.99] overflow-hidden">
+                                    <a href="{{ route('instructors.show', $instructor) }}" aria-label="{{ $instructor->name }}の詳細を見る" class="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 active:scale-[0.99] overflow-hidden">
                                         <span class="pointer-events-none absolute inset-0 group-active:bg-gray-200/30 dark:group-active:bg-white/10 transition"></span>
                                         <div class="py-1 sm:py-0 flex-1">
                                             <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium group-hover:underline">{{ $instructor->name }}</p>
