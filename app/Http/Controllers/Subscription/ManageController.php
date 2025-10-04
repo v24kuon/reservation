@@ -90,7 +90,9 @@ class ManageController extends Controller
         }
 
         try {
-            $client = new \Stripe\StripeClient($secret);
+            $client = new \Stripe\StripeClient([
+                'api_key' => $secret,
+            ]);
             // 期末解約（即時キャンセルではない）
             $client->subscriptions->update($stripeId, [
                 'cancel_at_period_end' => true,

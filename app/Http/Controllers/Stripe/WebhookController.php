@@ -93,14 +93,6 @@ class WebhookController extends Controller
                     }
                     break;
 
-                case 'invoice_payment.paid':
-                    // Newer API: object is invoice_payment; fetch invoice to resolve customer/subscription
-                    $invoiceId = (string) ($event->data->object->invoice ?? '');
-                    if ($invoiceId !== '') {
-                        $this->syncSubscriptionByInvoiceId($invoiceId);
-                    }
-                    break;
-
                 default:
                     // Ignore other events
                     break;
@@ -188,8 +180,12 @@ class WebhookController extends Controller
             'updated_at' => now(),
             'created_at' => now(),
         ]);
-        // align with DB unique constraint on (user_id, stripe_subscription_id)
-        UserSubscription::query()->upsert([$row], ['user_id', 'stripe_subscription_id'], array_keys($values) + ['updated_at']);
+        // align with DB unique constraint on stripe_subscription_id
+        UserSubscription::query()->upsert(
+            [$row],
+            ['stripe_subscription_id'],
+            array_merge(array_keys($values), ['updated_at'])
+        );
     }
 
     private function syncSubscriptionByInvoiceId(string $invoiceId): void
