@@ -84,7 +84,6 @@ class WebhookController extends Controller
                     }
                     break;
 
-                case 'invoice.paid':
                 case 'invoice.payment_succeeded':
                     $subscriptionId = (string) ($event->data->object->subscription ?? '');
                     $customerId = (string) ($event->data->object->customer ?? '');
