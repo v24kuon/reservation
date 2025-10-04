@@ -51,7 +51,6 @@ jobs:
       - name: Create .env.testing file
         run: |
           cp .env.example .env.testing
-          echo "APP_KEY=" >> .env.testing
           echo "DB_CONNECTION=sqlite" >> .env.testing
           echo "DB_DATABASE=./database/database.sqlite" >> .env.testing
 

@@ -108,7 +108,7 @@ class WebhookController extends Controller
         return response('ok', 200);
     }
 
-    private function syncSubscriptionById(string $stripeSubscriptionId, string $stripeCustomerId, bool $forcePaid = false): void
+    private function getStripeClient(): StripeClient
     {
         $secret = config('services.stripe.secret');
         if (empty($secret)) {
@@ -117,7 +117,12 @@ class WebhookController extends Controller
             ]);
         }
 
-        $client = new StripeClient(['api_key' => $secret]);
+        return new StripeClient(['api_key' => $secret]);
+    }
+
+    private function syncSubscriptionById(string $stripeSubscriptionId, string $stripeCustomerId, bool $forcePaid = false): void
+    {
+        $client = $this->getStripeClient();
 
         $subscription = $client->subscriptions->retrieve($stripeSubscriptionId, [
             'expand' => ['items.data.price.product'],
@@ -186,30 +191,6 @@ class WebhookController extends Controller
             ['stripe_subscription_id'],
             array_merge(array_keys($values), ['updated_at'])
         );
-    }
-
-    private function syncSubscriptionByInvoiceId(string $invoiceId): void
-    {
-        $secret = config('services.stripe.secret');
-        if (empty($secret)) {
-            throw ValidationException::withMessages([
-                'stripe' => 'StripeのAPIキーが未設定です（.env の STRIPE_SECRET を設定してください）。',
-            ]);
-        }
-
-        $client = new StripeClient(['api_key' => $secret]);
-        try {
-            $invoice = $client->invoices->retrieve($invoiceId, []);
-        } catch (\Throwable $e) {
-            report($e);
-
-            return; // skip when invoice retrieval fails
-        }
-        $subscriptionId = (string) ($invoice->subscription ?? '');
-        $customerId = (string) ($invoice->customer ?? '');
-        if ($subscriptionId !== '' && $customerId !== '') {
-            $this->syncSubscriptionById($subscriptionId, $customerId, forcePaid: true);
-        }
     }
 
     private function mapStripeStatusToLocal(string $stripeStatus): string
