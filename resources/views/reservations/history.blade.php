@@ -6,6 +6,16 @@
     </x-slot>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        @if (session('status'))
+            <div>
+                <x-auth-session-status :status="__(session('status'))" />
+            </div>
+        @endif
+        @if ($errors->reservation ?? false)
+            <div>
+                <x-input-error :messages="$errors->get('reservation')" />
+            </div>
+        @endif
         <form method="GET" action="{{ route('reservations.history') }}" class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div class="flex flex-col">
@@ -36,18 +46,47 @@
             <div class="rounded-xl bg-white dark:bg-gray-800 p-4 shadow">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">今後の予約</h3>
                 @forelse($upcoming as $reservation)
-                    <div class="border-b border-gray-100 dark:border-gray-700 py-3 flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-900 dark:text-gray-100 font-medium">{{ $reservation->lessonSchedule?->lesson?->name ?? '未設定' }}</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">店舗: {{ $reservation->lessonSchedule?->lesson?->store?->name ?? '未設定' }}</p>
+                    <div class="border-b border-gray-100 dark:border-gray-700 py-3">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="min-w-0">
+                                <p class="text-gray-900 dark:text-gray-100 font-medium truncate">{{ $reservation->lessonSchedule?->lesson?->name ?? '未設定' }}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 truncate">店舗: {{ $reservation->lessonSchedule?->lesson?->store?->name ?? '未設定' }}</p>
+                            </div>
+                            <div class="shrink-0">
+                                @if($reservation->lessonSchedule?->start_datetime)
+                                    <time datetime="{{ $reservation->lessonSchedule->start_datetime->toIso8601String() }}" class="text-sm text-gray-700 dark:text-gray-300">
+                                        {{ $reservation->lessonSchedule->start_datetime->format('Y/m/d H:i') }}
+                                    </time>
+                                @else
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">未設定</span>
+                                @endif
+                            </div>
                         </div>
-                        @if($reservation->lessonSchedule?->start_datetime)
-                            <time datetime="{{ $reservation->lessonSchedule->start_datetime->toIso8601String() }}" class="text-sm text-gray-700 dark:text-gray-300">
-                                {{ $reservation->lessonSchedule->start_datetime->format('Y/m/d H:i') }}
-                            </time>
-                        @else
-                            <span class="text-sm text-gray-700 dark:text-gray-300">未設定</span>
-                        @endif
+                        @php $buttonLabel = $reservation->isCanceled() ? 'キャンセル済み' : 'キャンセル'; @endphp
+                        <div class="mt-2">
+                            <form method="POST" action="{{ route('reservations.destroy', $reservation) }}" data-confirm="この予約をキャンセルしますか？">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-3 py-1.5 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:pointer-events-none" {{ ($reservation->isCanceled() || ! $reservation->canBeCanceled()) ? 'disabled' : '' }} aria-label="予約をキャンセル">{{ $buttonLabel }}</button>
+                            </form>
+                            @php
+                                $reason = null;
+                                if (! $reservation->isCanceled() && ! $reservation->canBeCanceled()) {
+                                    $schedule = $reservation->lessonSchedule;
+                                    $lesson = $schedule?->lesson;
+                                    if ($schedule && $lesson) {
+                                        $cancelHours = max(0, (int) ($lesson->cancel_deadline_hours ?? 0));
+                                        $deadline = $schedule->start_datetime->copy()->subHours($cancelHours);
+                                        $reason = now()->gt($deadline) ? 'キャンセル期限を過ぎています' : 'キャンセル不可の状態です';
+                                    } else {
+                                        $reason = 'キャンセル対象の情報不足のためキャンセルできません';
+                                    }
+                                }
+                            @endphp
+                            @if($reason)
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $reason }}</p>
+                            @endif
+                        </div>
                     </div>
                 @empty
                     <p class="text-sm text-gray-600 dark:text-gray-400">今後の予約はありません。</p>

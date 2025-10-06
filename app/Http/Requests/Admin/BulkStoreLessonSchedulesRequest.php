@@ -55,17 +55,32 @@ class BulkStoreLessonSchedulesRequest extends FormRequest
                     } else {
                         $items[$idx]['is_active'] = true; // default when not provided
                     }
-                    // Normalize incoming datetimes (ISO-8601 with offset or datetime-local) to server format
+                    // Normalize incoming datetimes (ISO-8601 with offset OR datetime-local) to server format
                     if (! empty($row['start_datetime'])) {
                         try {
-                            $items[$idx]['start_datetime'] = Carbon::parse((string) $row['start_datetime'])->format('Y-m-d H:i:s');
+                            $raw = (string) $row['start_datetime'];
+                            // If value looks like datetime-local (no timezone), treat as app timezone local
+                            if (preg_match('/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/', $raw) === 1 && ! preg_match('/[Zz]|[+\-]\d{2}:?\d{2}$/', $raw)) {
+                                $items[$idx]['start_datetime'] = Carbon::createFromFormat('Y-m-d H:i:s', str_replace('T', ' ', preg_replace('/^(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2})(?!:)/', '$1:00', $raw)), config('app.timezone'))
+                                    ->setTimezone('UTC')
+                                    ->format('Y-m-d H:i:s');
+                            } else {
+                                $items[$idx]['start_datetime'] = Carbon::parse($raw)->format('Y-m-d H:i:s');
+                            }
                         } catch (\Throwable $e) {
                             // keep original; validation will catch invalid date
                         }
                     }
                     if (! empty($row['end_datetime'])) {
                         try {
-                            $items[$idx]['end_datetime'] = Carbon::parse((string) $row['end_datetime'])->format('Y-m-d H:i:s');
+                            $raw = (string) $row['end_datetime'];
+                            if (preg_match('/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/', $raw) === 1 && ! preg_match('/[Zz]|[+\-]\d{2}:?\d{2}$/', $raw)) {
+                                $items[$idx]['end_datetime'] = Carbon::createFromFormat('Y-m-d H:i:s', str_replace('T', ' ', preg_replace('/^(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2})(?!:)/', '$1:00', $raw)), config('app.timezone'))
+                                    ->setTimezone('UTC')
+                                    ->format('Y-m-d H:i:s');
+                            } else {
+                                $items[$idx]['end_datetime'] = Carbon::parse($raw)->format('Y-m-d H:i:s');
+                            }
                         } catch (\Throwable $e) {
                             // keep original; validation will catch invalid date
                         }
