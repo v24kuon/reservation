@@ -328,6 +328,15 @@ class Reservation extends Model
                     return ['success' => false, 'error' => trans('reservation.errors.cancel_deadline_passed')];
                 }
 
+                // Prevent unique constraint violation on (user_id, lesson_schedule_id, status)
+                // by removing any pre-existing canceled rows for the same user/schedule.
+                self::query()
+                    ->where('user_id', $this->user_id)
+                    ->where('lesson_schedule_id', $this->lesson_schedule_id)
+                    ->where('status', self::STATUS_CANCELED)
+                    ->where('id', '!=', $this->id)
+                    ->delete();
+
                 // Update status (avoid mass-assignment; status is not fillable)
                 $this->status = self::STATUS_CANCELED;
                 $this->save();

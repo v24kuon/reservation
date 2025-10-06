@@ -261,9 +261,10 @@ class LessonScheduleController extends Controller
                     return response()->json(['message' => '終了時刻は開始時刻より後である必要があります。'], 422);
                 }
                 $items[] = [
-                    // Return ISO-8601 with offset to prevent TZ drift on clients
-                    'start_datetime' => $start->toIso8601String(),
-                    'end_datetime' => $end->toIso8601String(),
+                    // Return local-like ISO without timezone to avoid browser TZ shifting
+                    // Example: 2025-01-05T10:00:00
+                    'start_datetime' => $start->format('Y-m-d\TH:i:s'),
+                    'end_datetime' => $end->format('Y-m-d\TH:i:s'),
                 ];
                 if (count($items) > $limit) {
                     return response()->json(['message' => "生成件数が多すぎます（上限: {$limit}件）。期間や曜日を見直してください。"], 422);
